@@ -61,3 +61,9 @@ h4 {
   border: 2px solid var(--color-ink);
   border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
 }
+
+/* Pill border for TagPill and FacetFilter chips — shared, never ad-hoc. */
+.sk-pill {
+  border: 1.5px solid var(--color-ink);
+  border-radius: 8px 3px 10px 3px / 3px 10px 3px 8px;
+}

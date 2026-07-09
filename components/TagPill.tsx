@@ -13,8 +13,7 @@ const ROTATION: Record<NonNullable<TagPillProps["rotate"]>, string> = {
 export default function TagPill({ label, rotate = "none" }: TagPillProps) {
   return (
     <span
-      className={`inline-block border-[1.5px] border-ink px-2 py-0.5 text-xs text-ink ${ROTATION[rotate]}`}
-      style={{ borderRadius: "8px 3px 10px 3px / 3px 10px 3px 8px" }}
+      className={`sk-pill inline-block px-2 py-0.5 text-xs text-ink ${ROTATION[rotate]}`}
     >
       {label}
     </span>
