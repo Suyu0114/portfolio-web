@@ -1,7 +1,11 @@
 # SPEC — Suyu portfolio ("field notes")
 
 Version: v1.0 (2026-07-05, drafted with Claude in claude.ai)
-Status: approved direction; TODO inputs in §10 pending.
+v1.1 (2026-07-08, per Suyu): BlueJaysFanWeb moved to featured order 1
+(World Cup → 2, study → 3); Caveat finalized as display face; contact
+email/GitHub/LinkedIn supplied; the three featured projects are all
+year 2026.
+Status: approved direction; remaining TODO inputs in §10 pending.
 
 ---
 
@@ -46,7 +50,7 @@ each recruiter type self-navigates to their keywords.
 | Styling | Tailwind (current stable) + small global CSS for sketch utilities | |
 | Content | MDX in `/content` via `@next/mdx` or `next-mdx-remote` | Do **not** use contentlayer — assumed unmaintained, verify at P0 (§11) |
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
-| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat (finalize at P0 among Caveat / Patrick Hand / Gochi Hand). Body: Inter. Mono: JetBrains Mono |
+| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: Inter. Mono: JetBrains Mono |
 | Images | `next/image`, screenshots in `/public/screens/` | |
 | Deploy | Vercel, custom domain (TODO §10) | No runtime env vars |
 
@@ -130,8 +134,8 @@ Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
    caption "calibration, hand-checked"). This SVG is decorative and
    static — not rough.js, not data-bound.
 2. **Featured notes.** Section head + DoodleArrow. Three `SketchCard`s
-   in order: World Cup platform, pre-registered study, BlueJaysFanWeb
-   (§7). Each: title (15px/500), TagPills, one-liner (13px), `read case
+   in order: BlueJaysFanWeb, World Cup platform, pre-registered study
+   (§7, order updated v1.1). Each: title (15px/500), TagPills, one-liner (13px), `read case
    study →` link in `--accent`. Below the grid: quiet text link
    `all projects →` to `/projects`.
 3. **Contact strip.** One line: availability + email + GitHub/LinkedIn
@@ -203,8 +207,9 @@ case study; screenshots carry the rest — this is a deliberate scope cap.
 Fixed facet tag list: `data engineering` · `modeling` · `frontend` ·
 `BI` · `research`.
 
-### 7.1 World Cup 2026 forecasting platform — featured, order 1
+### 7.1 World Cup 2026 forecasting platform — featured, order 2
 
+- Year: 2026.
 - Tags: data engineering, modeling, frontend.
 - One-liner: "Dixon-Coles + Monte Carlo engine, benchmarked against
   market-implied probabilities. Next.js · Supabase · Python ETL."
@@ -223,8 +228,9 @@ Fixed facet tag list: `data engineering` · `modeling` · `frontend` ·
   clinched); detected draw-rate anomaly (~40% observed vs ~25%
   historical) during group stage.
 
-### 7.2 A pre-registered study on unconventional features — featured, order 2
+### 7.2 A pre-registered study on unconventional features — featured, order 3
 
+- Year: 2026.
 - Tags: research, modeling.
 - One-liner: "47 frozen hypotheses, BH-FDR correction, n=1,181 — and
   the honest story of finding nothing."
@@ -240,8 +246,9 @@ Fixed facet tag list: `data engineering` · `modeling` · `frontend` ·
   ingest, out-of-sample validation). The takeaway is epistemic honesty
   as a professional skill.
 
-### 7.3 BlueJaysFanWeb — featured, order 3
+### 7.3 BlueJaysFanWeb — featured, order 1
 
+- Year: 2026.
 - Tags: frontend, data engineering.
 - One-liner: "A Blue Jays analytics site: Statcast spray charts, pitch
   heatmaps, WAR breakdowns. Next.js · D3 · Python ETL."
@@ -321,7 +328,9 @@ downloads.
 
 - ⛔ Display name form (e.g. "Suyu" alone vs full name) — affects hero,
   nav, metadata, OG.
-- ⛔ Contact email; GitHub URL; LinkedIn URL.
+- ✅ Contact (supplied 2026-07-08): suyu0229@gmail.com ·
+  https://github.com/Suyu0114 · https://www.linkedin.com/in/suyu-cheng
+- ⛔ Availability line for the contact strip (§6.1.3).
 - Domain choice (fallback: `*.vercel.app` for v1).
 - ⛔ Resume PDF (final English version).
 - Live demo URLs + repo visibility decision per project (public repos
@@ -329,7 +338,7 @@ downloads.
   with selected code snippets).
 - Screenshot list per project (P3): 2–3 per case study, 1600px-wide
   originals.
-- Final handwriting font pick after seeing P0 samples.
+- ✅ Handwriting font: Caveat (picked 2026-07-08 from P0 samples).
 
 ## 11. Verify before build (P0, report findings — do not assume)
 
