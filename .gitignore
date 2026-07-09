@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# private source material for P3 drafting (notes/README.md explains)
+notes/*
+!notes/README.md
