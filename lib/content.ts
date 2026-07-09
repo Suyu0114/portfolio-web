@@ -2,15 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { z } from "zod";
+import { FACET_TAGS } from "@/lib/facets";
 
-/** Fixed facet tag list — SPEC.md §7. */
-export const FACET_TAGS = [
-  "data engineering",
-  "modeling",
-  "frontend",
-  "BI",
-  "research",
-] as const;
+export { FACET_TAGS };
 
 /** Frontmatter schema — SPEC.md §6.3. Unknown keys are rejected. */
 const frontmatterSchema = z

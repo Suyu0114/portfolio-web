@@ -4,9 +4,15 @@ import ContactStrip from "@/components/ContactStrip";
 import DoodleArrow from "@/components/DoodleArrow";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
-import { FEATURED_CARDS, HERO } from "@/lib/siteContent";
+import { getAllProjects } from "@/lib/content";
+import { HERO } from "@/lib/siteContent";
 
 export default function Home() {
+  // getAllProjects() is already sorted by frontmatter order.
+  const featured = getAllProjects()
+    .filter((p) => p.frontmatter.featured)
+    .slice(0, 3);
+
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6">
       {/* Hero — SPEC §6.1.1 */}
@@ -29,13 +35,13 @@ export default function Home() {
           featured notes <DoodleArrow className="ml-1" />
         </h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURED_CARDS.map((card, i) => (
+          {featured.map(({ frontmatter: fm }, i) => (
             <SketchCard
-              key={card.slug}
-              title={card.title}
-              tags={card.tags}
-              oneLiner={card.oneLiner}
-              href={`/projects/${card.slug}`}
+              key={fm.slug}
+              title={fm.title}
+              tags={fm.tags}
+              oneLiner={fm.oneLiner}
+              href={`/projects/${fm.slug}`}
               variant={i % 2 === 0 ? "a" : "b"}
             />
           ))}
