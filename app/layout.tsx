@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Caveat, Inter, JetBrains_Mono } from "next/font/google";
+import Footer from "@/components/Footer";
+import Nav from "@/components/Nav";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,8 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Display face: Caveat is the P0 working default; final pick happens
-// after Suyu reviews the samples on /dev/tokens (SPEC.md §10).
+// Display face: Caveat — finalized by Suyu after the P0 sample review.
 const caveat = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
@@ -24,9 +25,10 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  // TODO(§10 display name): final title pattern "{Page} — Suyu" lands in P4.
-  title: "field notes — portfolio (P0 scaffold)",
-  description: "Portfolio under construction — P0 scaffold.",
+  // TODO(P4): per-page metadata, final "{Page} — Suyu" pattern, OG image.
+  title: "field notes — Suyu",
+  description:
+    "I'm Suyu — I build data products end-to-end, from raw pipelines to statistical models to the interfaces people actually use.",
 };
 
 export default function RootLayout({
@@ -39,7 +41,11 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <Nav />
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }
