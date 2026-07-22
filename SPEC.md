@@ -5,6 +5,9 @@ v1.1 (2026-07-08, per Suyu): BlueJaysFanWeb moved to featured order 1
 (World Cup → 2, study → 3); Caveat finalized as display face; contact
 email/GitHub/LinkedIn supplied; the three featured projects are all
 year 2026.
+v1.2 (2026-07-08, per Suyu): dropped §7.4 (animal shelter dashboard)
+and §7.5 (graph-based fraud detection) from scope. v1 project set is
+now the three featured case studies only.
 Status: approved direction; remaining TODO inputs in §10 pending.
 
 ---
@@ -143,7 +146,7 @@ Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
 
 ### 6.2 /projects
 
-- Grid of all project cards (4 full + 1 mini, §7).
+- Grid of all project cards (3 full, §7).
 - `FacetFilter`: client component; tag chips toggle filtering; state in
   `?tag=` query param; no external library; "all" resets. Empty result
   state uses a small hand note (should be unreachable with v1 tags).
@@ -259,21 +262,6 @@ Fixed facet tag list: `data engineering` · `modeling` · `frontend` ·
 - **Data note:** never republish raw FanGraphs member-export data on the
   portfolio; screenshots of self-built charts pending the ToS check
   in §11.
-
-### 7.4 Animal shelter intake→outcome dashboard — order 4, not featured
-
-- Tags: BI.
-- One-liner: "162,932 intake-to-outcome records in Power BI: role-playing
-  date dimensions, DAX measures, decision-ready views."
-- Delivery: screenshots primary; Power BI publish-to-web embed only if
-  the §11 check passes (public dataset, but confirm).
-
-### 7.5 Graph-based fraud detection (mini card) — order 5, optional
-
-- Tags: data engineering, research.
-- Coursework project: Neo4j + GDS (WCC, PageRank) on the PaySim
-  dataset. Small card, links to repo if public; no full case study
-  page in v1.
 
 ## 8. Component inventory
 
