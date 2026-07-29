@@ -1,9 +1,15 @@
 import type { MDXComponents } from "mdx/types";
+import BlueJaysArch from "@/components/BlueJaysArch";
 import Figure from "@/components/Figure";
+import StudyArch from "@/components/StudyArch";
+import StudyNulls from "@/components/StudyNulls";
+import WorldCupArch from "@/components/WorldCupArch";
+import WorldCupCalibration from "@/components/WorldCupCalibration";
 
 /**
  * MDX component map — SPEC §8: handwriting h2 headings, code blocks in
- * mono on --card, Figure available inside case study bodies.
+ * mono on --card, plus the case-study visuals (Figure screenshots,
+ * per-project architecture flows, and rough.js data charts).
  */
 export const mdxComponents: MDXComponents = {
   h2: (props) => (
@@ -26,4 +32,9 @@ export const mdxComponents: MDXComponents = {
     />
   ),
   Figure,
+  BlueJaysArch,
+  WorldCupArch,
+  WorldCupCalibration,
+  StudyArch,
+  StudyNulls,
 };
