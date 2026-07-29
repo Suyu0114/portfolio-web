@@ -18,9 +18,14 @@ npm run build      # static production build (fails loud on bad content)
 
 ## Content
 
-Case studies live in `content/*.mdx`. Frontmatter is validated against
-the schema in `lib/content.ts` at build time — a missing or invalid
-field fails the build by design.
+Case studies live in `content/*.mdx`, rendered through the component map
+in `lib/mdxComponents.tsx` (`Figure` screenshots, per-project architecture
+flows, rough.js data charts). Frontmatter is validated against the schema
+in `lib/content.ts` at build time, and `Figure` verifies each screenshot
+exists under `public/` — a missing or invalid field, or a missing image,
+fails the build by design.
 
-Dev-only pages while building: `/dev/tokens` (design tokens, font
-samples, rough.js spike) and `/dev/mdx` (content pipeline check).
+Screenshots live in `public/screens/`, named `<slug>-<view>.png`.
+
+Dev-only page while building: `/dev/tokens` (design tokens, font samples,
+rough.js spike). Removed before P5.
