@@ -21,7 +21,6 @@
 
 /* Fonts are loaded via next/font in app/layout.tsx. */
 @theme inline {
-  --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
   --font-display: var(--font-caveat);
 }
@@ -29,7 +28,9 @@
 body {
   background-color: var(--color-paper);
   color: var(--color-ink-soft);
-  font-family: var(--font-sans);
+  /* Body face: JetBrains Mono — SPEC.md §4.2 (changed from Inter
+     2026-07-29 at Suyu's direction; Inter removed). */
+  font-family: var(--font-mono);
   font-size: 16px;
   line-height: 1.65;
 }

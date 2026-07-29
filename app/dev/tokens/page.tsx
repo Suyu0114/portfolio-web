@@ -93,7 +93,7 @@ export default function TokensPage() {
       </h2>
       <div className="mt-4 rounded-sm border border-rule bg-card p-6">
         <p>
-          Body text is Inter at 16px with line-height 1.65 in --ink-soft.
+          Body text is JetBrains Mono at 16px with line-height 1.65 in --ink-soft.
           Sentence case everywhere; no all caps.
         </p>
         <p className="mt-2 font-mono text-sm text-ink">

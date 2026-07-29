@@ -53,7 +53,7 @@ each recruiter type self-navigates to their keywords.
 | Styling | Tailwind (current stable) + small global CSS for sketch utilities | |
 | Content | MDX in `/content` via `@next/mdx` or `next-mdx-remote` | Do **not** use contentlayer — assumed unmaintained, verify at P0 (§11) |
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
-| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: Inter. Mono: JetBrains Mono |
+| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). |
 | Images | `next/image`, screenshots in `/public/screens/` | |
 | Deploy | Vercel, custom domain (TODO §10) | No runtime env vars |
 
@@ -90,8 +90,10 @@ fix by removing color, not adding it.
 
 - Display (handwriting): headings h1–h2, hand notes, chart labels.
   ≥ 20px only. Weights 500/700.
-- Body: Inter 15–16px, line-height 1.65, `--ink-soft`.
-- Mono: inline code, stack lists, small technical labels.
+- Body: JetBrains Mono 15–16px, line-height 1.65, `--ink-soft`
+  (changed from Inter 2026-07-29 at Suyu's direction; Inter removed).
+- Mono is the body face; inline code, stack lists, and small technical
+  labels use it too.
 - Sentence case everywhere. No ALL CAPS.
 
 ### 4.3 Sketch utilities
@@ -327,6 +329,8 @@ downloads.
 - Screenshot list per project (P3): 2–3 per case study, 1600px-wide
   originals.
 - ✅ Handwriting font: Caveat (picked 2026-07-08 from P0 samples).
+- ✅ Body font: JetBrains Mono (changed from Inter 2026-07-29 at Suyu's
+  direction; Inter removed).
 
 ## 11. Verify before build (P0, report findings — do not assume)
 

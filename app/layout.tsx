@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import { Caveat, Inter, JetBrains_Mono } from "next/font/google";
+import { Caveat, JetBrains_Mono } from "next/font/google";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -39,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${caveat.variable} h-full antialiased`}
+      className={`${jetbrainsMono.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Nav />

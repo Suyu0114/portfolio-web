@@ -20,8 +20,11 @@ do not improvise a resolution.
    flag it instead of building it.
 4. **Design tokens are frozen.** Only the colors and fonts in SPEC.md §4
    may appear. A new color or font is a spec change, not a code change.
-5. **Handwriting font is display-only.** The handwriting face appears
-   only at ≥ 20px, and never in body copy, tags, or long passages.
+5. **Handwriting font is display-only.** The handwriting face (Caveat)
+   appears only at ≥ 20px, and never in body copy, tags, or long
+   passages. Body, tags, labels, and code are all JetBrains Mono — there
+   is no sans/Inter face (removed 2026-07-29); don't reintroduce one
+   without a spec change.
 6. **No dark mode.** Do not add `prefers-color-scheme` styling. The paper
    aesthetic is light-only by design.
 7. **English only.** No i18n scaffolding, no locale routing.
