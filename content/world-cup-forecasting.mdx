@@ -10,30 +10,140 @@ year: "2026"
 stack:
   - "Next.js"
   - "Supabase"
-  - "Python ETL"
+  - "Python"
 featured: true
 order: 2
+links:
+  demo: "https://wcup2026-analytics.vercel.app/en/bracket"
+  repo: "https://github.com/Suyu0114/wcup2026-analytics"
 ---
 
 ## Context
 
-TODO(P3): drafted with Suyu in claude.ai, then committed. Framing rule
-(SPEC §7.1): forecasting/probability platform benchmarked against
-de-vigged market odds; do not foreground betting.
+The 2026 World Cup is the first one I've watched while living in a host
+city. I wanted to understand each match as a probability rather than a
+prediction — and, just as much, to build something that is honest about
+how good a hobby model can actually be. Closing market odds, once you
+strip the bookmaker's margin, encode an enormous amount of information. A
+spreadsheet does not beat that. So the whole platform is designed around a
+single discipline: **show the model and the market side by side, and label
+the model as the experimental one.**
 
 ## What I built
 
-TODO(P3): architecture sketch + `Figure` screenshots.
+A Python engine turns Elo ratings into expected goals, runs them through a
+Dixon-Coles scoring model, and produces 1X2, over/under and both-teams-to-
+score probabilities for every match — all read off the same score-line
+matrix, and each shown next to the de-vigged market price so the model is
+never presented as the answer on its own.
+
+<Figure
+  src="/screens/world-cup-forecasting-match-prediction.png"
+  alt="A match forecast card showing model probabilities beside de-vigged market probabilities"
+  caption="every model number sits next to the market's fair price"
+  width={2392}
+  height={1456}
+/>
+
+On top of the per-match model, a Monte Carlo layer simulates the whole
+tournament — all 72 group matches, ten thousand times — to produce
+advancement and title probabilities under the new 12-groups-of-four
+format, where the top two of each group plus the eight best third-placed
+teams reach the round of 32. A single-match knockout advance is scored as
+the win-expectancy `p_home + ½·p_draw`, so extra time and penalties fold in
+without a separate model.
+
+<WorldCupArch />
 
 ## Key decisions & tradeoffs
 
-TODO(P3): candidates in SPEC §7.1 — fact-vs-model separation, frozen
-value.py + golden vectors, fail-loud idempotent ETL, Annex C lookup.
+**Market probability is the ground truth; the model is a labeled guest.**
+Every prediction appears beside Pinnacle's de-vigged odds, and the model
+carries an "experimental" tag everywhere it shows. The alternative — front
+the model as the answer — would have been dishonest and, frankly, wrong
+more often. The point of the site is a second opinion, not a tip.
+
+**Fit the model offline, with no look-ahead leakage.** The Dixon-Coles
+constants were fit on roughly 1,932 international matches since 2010, using
+only the pre-match Elo snapshot for each game; a version only ships if its
+validation log-loss beats the previous one. When I then compared v1.0 to
+the de-vigged market, the model was overconfident in favorites and too low
+on draws — and an independent refit moved in exactly the same direction.
+Two independent signals agreeing is the reassuring kind of result.
+
+<WorldCupCalibration />
+
+**Expected goals come from a log-linear link, and the host lives in the
+data model.** Elo maps to each team's expected goals through a log-linear
+function, not the tempting additive "supremacy" split — that shortcut sends
+λ negative when the gap between two teams is large, and a negative Poisson
+rate is nonsense. Home advantage is only applied to the three host nations
+in their own stadiums, worth roughly an 85-Elo boost. There's a subtle data
+trap in that: the fixtures feed lists a host as the *away* side in some
+third-round matches, so I apply a symmetric `is_host_away` adjustment rather
+than swapping the match orientation, which would have desynced the odds and
+result ingest that key off the feed's ordering.
+
+**Annex C is a validated lookup, not reimplemented logic.** In the 2026
+format the eight best third-placed teams are seeded into the round of 32 by
+a FIFA-specified table across C(12,8) = 495 group combinations — rules that
+are *not* algorithmically derivable. I scraped that table into a 495-row
+lookup and hard-validated it (a bijection, no same-group matchups,
+cross-checked against the bracket's candidate sets). Reimplementing the
+seeding as logic would have been guesswork; a table you can validate beats
+code you can't.
+
+**Facts and model live on separate code paths.** The standings and the
+qualification-scenario flags (top-two clinched, eliminated, dead rubber,
+convenience draw) are computed as *facts* — no model, no calibration —
+using a deliberately conservative points-band method that can only
+under-report a clinch, never falsely declare one. The tempting shortcut was
+to reuse the Monte Carlo ranking, but a simulation forces a full order via
+tiebreakers and would lie about certainty. A number that reads as fact has
+to be one.
+
+<Figure
+  src="/screens/world-cup-forecasting-qualification.png"
+  alt="Qualification-scenario view flagging clinched, eliminated and still-alive teams per group"
+  caption="qualification scenarios — computed as facts, not simulated"
+  width={2582}
+  height={1292}
+/>
 
 ## Results
 
-TODO(P3): verified numbers only (CLAUDE.md rule 1).
+Seventy-two group-stage matches were forecast before a ball was kicked,
+each benchmarked against the market, with full-tournament champion and
+advancement odds from the Monte Carlo layer and a live knockout bracket.
+
+<Figure
+  src="/screens/world-cup-forecasting-bracket.png"
+  alt="Knockout bracket from the round of 32 to the final with per-match advancement probabilities"
+  caption="knockout bracket — single-match advance % beside the market"
+  width={2644}
+  height={1454}
+/>
+
+The engine is pure-function Python with a fail-loud, idempotent ETL that
+raises on an unmatched team name rather than guessing. The value maths was
+written once in Python and ported to TypeScript, with the two locked
+together by golden vectors — 84 passing tests keep the client and the
+reference implementation in sync. The site is bilingual (Traditional
+Chinese and English) and carries the required Elo attribution
+(CC BY-SA 4.0) and market-efficiency disclaimers throughout.
+
+Accountability is built into the product, not just the process. A
+track-record page pins the frozen pre-tournament predictions against
+actual results and scores them — hit rate and Brier score — beside the
+market, so the model's honesty is checkable rather than asserted. A
+divergence view surfaces the matches where model and market disagree most,
+and states plainly next to each one that a big divergence usually means the
+model is the one that's wrong.
 
 ## Stack & links
 
-TODO(P3): mono stack list + external links (repo visibility pending §10).
+`Next.js (App Router)` · `Tailwind` · `next-intl` · `Supabase Postgres` ·
+`Python` (Dixon-Coles engine, Monte Carlo) · `GitHub Actions` · `Vercel`
+
+- Live: [wcup2026-analytics.vercel.app](https://wcup2026-analytics.vercel.app/en/bracket)
+- Code: [github.com/Suyu0114/wcup2026-analytics](https://github.com/Suyu0114/wcup2026-analytics)

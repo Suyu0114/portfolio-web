@@ -7,30 +7,127 @@ tags:
   - "modeling"
 year: "2026"
 stack:
-  - "TODO(P3)"
+  - "Python"
+  - "statsmodels"
+  - "linearmodels"
+  - "pandas"
+  - "Supabase"
 featured: true
 order: 3
+links:
+  repo: "https://github.com/Suyu0114/BaZi-MLB"
 ---
 
 ## Context
 
-TODO(P3): drafted with Suyu in claude.ai, then committed. Framing rule
-(SPEC §7.2): card sells the methodology; BaZi subject matter is
-revealed inside the body.
+This project started from an uncomfortable question: if you have a
+feature space you *want* to believe in, and almost no prior evidence to
+constrain it, how do you test it without fooling yourself? A rich,
+prior-poor hypothesis space is exactly where p-hacking is easiest and
+most invisible.
+
+My test case was a genuinely unconventional one: whether features derived
+from **BaZi** (八字, a traditional Chinese birth-chart system) carry any
+association with Major League batting performance. I find the subject
+interesting, which is precisely why it made a good adversary — a topic I
+had a soft spot for was the hardest place to stay honest. The real
+deliverable here is not the answer. It's the method.
+
+An early pilot made the risk concrete: on twelve players it turned up a
+correlation of about 0.54, which looks striking until you notice the sample
+is 45 observations and means nothing. That false comfort is exactly what
+the full study was designed to refuse.
 
 ## What I built
 
-TODO(P3): architecture sketch + `Figure` screenshots.
+A full population, not a convenient sample: every non-pitcher across all
+30 MLB teams from 2016 to 2025 with at least 100 plate appearances —
+1,181 players. A Python pipeline computes each player's three-pillar chart
+from birth data (solar-term boundaries handled with `sxtwl`), engineers
+the features, and stores everything in Postgres. Two pre-committed
+statistical specifications then run against it.
+
+<StudyArch />
+
+The load-bearing piece isn't any single model — it's the
+pre-registration. Every hypothesis, with its predicted sign and its tier,
+was frozen in a document *before* a single real correlation was inspected.
+The first time the pipeline looked at a real `r` (it was −0.0140), a hard
+freeze fired: from that timestamp on, sign and tier changes are forbidden,
+and any edit to the hypotheses needs a "methodological, not result-driven"
+justification.
+
+That constraint forces an unusual engineering habit. Because the first
+inspected correlation ends the design phase forever, I couldn't debug the
+pipeline against real results. So the plumbing was validated on a small
+slice — five teams, two seasons — with a smoke test that asserts shapes,
+joins and null-counts but *computes no correlation at all*. Only once the
+machinery was proven did the full-population run touch a real number.
 
 ## Key decisions & tradeoffs
 
-TODO(P3): candidates in SPEC §7.2 — hard-freeze pre-registration, two
-specifications, BH-FDR at q=0.10, dominance flag.
+**Hard-freeze pre-registration.** The choice was to make the
+anti-p-hacking rule mechanical and timestamped rather than a good
+intention. Because the hypotheses were frozen before inspection, there is
+no path by which I could tune signs, thresholds or the feature set to
+manufacture a positive result. The alternative — explore first, then
+"confirm" — is the standard way honest people accidentally fool
+themselves. The cost is real: I gave up the freedom to chase whatever the
+data suggested. That was the point.
+
+**Two specifications, both committed in advance.** Spec A is an OLS model
+with HC3 robust errors mapping static chart structure to career-mean
+outcomes (n=1,168). Spec B is a panel model with entity and time fixed
+effects mapping year-to-year features to season outcomes (n=4,325). Static
+and dynamic are different questions; committing to both up front removes
+the temptation to report only the grain that happened to cooperate. All
+outcomes are era-relative, because 2016–2025 spans real rule and ball
+changes.
+
+**BH-FDR correction, family by outcome channel.** With 47 pre-registered
+tests, a few raw p-values below 0.05 are almost guaranteed by chance
+alone. The honest bar is the corrected one: Benjamini–Hochberg at q=0.10,
+applied within each outcome family (power, discipline, contact, and so
+on). Reporting raw p-values would have been the easy way to find a
+"finding."
+
+**A pre-registered dominance check on the composite.** One hypothesis
+leaned on a composite "favorability" block of four features. I registered,
+in advance, that the block would only be trusted as a single construct if
+its first principal component explained at least 50% of the variance. It
+explained 26.74% — so the block is reported as *not* unidimensional rather
+than quietly treated as one thing. Pre-committing the structural test is
+what stops you from over-reading a composite that isn't really one signal.
 
 ## Results
 
-TODO(P3): 47/47 nulls reported as-is; verified numbers only.
+<StudyNulls />
+
+All 47 confirmatory tests came back null at q=0.10 — reported exactly as
+they landed. The closest thing to a signal was a yearly "resource" feature
+against isolated power, with a raw p of 0.099 (0.053 two-way) in the
+pre-registered direction; under the correction it is not significant, and I
+have registered it for out-of-sample validation rather than claiming it.
+
+I also built in a falsifier the data could fail on its own terms. If a
+feature captured genuine skill rather than luck, it should track a hitter's
+*expected* outcomes (xwOBA) more tightly than their actual ones — a test
+that can only be passed, never gamed. Five of fourteen predictors passed;
+the rest pointed the wrong way. Outcomes were held era-relative throughout,
+because a decade that spans rule and baseball changes makes raw numbers a
+moving target — comparing a 2016 season to a 2025 one without that
+adjustment would smuggle the era into the result.
+
+A null result is not proof that nothing is there; three-pillar charts drop
+the birth-hour that a full reading uses, the v1 features are coarse, and
+MLB is an extremely noisy environment for any birth-date signal. But those
+are stated as limitations, not used as excuses to keep digging. The
+takeaway I'm proud of is the discipline: a study that was built so that it
+*could* report nothing, and then did.
 
 ## Stack & links
 
-TODO(P3): mono stack list + external links.
+`Python 3.12` · `pandas` / `numpy` · `statsmodels` (OLS + HC3) ·
+`linearmodels` (PanelOLS) · `sxtwl` · `Supabase Postgres`
+
+- Code: [github.com/Suyu0114/BaZi-MLB](https://github.com/Suyu0114/BaZi-MLB)
