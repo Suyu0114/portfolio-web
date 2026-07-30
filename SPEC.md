@@ -319,18 +319,22 @@ downloads.
 
 ## 10. Inputs Suyu must supply (blockers marked ⛔)
 
-- ⛔ Display name form (e.g. "Suyu" alone vs full name) — affects hero,
-  nav, metadata, OG.
+- ✅ Display name: "Suyu" (nav wordmark "Suyu.", metadata "— Suyu").
 - ✅ Contact (supplied 2026-07-08): suyu0229@gmail.com ·
   https://github.com/Suyu0114 · https://www.linkedin.com/in/suyu-cheng
-- ⛔ Availability line for the contact strip (§6.1.3).
-- Domain choice (fallback: `*.vercel.app` for v1).
-- ⛔ Resume PDF (final English version).
-- Live demo URLs + repo visibility decision per project (public repos
-  linked; private repos → case study carries the weight, optionally
-  with selected code snippets).
-- Screenshot list per project (P3): 2–3 per case study, 1600px-wide
-  originals.
+- ✅ Availability (supplied 2026-07-30): "Available now for full-time
+  data engineering, analytics, and full-stack roles — Toronto-based,
+  open to relocation." (Suyu: Taiwanese citizen, 3-yr Canadian work
+  permit, open to relocation beyond Toronto.)
+- ✅ Domain: v1 uses the Vercel origin
+  `https://protfolio-web-alpha.vercel.app` (SPEC §10 `*.vercel.app`
+  fallback); custom domain is a future swap of `SITE_URL` in `lib/site.ts`.
+- ✅ Resume PDF: `public/resume.pdf` = the DE/AE version (chosen 2026-07-30
+  as the best match to the site's end-to-end positioning; per-role
+  versions stay in `notes/cv/` for tailored applications).
+- ✅ Live demo/repo links wired into case study frontmatter (all three
+  repos public).
+- ✅ Screenshots placed in `public/screens/` (P3).
 - ✅ Handwriting font: Caveat (picked 2026-07-08 from P0 samples).
 - ✅ Body font: JetBrains Mono (changed from Inter 2026-07-29 at Suyu's
   direction; Inter removed).
