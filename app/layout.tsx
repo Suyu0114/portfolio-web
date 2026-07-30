@@ -52,7 +52,10 @@ export default function RootLayout({
       lang="en"
       className={`${jetbrainsMono.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly)
+          inject attributes on <body> before hydration; this ignores those
+          attribute-only diffs on this element without masking real ones. */}
+      <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <Nav />
         {children}
         <Footer />
