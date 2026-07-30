@@ -12,10 +12,10 @@ export const HERO = {
   doodleCaption: "calibration, hand-checked",
 } as const;
 
-/** Contact details — supplied by Suyu 2026-07-08 (SPEC §10). */
+/** Contact details — supplied by Suyu (SPEC §10). */
 export const CONTACT = {
-  // TODO(§10): availability line for the contact strip.
-  availabilityTodo: "TODO(§10): availability",
+  availability:
+    "Available now for full-time data engineering, analytics, and full-stack roles — Toronto-based, open to relocation.",
   email: "suyu0229@gmail.com",
   github: "https://github.com/Suyu0114",
   linkedin: "https://www.linkedin.com/in/suyu-cheng",
@@ -32,8 +32,8 @@ export const FOOTER = {
 export const ABOUT = {
   headline: "about",
   bio: [
-    "I'm Suyu, a recent graduate-certificate student at Humber Polytechnic in Toronto. I build data products end-to-end — the pipeline that pulls the data, the model that makes sense of it, and the interface people actually use.",
-    "I'm looking for work in Toronto across data engineering, data / BI analytics, and full-stack development. The projects here are meant to show real decision depth, not a feature checklist.",
+    "I'm Suyu — I recently completed a postgraduate program in Information Technology Solutions (with Honours) at Humber Polytechnic in Toronto. I build data products end-to-end: the pipeline that pulls the data, the model that makes sense of it, and the interface people actually use.",
+    "I'm a Taiwanese citizen with a three-year Canadian work permit — authorized to work here without sponsorship — and open to full-time data engineering, analytics, and full-stack roles. The projects here are meant to show real decision depth, not a feature checklist.",
   ],
   howIWork: {
     heading: "how I work",

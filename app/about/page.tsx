@@ -50,7 +50,7 @@ export default function AboutPage() {
       <section className="mt-12 border-t border-rule pt-6">
         <h2 className="font-display text-2xl font-medium">contact</h2>
         <p className="mt-3 text-sm">
-          <span className="text-muted">{CONTACT.availabilityTodo}</span>
+          <span className="text-ink-soft">{CONTACT.availability}</span>
           {" · "}
           <a href={`mailto:${CONTACT.email}`} className="text-accent hover:underline">
             {CONTACT.email}
