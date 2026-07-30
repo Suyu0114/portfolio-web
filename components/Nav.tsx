@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 // Nav labels are microcopy (CLAUDE.md conventions exception).
+// resume is a static PDF, opened in a new tab so visitors keep the site.
 const NAV_LINKS = [
-  { href: "/projects", label: "projects" },
-  { href: "/about", label: "about" },
-  // TODO(§10/P5): /resume.pdf is a static file added at P5.
-  { href: "/resume.pdf", label: "resume" },
+  { href: "/projects", label: "projects", newTab: false },
+  { href: "/about", label: "about", newTab: false },
+  { href: "/resume.pdf", label: "resume", newTab: true },
 ] as const;
 
 export default function Nav() {
@@ -15,11 +15,23 @@ export default function Nav() {
         Suyu.
       </Link>
       <nav aria-label="Primary" className="flex gap-5 text-sm text-muted sm:gap-7">
-        {NAV_LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="hover:text-ink">
-            {l.label}
-          </Link>
-        ))}
+        {NAV_LINKS.map((l) =>
+          l.newTab ? (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-ink"
+            >
+              {l.label}
+            </a>
+          ) : (
+            <Link key={l.href} href={l.href} className="hover:text-ink">
+              {l.label}
+            </Link>
+          ),
+        )}
       </nav>
     </header>
   );
