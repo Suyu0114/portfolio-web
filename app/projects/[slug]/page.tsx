@@ -4,6 +4,7 @@ import TagPill from "@/components/TagPill";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getAllProjects, getProjectBySlug } from "@/lib/content";
 import { mdxComponents } from "@/lib/mdxComponents";
+import { SITE_URL } from "@/lib/site";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -18,8 +19,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const { frontmatter } = getProjectBySlug(slug);
   return {
-    title: `${frontmatter.title} — Suyu`,
+    title: frontmatter.title,
     description: frontmatter.oneLiner,
+    openGraph: {
+      title: `${frontmatter.title} — Suyu`,
+      description: frontmatter.oneLiner,
+      url: `${SITE_URL}/projects/${frontmatter.slug}`,
+    },
   };
 }
 

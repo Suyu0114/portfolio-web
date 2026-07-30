@@ -3,7 +3,7 @@ import WobblyUnderline from "@/components/WobblyUnderline";
 import { ABOUT, CONTACT } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
-  title: "about — Suyu",
+  title: "about",
   description:
     "Suyu — Toronto-based, building data products end-to-end across data engineering, BI analytics, and full-stack development.",
 };

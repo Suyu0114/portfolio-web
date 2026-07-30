@@ -7,7 +7,7 @@ import { getAllProjects } from "@/lib/content";
 import type { ProjectCardData } from "@/lib/facets";
 
 export const metadata: Metadata = {
-  title: "projects — Suyu",
+  title: "projects",
   description: "All projects, filterable by facet tag.",
 };
 

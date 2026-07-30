@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Caveat, JetBrains_Mono } from "next/font/google";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -19,10 +20,26 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  // TODO(P4): per-page metadata, final "{Page} — Suyu" pattern, OG image.
-  title: "field notes — Suyu",
-  description:
-    "I'm Suyu — I build data products end-to-end, from raw pipelines to statistical models to the interfaces people actually use.",
+  metadataBase: new URL(SITE_URL),
+  // Pages set a short title; the template appends the suffix (SPEC §6.5).
+  title: {
+    default: "field notes — Suyu",
+    template: "%s — Suyu",
+  },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: "field notes — Suyu",
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "field notes — Suyu",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({
