@@ -8,6 +8,9 @@ year 2026.
 v1.2 (2026-07-08, per Suyu): dropped §7.4 (animal shelter dashboard)
 and §7.5 (graph-based fraud detection) from scope. v1 project set is
 now the three featured case studies only.
+v1.3 (2026-07-29, per Suyu, P4 a11y): darkened three tokens for WCAG AA
+4.5:1 on small text — `--muted` #8A8272→#777063, `--accent`
+#C05B2B→#B45628, `--accent-2` #667844→#657744. Hues unchanged.
 Status: approved direction; remaining TODO inputs in §10 pending.
 
 ---
@@ -72,9 +75,9 @@ fail-loud pipelines) — the aesthetic visualizes the working discipline.
 | `--card` | `#FFFDF4` | card background |
 | `--ink` | `#2B2620` | headings, borders, primary text |
 | `--ink-soft` | `#5C5546` | body/secondary text |
-| `--muted` | `#8A8272` | captions, nav links, meta |
-| `--accent` | `#C05B2B` | links, chart "model" lines, underlines |
-| `--accent-2` | `#667844` | secondary chart lines, notes |
+| `--muted` | `#777063` | captions, nav links, meta |
+| `--accent` | `#B45628` | links, chart "model" lines, underlines |
+| `--accent-2` | `#657744` | secondary chart lines, notes |
 | `--rule` | `#D8CFBB` | hairline dividers |
 
 **Anti-cliché guard.** Cream background + warm accent is a known

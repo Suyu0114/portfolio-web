@@ -26,9 +26,9 @@ const TOKENS = [
   { name: "--card", value: "#FFFDF4", use: "card background", cls: "bg-card" },
   { name: "--ink", value: "#2B2620", use: "headings, borders, primary text", cls: "bg-ink" },
   { name: "--ink-soft", value: "#5C5546", use: "body/secondary text", cls: "bg-ink-soft" },
-  { name: "--muted", value: "#8A8272", use: "captions, nav links, meta", cls: "bg-muted" },
-  { name: "--accent", value: "#C05B2B", use: "links, chart model lines, underlines", cls: "bg-accent" },
-  { name: "--accent-2", value: "#667844", use: "secondary chart lines, notes", cls: "bg-accent-2" },
+  { name: "--muted", value: "#777063", use: "captions, nav links, meta", cls: "bg-muted" },
+  { name: "--accent", value: "#B45628", use: "links, chart model lines, underlines", cls: "bg-accent" },
+  { name: "--accent-2", value: "#657744", use: "secondary chart lines, notes", cls: "bg-accent-2" },
   { name: "--rule", value: "#D8CFBB", use: "hairline dividers", cls: "bg-rule" },
 ] as const;
 

@@ -14,7 +14,7 @@ export default function Nav() {
       <Link href="/" className="font-display text-2xl font-bold text-ink">
         Suyu.
       </Link>
-      <nav className="flex gap-5 text-sm text-muted sm:gap-7">
+      <nav aria-label="Primary" className="flex gap-5 text-sm text-muted sm:gap-7">
         {NAV_LINKS.map((l) => (
           <Link key={l.href} href={l.href} className="hover:text-ink">
             {l.label}

@@ -43,6 +43,7 @@ export default function Figure({ src, alt, caption }: FigureProps) {
         alt={alt}
         width={size.width}
         height={size.height}
+        sizes="(min-width: 768px) 720px, 100vw"
         className="h-auto w-full"
       />
       <figcaption className="mt-2 font-display text-xl text-muted">
