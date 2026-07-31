@@ -28,8 +28,13 @@ export default function SketchCard({
         ))}
       </div>
       <p className="text-[13px]">{oneLiner}</p>
+      {/* Three cards render this same visible text to three different
+          projects, so each needs a distinct accessible name (axe
+          identical-links-same-purpose). The label still contains the visible
+          text, satisfying WCAG 2.5.3 Label in Name. */}
       <Link
         href={href}
+        aria-label={`read case study: ${title}`}
         className="mt-auto text-[13px] text-accent hover:underline"
       >
         read case study →

@@ -52,7 +52,8 @@ export default function AboutPage() {
         <p className="mt-3 text-sm">
           <span className="text-ink-soft">{CONTACT.availability}</span>
           {" · "}
-          <a href={`mailto:${CONTACT.email}`} className="text-accent hover:underline">
+          {/* Resting underline, matching ContactStrip — see the note there. */}
+          <a href={`mailto:${CONTACT.email}`} className="text-accent underline">
             {CONTACT.email}
           </a>
           {" · "}
@@ -60,7 +61,7 @@ export default function AboutPage() {
             href={CONTACT.github}
             target="_blank"
             rel="noreferrer"
-            className="text-accent hover:underline"
+            className="text-accent underline"
           >
             GitHub
           </a>
@@ -69,7 +70,7 @@ export default function AboutPage() {
             href={CONTACT.linkedin}
             target="_blank"
             rel="noreferrer"
-            className="text-accent hover:underline"
+            className="text-accent underline"
           >
             LinkedIn
           </a>
