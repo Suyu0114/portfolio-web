@@ -27,5 +27,6 @@ fails the build by design.
 
 Screenshots live in `public/screens/`, named `<slug>-<view>.png`.
 
-Dev-only page while building: `/dev/tokens` (design tokens, font samples,
-rough.js spike). Removed before P5.
+The dev-only `/dev/tokens` page (design tokens, font samples, rough.js
+spike) was removed at the end of P4. `app/robots.ts` still disallows
+`/dev/` per SPEC §6.5.
