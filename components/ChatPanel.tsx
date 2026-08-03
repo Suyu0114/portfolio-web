@@ -116,6 +116,9 @@ export default function ChatPanel({
             sessionId: getSessionId(),
             message: outbound,
             history,
+            // §5 — the page the chat was opened on. The server records it once
+            // per session and ignores it on later turns.
+            entryPath: window.location.pathname,
           }),
         });
 

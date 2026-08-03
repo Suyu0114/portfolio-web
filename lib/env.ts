@@ -33,6 +33,10 @@ const chatEnvSchema = z.object({
   ANTHROPIC_API_KEY: nonEmpty,
   SUPABASE_URL: z.url(),
   SUPABASE_SERVICE_ROLE_KEY: nonEmpty,
+  // §5/§7 reuse this as the HMAC key for ip_hash, so the visitor chat route
+  // needs it from C3 onward — not just the admin surface. (SPEC-CHATBOT §10
+  // lists it under C4; rate limiting makes it a C3 dependency in practice.)
+  ADMIN_COOKIE_SECRET: nonEmpty,
 });
 
 const adminEnvSchema = z.object({
@@ -62,6 +66,7 @@ export function requireChatEnv(): ChatEnv {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    ADMIN_COOKIE_SECRET: process.env.ADMIN_COOKIE_SECRET,
   });
 }
 

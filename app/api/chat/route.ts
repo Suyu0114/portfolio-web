@@ -2,15 +2,22 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { FALLBACK_LINE } from "@/lib/chatbotKnowledge";
 import { SYSTEM_PROMPT } from "@/lib/chatbotPrompt";
+import {
+  checkRateLimits,
+  clientIpFrom,
+  createChatClient,
+  ensureSession,
+  hashIp,
+  logMessage,
+} from "@/lib/chatStore";
 import { MissingEnvError, requireChatEnv } from "@/lib/env";
 
 /**
  * Visitor chat — SPEC-CHATBOT §2 (allowed server surface), §3 (transport),
- * §7 (request validation).
- *
- * C0 scope: prove the streaming path end to end. Supabase logging (§5) and
- * rate limiting (§7) land in C3; the final system prompt (§4) lands in C1.
+ * §5 (logging), §7 (validation, rate limits).
  */
+
+const MODEL = "claude-opus-5";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +41,8 @@ const chatRequestSchema = z
     sessionId: z.uuid(),
     message: z.string().trim().min(1).max(MAX_MESSAGE_CHARS),
     history: z.array(historyEntrySchema).max(MAX_HISTORY_ENTRIES).default([]),
+    /** §5 — the page the chat was opened on. Recorded once per session. */
+    entryPath: z.string().max(512).optional(),
   })
   .strict();
 
@@ -68,16 +77,52 @@ export async function POST(request: Request): Promise<Response> {
     throw error;
   }
 
-  // 3. Server-side truncation — regardless of what the client sent (§3).
+  // 3. Rate limits (§7) — before any spend. Both checks are Supabase-backed
+  // (D4). A failure here is fatal, never a pass: these limits are the cost
+  // control, so "could not check" must not mean "go ahead".
+  const db = createChatClient(env);
+  const ipHash = hashIp(
+    clientIpFrom(request.headers),
+    env.ADMIN_COOKIE_SECRET,
+  );
+
+  try {
+    const verdict = await checkRateLimits(db, ipHash);
+    if (!verdict.allowed) {
+      console.warn(`[api/chat] limit hit: ${verdict.reason}`);
+      return jsonError(`Rate limit reached (${verdict.reason}).`, 429);
+    }
+  } catch (error) {
+    console.error("[api/chat] rate-limit check failed:", error);
+    return jsonError("Could not verify rate limits.", 503);
+  }
+
+  // 4. Record the session and the visitor's turn (§5) before calling the model,
+  // so the per-IP window counts this request even if the reply later fails.
+  const { sessionId, message, entryPath } = parsed.data;
+  try {
+    await ensureSession(db, {
+      id: sessionId,
+      entryPath: entryPath ?? null,
+      referrer: request.headers.get("referer"),
+      ipHash,
+    });
+    await logMessage(db, { sessionId, role: "user", content: message });
+  } catch (error) {
+    console.error("[api/chat] failed to log the user turn:", error);
+    return jsonError("Could not record the conversation.", 503);
+  }
+
+  // 5. Server-side truncation — regardless of what the client sent (§3).
   const conversation = [
     ...parsed.data.history,
-    { role: "user" as const, content: parsed.data.message },
+    { role: "user" as const, content: message },
   ].slice(-API_HISTORY_LIMIT);
 
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
   const stream = client.messages.stream({
-    model: "claude-opus-5",
+    model: MODEL,
     max_tokens: 1024,
     output_config: { effort: "low" },
     system: [
@@ -117,6 +162,7 @@ export async function POST(request: Request): Promise<Response> {
     async start(controller) {
       let stopReason: Anthropic.StopReason | null = null;
       let emittedText = false;
+      let reply = "";
 
       // Token usage. §5 persists these to chat_messages in C3; until then they
       // are logged so cost and cache-hit rate are observable.
@@ -136,6 +182,7 @@ export async function POST(request: Request): Promise<Response> {
         ) {
           if (event.delta.text.length > 0) {
             emittedText = true;
+            reply += event.delta.text;
             controller.enqueue(encoder.encode(event.delta.text));
           }
         } else if (event.type === "message_start") {
@@ -162,15 +209,34 @@ export async function POST(request: Request): Promise<Response> {
         // §3 — check stop_reason before trusting the content. A refusal gets
         // the standardized fallback line, never a fabricated answer.
         if (stopReason === "refusal") {
-          controller.enqueue(
-            encoder.encode((emittedText ? "\n\n" : "") + FALLBACK_LINE),
-          );
+          const line = (emittedText ? "\n\n" : "") + FALLBACK_LINE;
+          reply += line;
+          controller.enqueue(encoder.encode(line));
         }
         console.log(
           `[api/chat] stop=${stopReason} in=${usage.inputTokens} out=${usage.outputTokens} ` +
             `cache_write=${usage.cacheWriteTokens} cache_read=${usage.cacheReadTokens}`,
         );
         controller.close();
+
+        // §5 — log the assistant turn with its token usage. This runs after
+        // close() because the reply is already delivered; a logging failure
+        // must be loud in the server log but cannot un-send the response, and
+        // must not corrupt a stream the visitor has already read.
+        try {
+          if (reply !== "") {
+            await logMessage(db, {
+              sessionId,
+              role: "assistant",
+              content: reply,
+              model: MODEL,
+              inputTokens: usage.inputTokens,
+              outputTokens: usage.outputTokens,
+            });
+          }
+        } catch (error) {
+          console.error("[api/chat] failed to log the assistant turn:", error);
+        }
       } catch (error) {
         // Fail loud: the status is already sent, so surface it in the server
         // log and abort the body rather than closing on a truncated reply.
