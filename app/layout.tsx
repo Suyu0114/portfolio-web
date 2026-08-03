@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Caveat, JetBrains_Mono } from "next/font/google";
+import ChatWidget from "@/components/ChatWidget";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
+import { getAllProjects } from "@/lib/content";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -47,6 +49,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read at build time so the widget can name the case study a visitor is
+  // reading (SPEC-CHATBOT §6) without a client-side fetch. Three short
+  // strings; the loader already fails the build if any project is malformed.
+  const projectTitles = Object.fromEntries(
+    getAllProjects().map((p) => [p.frontmatter.slug, p.frontmatter.title]),
+  );
+
   return (
     <html
       lang="en"
@@ -59,6 +68,7 @@ export default function RootLayout({
         <Nav />
         {children}
         <Footer />
+        <ChatWidget projectTitles={projectTitles} />
       </body>
     </html>
   );

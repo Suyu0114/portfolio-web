@@ -83,3 +83,43 @@ h4 {
   border: 1.5px solid var(--color-ink);
   border-radius: 8px 3px 10px 3px / 3px 10px 3px 8px;
 }
+
+/*
+ * Chat "thinking" indicator — SPEC-CHATBOT §6. Inherits currentColor, so it
+ * introduces no colour outside the frozen tokens. The dots rest at full
+ * opacity and the animation only dips them, so the reduced-motion rule above
+ * (which collapses the animation to a single instant iteration) leaves them
+ * visible and static rather than stuck faint.
+ */
+.chat-think {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-think span {
+  width: 5px;
+  height: 5px;
+  background-color: currentColor;
+  /* Irregular radius keeps the dots hand-drawn rather than geometric. */
+  border-radius: 60% 40% 55% 45% / 45% 55% 40% 60%;
+  animation: chat-think 1.2s ease-in-out infinite;
+}
+
+.chat-think span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.chat-think span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes chat-think {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
