@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { ChatEnv } from "@/lib/env";
+import type { SupabaseEnv } from "@/lib/env";
 
 /**
  * Supabase access for the chat surface — SPEC-CHATBOT §5 (logging) and §7
@@ -21,7 +21,7 @@ export const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
  */
 export const DAILY_ASSISTANT_MESSAGE_CAP = 500;
 
-export function createChatClient(env: ChatEnv): SupabaseClient {
+export function createChatClient(env: SupabaseEnv): SupabaseClient {
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

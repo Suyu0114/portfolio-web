@@ -44,8 +44,15 @@ const adminEnvSchema = z.object({
   ADMIN_COOKIE_SECRET: nonEmpty,
 });
 
+/** Just the storage half — what the /study pages need, without the API key. */
+const supabaseEnvSchema = chatEnvSchema.pick({
+  SUPABASE_URL: true,
+  SUPABASE_SERVICE_ROLE_KEY: true,
+});
+
 export type ChatEnv = z.infer<typeof chatEnvSchema>;
 export type AdminEnv = z.infer<typeof adminEnvSchema>;
+export type SupabaseEnv = z.infer<typeof supabaseEnvSchema>;
 
 function parseOrThrow<T>(schema: z.ZodType<T>, raw: Record<string, unknown>): T {
   const parsed = schema.safeParse(raw);
@@ -67,6 +74,14 @@ export function requireChatEnv(): ChatEnv {
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     ADMIN_COOKIE_SECRET: process.env.ADMIN_COOKIE_SECRET,
+  });
+}
+
+/** Env needed to read or write the chat tables (the `/study` pages, §8). */
+export function requireSupabaseEnv(): SupabaseEnv {
+  return parseOrThrow(supabaseEnvSchema, {
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 }
 
