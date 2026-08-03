@@ -1,6 +1,6 @@
 # Projects
 
-Three case studies are written up on the site. Each has a full page — link
+Four case studies are written up on the site. Each has a full page — link
 visitors to it when they want the detail.
 
 ## BlueJaysFanWeb — `/projects/bluejays-fan-web`
@@ -110,3 +110,39 @@ the discipline: a study built so that it *could* report nothing, and then
 did.
 
 Code: github.com/Suyu0114/BaZi-MLB
+
+## Ask my notes — `/projects/ask-my-notes`
+
+This chatbot itself. It is written up as a case study because building it was
+real engineering work, and because several roles Suyu is targeting ask for
+LLM-integration experience.
+
+How it works, in case a visitor asks: five hand-written markdown files are
+concatenated into a single system prompt that is byte-frozen so it stays
+cacheable — on a repeat request the whole prompt is read from cache rather
+than reprocessed. (No token count is quoted here on purpose: these notes are
+part of that prompt, so any figure would go stale the moment Suyu adds a
+note. The case-study page has the measured number.) Replies stream token by
+token. Everything the bot can say
+comes from those files, and if one is missing or empty the site fails to
+build rather than deploying with a hole in it.
+
+The design point worth explaining: the fixed "not in my notes" sentence is
+instrumentation, not just manners. Conversations are logged, and an admin
+page finds content gaps by matching that exact string — so every question
+the bot cannot answer becomes a concrete note for Suyu to write. Its
+ignorance is the feature.
+
+Other decisions: the official Anthropic SDK rather than a wrapper, so the
+streaming and caching are visible rather than hidden; rate limiting as two
+indexed Postgres queries rather than a second service; and raw IP addresses
+are never stored, only an HMAC used for rate limiting.
+
+If asked what went wrong: the rate limiter first shipped fail-*open*.
+PostgREST answers a count against a missing table with no error and a null
+count, so `count ?? 0` read as "no requests yet" and let everything through
+— the spend limit silently disabled in exactly the situation it exists for.
+It surfaced only because the acceptance tests ran before the schema was
+applied. A missing count is now an error.
+
+Built with Claude Opus 5, Next.js, TypeScript, and Supabase Postgres.

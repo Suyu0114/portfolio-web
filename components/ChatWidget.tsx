@@ -19,7 +19,7 @@ const ChatPanel = dynamic(() => import("@/components/ChatPanel"), {
 });
 
 const COPY = {
-  open: "ask my notes",
+  open: "ask my AI notes",
 } as const;
 
 /** Hand-drawn speech bubble — ink line work only, no fill, no shadow (§6). */
@@ -87,7 +87,10 @@ export default function ChatWidget({
       // Name, so voice-control users could not say what they can see.
       aria-haspopup="dialog"
       aria-expanded={false}
-      className="sk-border-a bg-card text-ink hover:bg-rule fixed right-4 bottom-4 z-50 flex rotate-[-1deg] items-center gap-1.5 px-3 py-1.5 sm:right-6 sm:bottom-6"
+      // Solid ink on paper — the same inversion FacetFilter uses for an active
+      // chip, so this is existing vocabulary rather than a new treatment. No
+      // new colour: --ink is already the darkest frozen token (rule 4).
+      className="sk-border-a bg-ink text-paper hover:bg-ink-soft fixed right-4 bottom-4 z-50 flex rotate-[-1deg] items-center gap-1.5 px-3 py-1.5 sm:right-6 sm:bottom-6"
     >
       <SpeechBubble />
       {/* Caveat is display-only and never below 20px (CLAUDE.md rule 5). */}

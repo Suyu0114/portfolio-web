@@ -19,7 +19,18 @@ const COPY = {
   placeholder: "Ask about Suyu…",
   send: "Send",
   thinking: "Looking through the notes",
-  disclosure: "Chats are recorded so Suyu can improve these notes.",
+  /**
+   * §5/§6 privacy disclosure. Extended past the spec's one sentence to state
+   * the IP hashing, which is a genuine positive worth claiming.
+   *
+   * It deliberately does NOT say "no personal data is collected". Nothing
+   * identifying is *asked for*, and the raw IP is never stored — but the
+   * transcript keeps whatever a visitor types, and recruiters routinely type
+   * their name, company, and email. Claiming otherwise would be a false
+   * privacy promise on a site whose whole argument is epistemic honesty.
+   */
+  disclosure:
+    "Chats are recorded so Suyu can improve these notes. No sign-in, and your IP is only ever stored as a hash — but whatever you type is saved, so please don't share personal details.",
   emptyLead: "Ask me about Suyu's work. A few places to start:",
   /** §6 error states — honest and specific, never a silent retry. */
   errorGeneric: "the notebook hit a snag — try again in a minute",
