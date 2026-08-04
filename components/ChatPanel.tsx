@@ -190,7 +190,10 @@ export default function ChatPanel({
       // separates from the near-identical --paper page behind it (card and
       // paper differ by very little on their own).
       className="sk-border-a sk-edge-accent-2 bg-card fixed right-4 bottom-4 z-50 flex w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden sm:right-6 sm:bottom-6"
-      style={{ maxHeight: "min(32rem, calc(100dvh - 2rem))" }}
+      // A fixed height, not just a cap: with max-height the panel collapsed to
+      // fit the chips on an empty thread and then jumped taller on the first
+      // reply. The calc keeps it inside short viewports.
+      style={{ height: "min(36rem, calc(100dvh - 2rem))" }}
     >
       {/* Solid --accent bar, matching the entry button it replaces on open.
           Both the title and the close label are --card: --ink measures only
