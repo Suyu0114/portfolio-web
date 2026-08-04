@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@supabase/supabase-js": "^2.111.0",
     "gray-matter": "^4.0.3",
     "next": "16.2.10",
     "next-mdx-remote": "^6.0.0",

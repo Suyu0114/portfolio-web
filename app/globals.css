@@ -37,6 +37,12 @@ body {
   line-height: 1.65;
 }
 
+/*
+ * Unlayered on purpose. Note that this beats Tailwind's text-* utilities on
+ * headings regardless of specificity, because Tailwind v4 emits utilities
+ * inside a cascade layer and unlayered rules outrank layered ones. A heading
+ * that needs a different colour has to set it inline; see ChatPanel's title.
+ */
 h1,
 h2,
 h3,
@@ -78,8 +84,61 @@ h4 {
   border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
 }
 
+/*
+ * Recolours one sketch frame without duplicating its wobble: the radius stays
+ * defined once above. Written as a two-class selector rather than a custom
+ * property because a property would inherit, and the chat panel contains
+ * further sketch frames (message bubbles, chips) that must stay ink.
+ * Tailwind's border-* utilities can't do it either — the border shorthand
+ * above sits later in the cascade and wins at equal specificity.
+ */
+.sk-border-a.sk-edge-accent-2,
+.sk-border-b.sk-edge-accent-2 {
+  border-color: var(--color-accent-2);
+}
+
 /* Pill border for TagPill and FacetFilter chips — shared, never ad-hoc. */
 .sk-pill {
   border: 1.5px solid var(--color-ink);
   border-radius: 8px 3px 10px 3px / 3px 10px 3px 8px;
+}
+
+/*
+ * Chat "thinking" indicator — SPEC-CHATBOT §6. Inherits currentColor, so it
+ * introduces no colour outside the frozen tokens. The dots rest at full
+ * opacity and the animation only dips them, so the reduced-motion rule above
+ * (which collapses the animation to a single instant iteration) leaves them
+ * visible and static rather than stuck faint.
+ */
+.chat-think {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-think span {
+  width: 5px;
+  height: 5px;
+  background-color: currentColor;
+  /* Irregular radius keeps the dots hand-drawn rather than geometric. */
+  border-radius: 60% 40% 55% 45% / 45% 55% 40% 60%;
+  animation: chat-think 1.2s ease-in-out infinite;
+}
+
+.chat-think span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.chat-think span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes chat-think {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }

@@ -11,6 +11,10 @@ now the three featured case studies only.
 v1.3 (2026-07-29, per Suyu, P4 a11y): darkened three tokens for WCAG AA
 4.5:1 on small text — `--muted` #8A8272→#777063, `--accent`
 #C05B2B→#B45628, `--accent-2` #667844→#657744. Hues unchanged.
+v1.4 (2026-08-01, per Suyu): visitor chatbot approved as a v2 feature;
+its spec lives in `SPEC-CHATBOT.md`. §2 non-goals ("no backend") and §3
+("no runtime env vars") are amended by SPEC-CHATBOT.md §2 — a narrow,
+enumerated exception; everything else in this spec is unchanged.
 Status: approved direction; remaining TODO inputs in §10 pending.
 
 ---
@@ -43,7 +47,9 @@ each recruiter type self-navigates to their keywords.
 ## 2. Non-goals (v1)
 
 - No dark mode. No i18n. No CMS. No blog. No comments.
-- No backend of any kind (DB, auth, API routes with secrets).
+- No backend of any kind (DB, auth, API routes with secrets) — amended
+  v1.4: the chatbot surface enumerated in SPEC-CHATBOT.md §2 is the
+  single exception.
 - No animation system beyond micro hover states and at most one
   scroll-reveal moment (P4, optional, reduced-motion-safe).
 - Analytics: Vercel Analytics only, optional, added at P5 if desired.
@@ -58,7 +64,7 @@ each recruiter type self-navigates to their keywords.
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
 | Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). |
 | Images | `next/image`, screenshots in `/public/screens/` | |
-| Deploy | Vercel, custom domain (TODO §10) | No runtime env vars |
+| Deploy | Vercel, custom domain (TODO §10) | No runtime env vars (amended v1.4: SPEC-CHATBOT.md §2 lists the only allowed ones) |
 
 ## 4. Design system — "field notes"
 

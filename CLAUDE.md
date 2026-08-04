@@ -1,11 +1,13 @@
 # CLAUDE.md — suyu-portfolio
 
 Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
-Static Next.js site, English-only, no backend.
+Static Next.js site, English-only, no backend — except the narrowly
+scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` is the source of truth for scope, IA, design tokens, and content.
-If implementation conflicts with SPEC.md, STOP and flag the conflict —
-do not improvise a resolution.
+`SPEC.md` (site v1) and `SPEC-CHATBOT.md` (chatbot v2) are the source of
+truth for scope, IA, design tokens, and content. If implementation
+conflicts with either spec, STOP and flag the conflict — do not
+improvise a resolution.
 
 ## Hard rules
 
@@ -15,9 +17,13 @@ do not improvise a resolution.
    page — do not fill it with plausible-looking values.
 2. **Fail loud.** No silent catch blocks. The build must fail on broken
    MDX, missing frontmatter fields, missing images, or dead internal links.
-3. **No backend.** No database, no auth, no API keys, no runtime env
-   secrets. If a feature seems to need one, the feature is out of scope —
-   flag it instead of building it.
+3. **No backend, one exception.** No database, no auth, no API keys, no
+   runtime env secrets — **except** the chatbot surface enumerated in
+   SPEC-CHATBOT.md §2 (listed routes, `/study` pages, `middleware.ts`,
+   Supabase, and the five named env vars). Anything beyond that
+   allowlist is still out of scope — flag it instead of building it.
+   `npm run build` must always pass with zero env vars set (CI has no
+   secrets); env is validated at request time only.
 4. **Design tokens are frozen.** Only the colors and fonts in SPEC.md §4
    may appear. A new color or font is a spec change, not a code change.
 5. **Handwriting font is display-only.** The handwriting face (Caveat)
@@ -29,6 +35,11 @@ do not improvise a resolution.
    aesthetic is light-only by design.
 7. **English only.** No i18n scaffolding, no locale routing.
 8. **TypeScript strict.** No `any` without a one-line justification comment.
+9. **Chatbot output is content.** Rule 1 applies to AI-generated replies:
+   the bot may state only facts present in the knowledge pack
+   (`content/chatbot/`); anything else gets the standardized fallback
+   line defined in SPEC-CHATBOT.md §4, verbatim. Never tune the prompt
+   to "sound better" at the cost of accuracy.
 
 ## Conventions
 
@@ -37,7 +48,7 @@ do not improvise a resolution.
   components (nav labels and microcopy excepted).
 - Components in `/components`, one per file, PascalCase. Client
   components only where interactivity requires it (`RoughChart`,
-  `FacetFilter`); everything else stays server/static.
+  `FacetFilter`, `ChatWidget`); everything else stays server/static.
 - Sketch utilities are shared, never ad-hoc: use `.sk-border-a` /
   `.sk-border-b` classes and the `WobblyUnderline` / `DoodleArrow`
   components. Do not hand-roll new wobble styles per page.
@@ -52,8 +63,10 @@ do not improvise a resolution.
 ## Workflow
 
 - Design decisions happen with Suyu in claude.ai; this repo implements
-  SPEC.md phases P0–P5 **in order**.
-- Each phase ends with its acceptance checklist in SPEC.md §9 fully
-  passing. Do not start the next phase with failing items.
-- The verify-before-build items in SPEC.md §11 must be resolved during
-  P0. Report findings; do not assume.
+  SPEC.md phases P0–P5, then SPEC-CHATBOT.md phases C0–C4, **in order**.
+- Each phase ends with its acceptance checklist (SPEC.md §9 /
+  SPEC-CHATBOT.md §9) fully passing. Do not start the next phase with
+  failing items.
+- The verify-before-build items (SPEC.md §11 during P0;
+  SPEC-CHATBOT.md §11 during C0) must be resolved in their spike phase.
+  Report findings; do not assume.
