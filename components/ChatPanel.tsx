@@ -32,7 +32,7 @@ const COPY = {
    * privacy promise on a site whose whole argument is epistemic honesty.
    */
   disclosure:
-    "Chats are recorded so Suyu can improve these notes. There's no sign-in, and your IP is only ever stored as a hash. Whatever you type is saved though, so please don't share personal details.",
+    "Chats are recorded to help Suyu improve these notes. Your IP is only stored as a hash.",
   emptyLead: "Ask me about Suyu's work. A few places to start:",
   /**
    * §6 error states: honest and specific, never a silent retry. Reworded off
@@ -186,18 +186,24 @@ export default function ChatPanel({
     <div
       role="dialog"
       aria-label={COPY.title}
-      className="sk-border-a bg-card fixed right-4 bottom-4 z-50 flex w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden sm:right-6 sm:bottom-6"
+      // sk-edge-accent-2 recolours the shared frame to --accent-2 so the panel
+      // separates from the near-identical --paper page behind it (card and
+      // paper differ by very little on their own).
+      className="sk-border-a sk-edge-accent-2 bg-card fixed right-4 bottom-4 z-50 flex w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden sm:right-6 sm:bottom-6"
       style={{ maxHeight: "min(32rem, calc(100dvh - 2rem))" }}
     >
-      <div className="border-rule flex items-center justify-between border-b-2 px-3 py-2">
-        <h2 className="font-display text-ink text-xl leading-none">
+      {/* Solid --accent bar, matching the entry button it replaces on open.
+          Both the title and the close label are --card: --ink measures only
+          3.07:1 on accent and would fail. */}
+      <div className="bg-accent flex items-center justify-between px-3 py-2">
+        <h2 className="font-display text-card text-xl leading-none">
           {COPY.title}
         </h2>
         <button
           type="button"
           onClick={onClose}
           aria-label={COPY.close}
-          className="text-ink hover:bg-rule sk-pill px-2 py-0.5 text-xs"
+          className="sk-pill text-card px-2 py-0.5 text-xs"
         >
           close
         </button>

@@ -87,10 +87,11 @@ export default function ChatWidget({
       // Name, so voice-control users could not say what they can see.
       aria-haspopup="dialog"
       aria-expanded={false}
-      // Solid ink on paper — the same inversion FacetFilter uses for an active
-      // chip, so this is existing vocabulary rather than a new treatment. No
-      // new colour: --ink is already the darkest frozen token (rule 4).
-      className="sk-border-a bg-ink text-paper hover:bg-ink-soft fixed right-4 bottom-4 z-50 flex rotate-[-1deg] items-center gap-1.5 px-3 py-1.5 sm:right-6 sm:bottom-6"
+      // Solid --accent, a frozen token (rule 4). Label is --card rather than
+      // --paper: both read as near-white, but card measures 4.79:1 on accent
+      // against paper's 4.53:1, and 20px Caveat is normal-size text under
+      // WCAG, so it needs the full 4.5:1 rather than the large-text 3:1.
+      className="sk-border-a bg-accent text-card fixed right-4 bottom-4 z-50 flex rotate-[-1deg] items-center gap-1.5 px-3 py-1.5 sm:right-6 sm:bottom-6"
     >
       <SpeechBubble />
       {/* Caveat is display-only and never below 20px (CLAUDE.md rule 5). */}

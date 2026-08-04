@@ -78,6 +78,19 @@ h4 {
   border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
 }
 
+/*
+ * Recolours one sketch frame without duplicating its wobble: the radius stays
+ * defined once above. Written as a two-class selector rather than a custom
+ * property because a property would inherit, and the chat panel contains
+ * further sketch frames (message bubbles, chips) that must stay ink.
+ * Tailwind's border-* utilities can't do it either — the border shorthand
+ * above sits later in the cascade and wins at equal specificity.
+ */
+.sk-border-a.sk-edge-accent-2,
+.sk-border-b.sk-edge-accent-2 {
+  border-color: var(--color-accent-2);
+}
+
 /* Pill border for TagPill and FacetFilter chips — shared, never ad-hoc. */
 .sk-pill {
   border: 1.5px solid var(--color-ink);
