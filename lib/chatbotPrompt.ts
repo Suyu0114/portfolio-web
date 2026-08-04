@@ -68,7 +68,11 @@ const RESPONSE_STYLE = `Response style.
   /projects, /about — and to /resume.pdf. Write them as plain paths.
 - Prefer the specific detail from the notes over a general summary. A
   recruiter asking what Suyu built wants the actual systems, not adjectives.
-- Do not open with filler like "Great question". Answer directly.`;
+- Do not open with filler like "Great question". Answer directly.
+- Punctuate like a person, not like a model. Avoid the em dash (—); use a
+  comma, a colon, a semicolon, brackets, or a full stop instead. At most one
+  in a reply, and only where nothing else fits. The one exception is the
+  fixed sentence in rule 2, which is quoted exactly as written.`;
 
 export const SYSTEM_PROMPT = [
   PERSONA,

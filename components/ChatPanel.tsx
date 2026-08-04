@@ -13,7 +13,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Widget microcopy — component-level constant (CLAUDE.md conventions). */
 const COPY = {
-  title: "ask my notes",
+  // Matches the entry button's label so the panel does not appear to rename
+  // itself on open.
+  title: "ask my AI notes",
   close: "Close the notebook",
   inputLabel: "Ask about Suyu",
   placeholder: "Ask about Suyu…",
@@ -30,12 +32,16 @@ const COPY = {
    * privacy promise on a site whose whole argument is epistemic honesty.
    */
   disclosure:
-    "Chats are recorded so Suyu can improve these notes. No sign-in, and your IP is only ever stored as a hash — but whatever you type is saved, so please don't share personal details.",
+    "Chats are recorded so Suyu can improve these notes. There's no sign-in, and your IP is only ever stored as a hash. Whatever you type is saved though, so please don't share personal details.",
   emptyLead: "Ask me about Suyu's work. A few places to start:",
-  /** §6 error states — honest and specific, never a silent retry. */
-  errorGeneric: "the notebook hit a snag — try again in a minute",
+  /**
+   * §6 error states: honest and specific, never a silent retry. Reworded off
+   * the spec's em dashes; nothing matches on these strings (unlike the frozen
+   * fallback line, which §8 counts), so they are safe to phrase differently.
+   */
+  errorGeneric: "the notebook hit a snag. Try again in a minute.",
   errorResting:
-    "the notebook is resting — back tomorrow. Email works too: suyu0229@gmail.com",
+    "the notebook is resting, back tomorrow. Email works too: suyu0229@gmail.com",
 } as const;
 
 /** Suggested chips — SPEC-CHATBOT §6, confirmed by Suyu 2026-08-02. */

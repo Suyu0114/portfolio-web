@@ -2,9 +2,9 @@
 
 Suyu Cheng is a software engineer based in Toronto, Ontario, focused on data
 engineering, analytics engineering, and business intelligence. He has 6+
-years building data-intensive systems for a multinational manufacturer —
+years building data-intensive systems for a multinational manufacturer:
 ERP/PLM data integration, SQL-heavy backends, and analytics platforms used
-daily by executives, planners, and finance — as part of a two-to-three
+daily by executives, planners, and finance, as part of a two-to-three
 person internal development team. He recently completed postgraduate IT
 studies in Toronto and built three end-to-end Python + PostgreSQL analytics
 platforms with automated ETL, statistical modeling, and deployed web
@@ -12,7 +12,7 @@ frontends.
 
 ## Work experience
 
-### Seasonic Electronics — Taipei, Taiwan (Sep 2020 – Jun 2024)
+### Seasonic Electronics, Taipei, Taiwan (Sep 2020 – Jun 2024)
 
 **Senior Software Engineer.** Seasonic is a power supply manufacturer.
 
@@ -37,8 +37,8 @@ five workdays to under half a day.
 
 *E-signature workflow system.* Architected a configurable e-approval
 workflow engine (MSSQL / .NET Core 6) serving around 150 users across
-Taiwan, Europe, the US, and China. He modeled the company org hierarchy —
-departments, reporting lines, deputies, approval levels — as relational
+Taiwan, Europe, the US, and China. He modeled the company org hierarchy
+(departments, reporting lines, deputies, approval levels) as relational
 data, with stored procedures dynamically resolving multi-stage approval
 chains per form type, applicant department, and amount-based escalation
 rules. It digitized 10+ paper approval processes across finance,
@@ -55,7 +55,7 @@ schema design and stored procedures, with document-level access permissions
 and event-driven update notifications, replacing Excel-and-paper document
 control.
 
-### ACTi Corporation — Taipei, Taiwan (Sep 2018 – Aug 2020)
+### ACTi Corporation, Taipei, Taiwan (Sep 2018 – Aug 2020)
 
 **Software Engineer.**
 
@@ -68,7 +68,7 @@ and annual sales performance reviews.
 Re-engineered a legacy, unmaintained sales-commission engine into
 maintainable MSSQL stored procedures handling multi-dimensional payout rules
 (product model, country, order size, customer type), and built detail views
-so sales staff could verify payout composition themselves — a finance- and
+so sales staff could verify payout composition themselves, a finance- and
 CEO-critical monthly process.
 
 Developed company performance trend dashboards (Highcharts) unifying CRM
@@ -77,19 +77,19 @@ schemas.
 
 ## Education
 
-**Humber Polytechnic — Toronto, Canada (Sep 2024 – Jun 2026).** Postgraduate
+**Humber Polytechnic, Toronto, Canada (Sep 2024 – Jun 2026).** Postgraduate
 Degree, Information Technology Solutions. Honours in three of four terms.
 Relevant coursework: Big Data 1 (96) and 2 (90), Machine Learning (96), Deep
 Learning, Business Intelligence, Fundamentals of Data Analytics, Oracle Data
 Warehouse Fundamentals (91) and Implementation, Oracle DBA 1, Oracle
 Database Programming (PL/SQL), Introduction to Database and SQL (90).
 
-**National Formosa University — Yunlin, Taiwan (Sep 2011 – Jun 2015).**
+**National Formosa University, Yunlin, Taiwan (Sep 2011 – Jun 2015).**
 Bachelor of Business Administration.
 
 ## Technical skills
 
-- **Data engineering:** SQL (MSSQL — six years in production; PostgreSQL;
+- **Data engineering:** SQL (MSSQL, six years in production; PostgreSQL;
   Oracle PL/SQL), Python (pandas, statsmodels), ETL and data integration,
   data modeling, data warehousing, stored procedures, GitHub Actions
   scheduling.

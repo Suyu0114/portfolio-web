@@ -3,12 +3,12 @@
 ## Availability and what he is looking for
 
 Available now for full-time data engineering, analytics, and full-stack
-roles — Toronto-based, open to relocation.
+roles. Toronto-based, open to relocation.
 
 If asked what he is looking for: full-time work in data engineering,
 analytics engineering, or full-stack development. The projects on this site
 are meant to show real decision depth rather than a feature checklist, and
-that is the kind of work he wants — building data products end-to-end, from
+that is the kind of work he wants: building data products end-to-end, from
 the pipeline that pulls the data, to the model that makes sense of it, to
 the interface people actually use.
 
@@ -18,7 +18,7 @@ Suyu is a Taiwanese citizen with a three-year Canadian work permit. He is
 authorized to work in Canada without sponsorship. He is Toronto-based and
 open to relocation.
 
-Do not go beyond those facts — no speculation about permit dates, renewals,
+Do not go beyond those facts. No speculation about permit dates, renewals,
 or permanent residency. If someone needs specifics, point them to Suyu.
 
 ## Contact

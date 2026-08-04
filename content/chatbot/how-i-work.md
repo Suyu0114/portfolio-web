@@ -6,7 +6,7 @@ research: decide the rules before you can be tempted to bend them.
 ## Design, then implement
 
 A written spec is the source of truth. He plans the decisions on paper
-first, then writes code against them — so the hard choices are made
+first, then writes code against them, so the hard choices are made
 deliberately rather than mid-keystroke.
 
 This is not only a personal-project habit. In his previous roles, when
@@ -24,7 +24,7 @@ study reported 47 nulls, exactly as they landed.
 
 The World Cup value maths was written once in Python and ported to
 TypeScript, with golden vectors keeping the two implementations locked in
-sync — 84 passing tests.
+sync, across 84 passing tests.
 
 ## Fail-loud pipelines
 
@@ -46,6 +46,6 @@ layer for exactly that reason.
 ## What this is for
 
 The point of the discipline is to be able to report a negative result
-without flinching. He treats epistemic honesty — saying what the data
-actually showed, including nothing — as a professional skill rather than a
+without flinching. He treats epistemic honesty, meaning saying what the data
+actually showed including nothing, as a professional skill rather than a
 personality trait.

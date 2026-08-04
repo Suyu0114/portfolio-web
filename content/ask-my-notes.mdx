@@ -1,5 +1,5 @@
 ---
-title: "Ask my notes — a chatbot that refuses to guess"
+title: "Ask my notes: a chatbot that refuses to guess"
 slug: "ask-my-notes"
 oneLiner: "A grounded LLM widget on this site: hand-written notes, a fixed refusal line, and a spend fuse. Claude Opus 5 · Next.js · Supabase."
 tags:
@@ -19,12 +19,12 @@ order: 4
 
 The bottom-right corner of this site has a notebook you can talk to. It is
 the one piece of the portfolio you can use rather than read, and it exists
-because a lot of the roles I want now ask for LLM integration experience —
-so the honest way to show it was to ship one.
+because a lot of the roles I want now ask for LLM integration experience, so
+the honest way to show it was to ship one.
 
 The hard part of a portfolio chatbot is not making it talk. It is making it
 shut up. A model asked about a person it has never heard of will produce a
-confident, plausible, entirely invented CV — and every invented detail is a
+confident, plausible, entirely invented CV, and every invented detail is a
 claim a recruiter might repeat back to me in an interview. The whole rest of
 this site argues that a loud failure beats a plausible wrong answer. A bot
 that guesses would contradict it in the most visible place on the page.
@@ -34,11 +34,11 @@ notes, and when it does not know, it must say so in a way I can count.
 
 ## What I built
 
-Five markdown files — profile, projects, how I work, interests, FAQ — are
-concatenated at module load into a system prompt that currently runs to
-9,598 tokens. Every fact the
-bot can state lives in those files. If a file is missing or empty, the build
-fails rather than deploying a bot with a hole in its knowledge.
+Five markdown files (profile, projects, how I work, interests, FAQ) are
+concatenated at module load into a system prompt that currently runs to 9,598
+tokens. Every fact the bot can state lives in those files. If a file is
+missing or empty, the build fails rather than deploying a bot with a hole in
+its knowledge.
 
 When the answer is not in the notes, the bot ends its reply with one fixed
 sentence, character for character:
@@ -46,45 +46,45 @@ sentence, character for character:
 > That's not in my notes — you can ask Suyu directly at suyu0229@gmail.com.
 
 That sentence is not just politeness. It is the instrumentation. A private
-admin page runs an on-demand analysis over the logged conversations, and
-finds content gaps by matching that exact string — so every question the bot
-could not answer becomes a concrete item on a list of notes I should write.
-The bot's ignorance is the product feature.
+admin page runs an on-demand analysis over the logged conversations and finds
+content gaps by matching that exact string, so every question the bot could
+not answer becomes a concrete item on a list of notes I should write. The
+bot's ignorance is the product feature.
 
-The visitor side is a lazily-loaded widget: only the entry button ships in
-the first-load bundle, and the panel and its streaming logic arrive on first
+The visitor side is a lazily-loaded widget. Only the entry button ships in
+the first-load bundle; the panel and its streaming logic arrive on first
 open. Replies stream token by token over a chunked plain-text response.
 
 ## Key decisions & tradeoffs
 
 **A fixed refusal line, not per-message tagging.** The alternative was a
-second classification call per message to label answered/unanswered. That
+second classification call per message to label answered or unanswered. That
 doubles cost and latency on the hot path to learn something a string match
 already tells me. One model call per turn, and the gap detection rides along
 for free. The cost is that the sentence is now frozen: changing its wording
 would silently orphan every gap already logged.
 
-**The system prompt is byte-frozen.** Prompt caching only helps if the
-cached prefix is identical every time, so nothing dynamic may touch it — no
-timestamps, no visitor context. When you open the chat on a case-study page,
+**The system prompt is byte-frozen.** Prompt caching only helps if the cached
+prefix is identical every time, so nothing dynamic may touch it. No
+timestamps, no visitor context. When you open the chat on a case-study page
 the bot knows which one you are reading, but that context is injected into
-the *user* turn instead. Measured result: the full 9,598 tokens read from
+the *user* turn instead. Measured result: the full 9,598 tokens are read from
 cache on every repeat request, at roughly a tenth of the input price.
 
 **The official SDK, not a wrapper.** Vercel's AI SDK would have given a
 faster start, but the streaming, the caching, and the refusal handling are
 the parts worth demonstrating, and a wrapper hides exactly those. Direct SDK
-use also meant handling things a wrapper would have papered over — Opus 5
-can return a 200 with `stop_reason: "refusal"`, so the code checks the stop
+use also meant handling things a wrapper would have papered over. Opus 5 can
+return a 200 with `stop_reason: "refusal"`, so the code checks the stop
 reason before reading any content and falls back to the refusal line rather
 than streaming a half-formed answer.
 
-**Rate limiting in Postgres, not another service.** Two indexed count
-queries — twenty requests per five minutes per hashed IP, and a global cap
-of five hundred assistant messages a day — reuse the database that was
-already there rather than adding a queue or a KV store for two counters. The
-daily cap is a constant in code, not an environment variable, so raising my
-own spending limit takes a commit.
+**Rate limiting in Postgres, not another service.** Two indexed count queries
+(twenty requests per five minutes per hashed IP, and a global cap of five
+hundred assistant messages a day) reuse the database that was already there
+rather than adding a queue or a KV store for two counters. The daily cap is a
+constant in code, not an environment variable, so raising my own spending
+limit takes a commit.
 
 **Raw IPs are never stored.** Rate limiting needs to recognise a repeat
 visitor; it does not need to know who they are. Only an HMAC of the address
@@ -94,8 +94,8 @@ is written, and it is used for nothing else.
 
 The rate limiter shipped fail-*open* and I nearly missed it.
 
-The per-IP check counted recent requests and compared the count to the
-limit. Written defensively, it looked like this:
+The per-IP check counted recent requests and compared the count to the limit.
+Written defensively, it looked like this:
 
 ```ts
 if ((result.count ?? 0) >= RATE_LIMIT_REQUESTS) { /* refuse */ }
@@ -103,28 +103,27 @@ if ((result.count ?? 0) >= RATE_LIMIT_REQUESTS) { /* refuse */ }
 
 PostgREST answers a `HEAD` count against a table it cannot find with **no
 error and a null count**. So `null ?? 0` became zero, zero is below the
-limit, and every request sailed through. The spend fuse was silently
-disabled in precisely the situation it exists for — the database being
-unreachable.
+limit, and every request sailed through. The spend fuse was silently disabled
+in precisely the situation it exists for, the database being unreachable.
 
 It only surfaced because I ran the acceptance tests before applying the
-schema, so the tables genuinely were missing. Had I applied the schema
-first, the check would have passed every test I had written and gone to
-production dead. A missing count is now an error, not a zero.
+schema, so the tables genuinely were missing. Had I applied the schema first,
+the check would have passed every test I had written and gone to production
+dead. A missing count is now an error, not a zero.
 
 The same null-count behaviour had already fooled my *verification* script
-into reporting that the tables existed when they did not — a false pass on
-the check whose entire job was to catch this. Both bugs came from the same
+into reporting that the tables existed when they did not, a false pass on the
+check whose entire job was to catch this. Both bugs came from the same
 mistaken assumption, which is a good argument for testing the failure path
 rather than only the happy one.
 
 ## Results
 
-The bot answers accurately on my background, the three case studies, and
+The bot answers accurately on my background, the four case studies, and
 availability. It redirects off-topic questions without answering them, holds
-its scope against prompt-injection attempts, and declines bounded topics —
-compensation, family, immigration specifics — with a short note rather than
-the refusal line, so those never pollute the content-gap list.
+its scope against prompt-injection attempts, and declines bounded topics such
+as compensation, family, and immigration specifics with a short note rather
+than the refusal line, so those never pollute the content-gap list.
 
 On a deliberately maximal question it used 591 of its 1,024 output token
 budget, so replies are not being silently truncated. The widget keeps the
@@ -133,7 +132,7 @@ best practices, with zero cumulative layout shift.
 
 Two accessibility defects turned up while verifying it, both mine. The entry
 button carried an `aria-label` that did not contain its own visible text,
-which fails WCAG's Label in Name rule — a voice-control user could not have
+which fails WCAG's Label in Name rule: a voice-control user could not have
 activated it by saying what they could see. And focus never returned to the
 button on close, because the button is unmounted while the panel is open, so
 the ref it was trying to focus was null. Neither was visible by looking at
@@ -141,8 +140,8 @@ the page.
 
 The honest limitation: this bot is only ever as good as the notes behind it,
 and it will keep hitting its refusal line until I fill the gaps it finds.
-That is the intended loop, not a defect — but it does mean the interesting
-work is ongoing rather than finished.
+That is the intended loop rather than a defect, but it does mean the
+interesting work is ongoing rather than finished.
 
 ## Stack & links
 

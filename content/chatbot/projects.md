@@ -1,9 +1,9 @@
 # Projects
 
-Four case studies are written up on the site. Each has a full page — link
+Four case studies are written up on the site. Each has a full page, so link
 visitors to it when they want the detail.
 
-## BlueJaysFanWeb — `/projects/bluejays-fan-web`
+## BlueJaysFanWeb · `/projects/bluejays-fan-web`
 
 A Toronto Blue Jays analytics site: Statcast spray charts, pitch heatmaps,
 and WAR breakdowns. Next.js, TypeScript, D3, Supabase Postgres, Python ETL.
@@ -21,21 +21,21 @@ What is interesting in it:
   a single number.
 - A schedule calendar with per-game box scores from the MLB Stats API.
 - Three-year batter deep-dive pages.
-- Aggregation happens in the database, not in the browser — the D3
+- Aggregation happens in the database, not in the browser. The D3
   components take plain JSON rather than a database client, so they stay
   framework-pure and testable.
 
 Live: bluejaysfanweb.vercel.app/en · Code:
 github.com/Suyu0114/BlueJaysFanWeb
 
-## World Cup 2026 forecasting platform — `/projects/world-cup-forecasting`
+## World Cup 2026 forecasting platform · `/projects/world-cup-forecasting`
 
 A forecasting and probability platform for the 2026 World Cup, benchmarked
 against market-implied probabilities. Next.js, Supabase, Python ETL.
 
 A Dixon-Coles scoring model produces 1X2, over/under, and both-teams-to-
 score probabilities per match. On top of it, a Monte Carlo layer simulates
-the entire tournament — all 72 group matches, ten thousand times — to
+the entire tournament (all 72 group matches, ten thousand times) to
 produce advancement probabilities and a live knockout bracket.
 
 Decisions worth knowing:
@@ -44,7 +44,7 @@ Decisions worth knowing:
   constants were fit on roughly 1,932 international matches since 2010,
   behind a validation log-loss gate.
 - **Market-implied probability is treated as ground truth, with the model as
-  a clearly-labeled experimental layer** — the site keeps fact and model
+  a clearly-labeled experimental layer**. The site keeps fact and model
   visibly separate rather than presenting the model as authoritative.
 - **Frozen value maths with golden test vectors.** The calculation was
   written once in Python and ported to TypeScript, with 84 passing tests
@@ -62,16 +62,16 @@ divergence view surfaces the matches where model and market disagree most.
 Live: wcup2026-analytics.vercel.app/en · Code:
 github.com/Suyu0114/wcup2026-analytics
 
-## A pre-registered study on unconventional features — `/projects/pre-registered-study`
+## A pre-registered study on unconventional features · `/projects/pre-registered-study`
 
-47 frozen hypotheses, BH-FDR correction, n=1,181 — and the honest story of
+47 frozen hypotheses, BH-FDR correction, n=1,181, and the honest story of
 finding nothing. Python, pandas, statsmodels, linearmodels, Supabase
 Postgres.
 
 The question behind it: how do you rigorously test a hypothesis-rich,
 prior-poor feature space without fooling yourself? That kind of space is
 exactly where p-hacking is easiest. The subject matter Suyu chose to test
-was BaZi (Chinese birth-chart astrology) against MLB hitting performance —
+was BaZi (Chinese birth-chart astrology) against MLB hitting performance,
 a subject he has a genuine interest in, which is what made it a good
 adversary for his own rigour.
 
@@ -90,46 +90,46 @@ How it was built:
 - **BH-FDR correction at q=0.10**, family by outcome channel.
 - **A falsifier the data could fail on its own terms:** a genuine skill
   feature should track a hitter's *expected* outcomes (xwOBA) more tightly
-  than their actual ones — a test that can only be passed, never gamed.
+  than their actual ones, a test that can only be passed, never gamed.
 - Outcomes were held era-relative throughout, so a decade of rule and
   baseball changes could not smuggle itself into the result.
 
 **The result: all 47 confirmatory tests came back null at q=0.10**, reported
 exactly as they landed. The closest thing to a signal was a yearly
 "resource" feature against isolated power, raw p of 0.099, in the
-pre-registered direction — under correction it is not significant, and Suyu
+pre-registered direction. Under correction it is not significant, and Suyu
 registered it for out-of-sample validation rather than claiming it. On the
 falsifier, five of fourteen predictors passed and the rest pointed the wrong
 way.
 
-He states the limitations plainly — three-pillar charts drop the birth hour
+He states the limitations plainly (three-pillar charts drop the birth hour
 a full reading uses, the v1 features are coarse, and MLB is an extremely
-noisy environment for any birth-date signal — but treats them as
+noisy environment for any birth-date signal) but treats them as
 limitations, not as excuses to keep digging. The takeaway he is proud of is
 the discipline: a study built so that it *could* report nothing, and then
 did.
 
 Code: github.com/Suyu0114/BaZi-MLB
 
-## Ask my notes — `/projects/ask-my-notes`
+## Ask my notes · `/projects/ask-my-notes`
 
 This chatbot itself. It is written up as a case study because building it was
 real engineering work, and because several roles Suyu is targeting ask for
 LLM-integration experience.
 
 How it works, in case a visitor asks: five hand-written markdown files are
-concatenated into a single system prompt that is byte-frozen so it stays
-cacheable — on a repeat request the whole prompt is read from cache rather
-than reprocessed. (No token count is quoted here on purpose: these notes are
-part of that prompt, so any figure would go stale the moment Suyu adds a
-note. The case-study page has the measured number.) Replies stream token by
-token. Everything the bot can say
-comes from those files, and if one is missing or empty the site fails to
-build rather than deploying with a hole in it.
+concatenated into a single system prompt. It is byte-frozen so it stays
+cacheable, which means on a repeat request the whole prompt is read from
+cache rather than reprocessed. (No token count is quoted here on purpose:
+these notes are part of that prompt, so any figure would go stale the moment
+Suyu adds a note. The case-study page has the measured number.) Replies
+stream token by token. Everything the bot can say comes from those files, and
+if one is missing or empty the site fails to build rather than deploying with
+a hole in it.
 
 The design point worth explaining: the fixed "not in my notes" sentence is
 instrumentation, not just manners. Conversations are logged, and an admin
-page finds content gaps by matching that exact string — so every question
+page finds content gaps by matching that exact string, so every question
 the bot cannot answer becomes a concrete note for Suyu to write. Its
 ignorance is the feature.
 
@@ -140,8 +140,8 @@ are never stored, only an HMAC used for rate limiting.
 
 If asked what went wrong: the rate limiter first shipped fail-*open*.
 PostgREST answers a count against a missing table with no error and a null
-count, so `count ?? 0` read as "no requests yet" and let everything through
-— the spend limit silently disabled in exactly the situation it exists for.
+count, so `count ?? 0` read as "no requests yet" and let everything through.
+The spend limit was silently disabled in exactly the situation it exists for.
 It surfaced only because the acceptance tests ran before the schema was
 applied. A missing count is now an error.
 
