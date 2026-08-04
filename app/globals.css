@@ -27,34 +27,27 @@
   --font-display: var(--font-caveat);
 }
 
-/*
- * Base typography lives in @layer base so utilities can override it.
- * Unlayered rules beat layered ones regardless of specificity, and Tailwind v4
- * puts its utilities in a layer — so an unlayered `h2 { color: ... }` silently
- * wins over `text-card` on that heading. Every heading on the site happened to
- * set text-ink, the same value, so nothing exposed it until the chat panel
- * needed a light title on a dark bar.
- *
- * :focus-visible and the reduced-motion block below stay unlayered on purpose:
- * those are accessibility floors and should keep winning over utilities.
- */
-@layer base {
-  body {
-    background-color: var(--color-paper);
-    color: var(--color-ink-soft);
-    /* Body face: JetBrains Mono — SPEC.md §4.2 (changed from Inter
-       2026-07-29 at Suyu's direction; Inter removed). */
-    font-family: var(--font-mono);
-    font-size: 16px;
-    line-height: 1.65;
-  }
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink-soft);
+  /* Body face: JetBrains Mono — SPEC.md §4.2 (changed from Inter
+     2026-07-29 at Suyu's direction; Inter removed). */
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1.65;
+}
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    color: var(--color-ink);
-  }
+/*
+ * Unlayered on purpose. Note that this beats Tailwind's text-* utilities on
+ * headings regardless of specificity, because Tailwind v4 emits utilities
+ * inside a cascade layer and unlayered rules outrank layered ones. A heading
+ * that needs a different colour has to set it inline; see ChatPanel's title.
+ */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-ink);
 }
 
 /* Accessibility baseline: visible focus states everywhere (CLAUDE.md). */

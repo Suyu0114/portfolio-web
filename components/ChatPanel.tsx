@@ -199,7 +199,13 @@ export default function ChatPanel({
           Both the title and the close label are --card: --ink measures only
           3.07:1 on accent and would fail. */}
       <div className="bg-accent flex items-center justify-between px-3 py-2">
-        <h2 className="font-display text-card text-xl leading-none">
+        {/* Inline colour, not a text-* utility: the unlayered
+            `h1,h2,h3,h4 { color: ink }` rule in globals.css outranks Tailwind's
+            layered utilities, so text-card would silently do nothing here. */}
+        <h2
+          className="font-display text-xl leading-none"
+          style={{ color: "var(--color-card)" }}
+        >
           {COPY.title}
         </h2>
         <button
