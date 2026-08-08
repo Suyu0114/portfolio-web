@@ -1,18 +1,20 @@
 # Profile
 
-Suyu Cheng is a software engineer based in Toronto, Ontario, focused on data
-engineering, analytics engineering, and business intelligence. He has 6+
-years building data-intensive systems for a multinational manufacturer:
-ERP/PLM data integration, SQL-heavy backends, and analytics platforms used
-daily by executives, planners, and finance, as part of a two-to-three
-person internal development team. He recently completed postgraduate IT
-studies in Toronto and built three end-to-end Python + PostgreSQL analytics
-platforms with automated ETL, statistical modeling, and deployed web
-frontends.
+Suyu Cheng is a full-stack engineer based in Toronto, Ontario, with six-plus
+years turning manual ERP and CRM business processes into web systems used
+daily across a multinational manufacturer. That work covered material
+requirements planning, multi-stage approval workflows, asset management,
+sales forecasting, and commissions, built directly against live ERP, PLM,
+and CRM databases. He was the end-to-end owner in two-to-three person
+internal teams: stakeholder requirements (CEO, finance, procurement, factory
+floor), relational data modeling, SQL-heavy backends, frontend delivery, and
+rollout across four countries. On the side he ships React and Node web
+products: two live bilingual Next.js/TypeScript sites, a React 19 analytics
+dashboard, and a shipped Claude API assistant.
 
 ## Work experience
 
-### Seasonic Electronics, Taipei, Taiwan (Sep 2020 – Jun 2024)
+### Seasonic Electronics, Taipei, Taiwan (Sep 2020 – May 2024)
 
 **Senior Software Engineer.** Seasonic is a power supply manufacturer.
 
@@ -57,7 +59,8 @@ control.
 
 ### ACTi Corporation, Taipei, Taiwan (Sep 2018 – Aug 2020)
 
-**Software Engineer.**
+**Software Engineer.** ACTi is a security technology (surveillance camera)
+company.
 
 Built a win-rate-weighted sales forecasting system (.NET Framework / MSSQL /
 jQuery / Vue.js 2) querying live ERP and CRM databases, with interactive
@@ -77,32 +80,44 @@ schemas.
 
 ## Education
 
-**Humber Polytechnic, Toronto, Canada (Sep 2024 – Jun 2026).** Postgraduate
-Degree, Information Technology Solutions. Honours in three of four terms.
-Relevant coursework: Big Data 1 (96) and 2 (90), Machine Learning (96), Deep
-Learning, Business Intelligence, Fundamentals of Data Analytics, Oracle Data
-Warehouse Fundamentals (91) and Implementation, Oracle DBA 1, Oracle
-Database Programming (PL/SQL), Introduction to Database and SQL (90).
+**Humber Polytechnic, Toronto, Canada (Sep 2024 – May 2026).** Ontario
+College Graduate Certificate, Information Technology Solutions with Honours.
+Relevant coursework: Introduction to Database and SQL (90), Oracle Database
+Programming (PL/SQL), Oracle Data Warehouse Fundamentals (91) and
+Implementation, Machine Learning (96), Big Data 1 (96) and 2 (90), Business
+Intelligence (Power BI / Tableau). Also completed: Java Programming 1 (90),
+Advanced Java Programming, Data Structures and Design Patterns, Oracle DBA 1
+(89), Operating Systems (93), Advanced Operating Systems (87), Web
+Programming and Frameworks 1 and 2, Deep Learning, Requirements Analysis and
+Process Modelling, Project Management, Capstone Project.
 
 **National Formosa University, Yunlin, Taiwan (Sep 2011 – Jun 2015).**
 Bachelor of Business Administration.
 
 ## Technical skills
 
-- **Data engineering:** SQL (MSSQL, six years in production; PostgreSQL;
-  Oracle PL/SQL), Python (pandas, statsmodels), ETL and data integration,
-  data modeling, data warehousing, stored procedures, GitHub Actions
-  scheduling.
-- **Business intelligence:** Power BI, Tableau, Excel, dashboard design, KPI
-  tracking.
-- **Programming:** C#, .NET Core 6, Vue.js 3. (The portfolio projects also
-  use Next.js, TypeScript, and D3.)
-- **Tools and platforms:** Git, Linux (Ubuntu), Jira, Trello, Agile / Scrum.
+- **Frontend:** React.js (React 19 + Vite), Next.js (App Router),
+  TypeScript, Vue.js 3 / 2, Tailwind CSS, shadcn/ui, D3.js, Recharts, i18n
+  (next-intl).
+- **Backend:** Node.js (Next.js server runtime, Node 20), C# / .NET Core 6 /
+  .NET Framework, REST APIs, MSSQL stored procedures.
+- **Databases:** MSSQL (six years in production), PostgreSQL (Supabase),
+  Oracle PL/SQL, relational data modeling, data warehousing.
+- **ERP / CRM domain:** ERP and PLM integration, MRP / BOM,
+  approval-workflow engines, CRM pipeline and sales-commission systems,
+  manufacturing operations.
+- **AI integration:** Claude API (@anthropic-ai/sdk), streaming responses,
+  prompt caching, knowledge-pack guardrails, conversation logging and rate
+  limiting.
+- **Data and BI:** Python (pandas, statsmodels), ETL and data integration,
+  GitHub Actions scheduling, Power BI, Tableau, dashboard design.
+- **DevOps and tools:** Git, GitHub Actions, Vercel, Supabase, Linux
+  (Ubuntu), Jira, Trello, Agile / Scrum.
 - **Languages:** English (professional), Mandarin (native), Taiwanese
   (native).
 
 ## Also
 
 He was Chairperson of the Employee Welfare Committee at Seasonic Electronics
-from Sep 2022 to Jun 2024, coordinating employee activities, vendor
+from Sep 2022 to May 2024, coordinating employee activities, vendor
 partnerships, and internal engagement.

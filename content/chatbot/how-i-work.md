@@ -32,9 +32,16 @@ His ETL raises on an unmatched team name or a silently-shifted coordinate
 rather than approximating. A loud failure beats a plausible-looking wrong
 answer.
 
+## Accuracy over fluency
+
+The assistant on this site can only state facts that exist in its knowledge
+pack. Anything else gets a fixed fallback line rather than a plausible
+guess. That constraint is deliberate: he would rather the bot under-answer
+than put words in Suyu's mouth.
+
 ## On data quality generally
 
-If someone asks how he approaches data quality, these four habits are the
+If someone asks how he approaches data quality, the habits above are the
 answer. Concretely: validate at the boundary and fail there rather than
 letting bad rows through; make jobs idempotent so a re-run is safe; freeze
 known-good outputs as test vectors so a regression is visible rather than
