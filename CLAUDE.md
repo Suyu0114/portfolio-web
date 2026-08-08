@@ -43,9 +43,11 @@ improvise a resolution.
 10. **Em dashes separate names, not clauses** (added and narrowed
     2026-08-08, per Suyu: in running prose the em dash reads as
     AI-written). Allowed only as a name or title separator: the
-    `{Page} — Suyu` metadata pattern, `SITE_NAME`, and the OG label and
-    `alt`. Plus the availability line, which Suyu approved with its em
-    dash. Everywhere else a visitor can read, use a period, colon,
+    `{Page} — Suyu` metadata pattern, `SITE_NAME`, the OG label and
+    `alt`, and a `Name — descriptor` metadata description such as the
+    one in `app/about/page.tsx`. Plus the availability line, which Suyu
+    approved with its em dash. Everywhere else a visitor can read, use a
+    period, colon,
     semicolon, or parentheses instead: case-study bodies, `/about`
     paragraphs, figure captions, chart titles, diagram rails, card
     one-liners, `content/chatbot/*.md`, bot replies, and the system
