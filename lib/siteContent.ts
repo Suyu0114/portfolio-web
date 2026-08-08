@@ -5,17 +5,18 @@
  */
 export const HERO = {
   headline: "field notes",
-  // Positioning statement (SPEC §1); final wording tweakable at P3.
+  // Positioning statement (SPEC §1); wording finalized at v1.5. The
+  // absence of "Senior" is deliberate — see SPEC §1.
   intro:
-    "I'm Suyu — I build data products end-to-end, from raw pipelines to statistical models to the interfaces people actually use.",
-  subline: "Toronto · data engineering / analytics / full-stack",
+    "I'm Suyu. Six years building the systems businesses actually run on: planning, approvals, assets, sales. End to end, and lately with AI features on top.",
+  subline: "Toronto · full-stack · ERP & business systems · AI integration",
   doodleCaption: "calibration, hand-checked",
 } as const;
 
 /** Contact details — supplied by Suyu (SPEC §10). */
 export const CONTACT = {
   availability:
-    "Available now for full-time data engineering, analytics, and full-stack roles — Toronto-based, open to relocation.",
+    "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation.",
   email: "suyu0229@gmail.com",
   github: "https://github.com/Suyu0114",
   linkedin: "https://www.linkedin.com/in/suyu-cheng",
@@ -31,9 +32,12 @@ export const FOOTER = {
  */
 export const ABOUT = {
   headline: "about",
+  // Bio order and the exact credential wording are fixed by SPEC §6.4.
+  // Every fact traces to notes/CV_FS_ERPCRM_v2.md; body prose carries no
+  // em dashes (CLAUDE.md rule 10).
   bio: [
-    "I'm Suyu — I recently completed a postgraduate program in Information Technology Solutions (with Honours) at Humber Polytechnic in Toronto. I build data products end-to-end: the pipeline that pulls the data, the model that makes sense of it, and the interface people actually use.",
-    "I'm a Taiwanese citizen with a three-year Canadian work permit — authorized to work here without sponsorship — and open to full-time data engineering, analytics, and full-stack roles. The projects here are meant to show real decision depth, not a feature checklist.",
+    "I'm Suyu. I spent six years in two-to-three person internal development teams at Seasonic Electronics, a power-supply manufacturer, and ACTi Corporation, a security technology company, both in Taipei. I built what those businesses actually ran on: material requirements planning, multi-stage approval workflows, fixed-asset tracking, sales forecasting and commissions. End to end there meant working out the requirements with the CEO, finance, procurement and the factory floor, modeling the data, writing the SQL-heavy backend and the frontend, then rolling it out across four countries.",
+    "I moved to Toronto in 2024 and completed an Ontario College Graduate Certificate, Information Technology Solutions with Honours, at Humber Polytechnic (September 2024 to May 2026). I'm now looking for full-stack and software engineering roles here. I'm a Taiwanese citizen, authorized to work in Canada, and no employer sponsorship is required. The projects on this site are meant to show real decision depth, not a feature checklist.",
   ],
   howIWork: {
     heading: "how I work",
@@ -55,6 +59,10 @@ export const ABOUT = {
       {
         title: "Fail-loud pipelines",
         body: "My ETL raises on an unmatched team name or a silently-shifted coordinate rather than approximating. A loud failure beats a plausible-looking wrong answer.",
+      },
+      {
+        title: "Accuracy over fluency",
+        body: "The assistant on this site can only state facts that exist in its knowledge pack; anything else gets a fixed fallback line rather than a plausible guess.",
       },
     ],
   },

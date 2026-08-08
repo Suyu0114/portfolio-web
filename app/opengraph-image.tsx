@@ -52,12 +52,12 @@ export default function OpengraphImage() {
             }}
           />
           <div style={{ display: "flex", fontSize: 34, color: INK_SOFT, marginTop: 40, maxWidth: 940 }}>
-            Data products end-to-end — from raw pipelines to statistical models to the interfaces people actually use.
+            Six years building the systems businesses actually run on: planning, approvals, assets, sales. End to end, and lately with AI features on top.
           </div>
         </div>
 
         <div style={{ display: "flex", fontSize: 28, color: ACCENT_2 }}>
-          Toronto · data engineering / analytics / full-stack
+          Toronto · full-stack · ERP & business systems · AI integration
         </div>
       </div>
     ),
