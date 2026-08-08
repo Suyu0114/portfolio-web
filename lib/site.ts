@@ -9,5 +9,8 @@ export const SITE_URL = "https://protfolio-web-alpha.vercel.app";
 
 export const SITE_NAME = "Suyu — field notes";
 
+// Kept under ~160 characters so search results show it whole (SPEC §6.5
+// sync rule: this and the OG strings derive from the positioning
+// statement, shortened here rather than reworded).
 export const SITE_DESCRIPTION =
-  "I'm Suyu — I build data products end-to-end, from raw pipelines to statistical models to the interfaces people actually use. Toronto · data engineering / analytics / full-stack.";
+  "Suyu, a Toronto full-stack engineer. Six years building the systems businesses actually run on: planning, approvals, assets, sales, now with AI on top.";

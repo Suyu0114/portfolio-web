@@ -38,7 +38,7 @@ notes, and when it does not know, it must say so in a way I can count.
 ## What I built
 
 Five markdown files (profile, projects, how I work, interests, FAQ) are
-concatenated at module load into a system prompt that currently runs to 9,598
+concatenated at module load into a system prompt that currently runs to 10,285
 tokens. Every fact the bot can state lives in those files. If a file is
 missing or empty, the build fails rather than deploying a bot with a hole in
 its knowledge.
@@ -58,6 +58,10 @@ The visitor side is a lazily-loaded widget. Only the entry button ships in
 the first-load bundle; the panel and its streaming logic arrive on first
 open. Replies stream token by token over a chunked plain-text response.
 
+The whole path, from the button in the corner to the list of gaps:
+
+<AssistantArch />
+
 ## Key decisions & tradeoffs
 
 **A fixed refusal line, not per-message tagging.** The alternative was a
@@ -67,11 +71,19 @@ already tells me. One model call per turn, and the gap detection rides along
 for free. The cost is that the sentence is now frozen: changing its wording
 would silently orphan every gap already logged.
 
+**Accuracy over fluency.** The system prompt forbids supplementing,
+estimating, or embellishing beyond the notes, and it quotes the refusal line
+verbatim rather than describing it. This makes the bot deliberately worse at
+conversation: ask something adjacent to a fact it holds and it will not
+bridge the gap for you. That is the trade I want. A bot that under-answers is
+recoverable; one that over-answers puts words in my mouth in front of a
+recruiter.
+
 **The system prompt is byte-frozen.** Prompt caching only helps if the cached
 prefix is identical every time, so nothing dynamic may touch it. No
 timestamps, no visitor context. When you open the chat on a case-study page
 the bot knows which one you are reading, but that context is injected into
-the *user* turn instead. Measured result: the full 9,598 tokens are read from
+the *user* turn instead. Measured result: the full 10,285 tokens are read from
 cache on every repeat request, at roughly a tenth of the input price.
 
 **The official SDK, not a wrapper.** Vercel's AI SDK would have given a
@@ -82,16 +94,21 @@ return a 200 with `stop_reason: "refusal"`, so the code checks the stop
 reason before reading any content and falls back to the refusal line rather
 than streaming a half-formed answer.
 
+**Postgres, not a document store.** Chat logs look like documents until you
+query them. What I needed was sessions to messages, and every question I have
+about them (what gets asked most, which turns hit the refusal line) is a
+group-by. A relational schema answers those in SQL rather than in application
+code. The volume argument for a document store never applies here either: the
+daily cap fuses writes long before scale becomes the problem.
+
 **Rate limiting in Postgres, not another service.** Two indexed count queries
 (twenty requests per five minutes per hashed IP, and a global cap of five
 hundred assistant messages a day) reuse the database that was already there
 rather than adding a queue or a KV store for two counters. The daily cap is a
 constant in code, not an environment variable, so raising my own spending
-limit takes a commit.
-
-**Raw IPs are never stored.** Rate limiting needs to recognise a repeat
-visitor; it does not need to know who they are. Only an HMAC of the address
-is written, and it is used for nothing else.
+limit takes a commit. The hashing is not incidental either: rate limiting
+needs to recognise a repeat visitor, not know who they are, so only an HMAC
+of the address is ever written and it is used for nothing else.
 
 ## What went wrong
 

@@ -1,4 +1,5 @@
 import type { MDXComponents } from "mdx/types";
+import AssistantArch from "@/components/AssistantArch";
 import BlueJaysArch from "@/components/BlueJaysArch";
 import Figure from "@/components/Figure";
 import StudyArch from "@/components/StudyArch";
@@ -32,6 +33,7 @@ export const mdxComponents: MDXComponents = {
     />
   ),
   Figure,
+  AssistantArch,
   BlueJaysArch,
   WorldCupArch,
   WorldCupCalibration,

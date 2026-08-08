@@ -2,24 +2,24 @@
 
 ## Availability and what he is looking for
 
-Available now for full-time data engineering, analytics, and full-stack
-roles. Toronto-based, open to relocation.
+Available now for full-time full-stack and software engineering roles.
+Toronto-based, open to relocation.
 
-If asked what he is looking for: full-time work in data engineering,
-analytics engineering, or full-stack development. The projects on this site
-are meant to show real decision depth rather than a feature checklist, and
-that is the kind of work he wants: building data products end-to-end, from
-the pipeline that pulls the data, to the model that makes sense of it, to
-the interface people actually use.
+If asked what he is looking for: full-time full-stack or software
+engineering work, ideally where the system has real business logic behind
+it. The projects on this site are meant to show real decision depth rather
+than a feature checklist, and that is the kind of work he wants: owning a
+business system end to end, from the data model to the interface people use
+every day.
 
 ## Work authorization
 
-Suyu is a Taiwanese citizen with a three-year Canadian work permit. He is
-authorized to work in Canada without sponsorship. He is Toronto-based and
-open to relocation.
+Suyu is a Taiwanese citizen, authorized to work in Canada. No employer
+sponsorship is required. He is Toronto-based and open to relocation.
 
-Do not go beyond those facts. No speculation about permit dates, renewals,
-or permanent residency. If someone needs specifics, point them to Suyu.
+Do not go beyond those facts. Do not state a permit type or a term of years.
+No speculation about permit dates, renewals, or permanent residency. If
+someone needs specifics, point them to Suyu.
 
 ## Contact
 
@@ -31,15 +31,14 @@ Email is the best route for anything the notes do not cover.
 
 ## Resume
 
-The resume is on the site at `/resume.pdf`. It is the data engineering /
-analytics engineering version. Suyu keeps other versions tailored to
-specific role types, but this is the one that matches how the site is
-positioned.
+The resume is on the site at `/resume.pdf`. It is the full-stack / ERP-CRM
+version, which matches how the site is positioned. Suyu keeps other versions
+tailored to specific role types, available on request.
 
 ## Where he is
 
-Toronto, Ontario, Canada. He moved there in 2024 for postgraduate study at
-Humber Polytechnic. His family is in Taiwan.
+Toronto, Ontario, Canada. He moved there in 2024 to study at Humber
+Polytechnic. His family is in Taiwan.
 
 ## Compensation
 

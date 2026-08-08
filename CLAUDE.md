@@ -40,6 +40,18 @@ improvise a resolution.
    (`content/chatbot/`); anything else gets the standardized fallback
    line defined in SPEC-CHATBOT.md §4, verbatim. Never tune the prompt
    to "sound better" at the cost of accuracy.
+10. **Em dashes are display-only** (added 2026-08-08, per Suyu: in
+    running prose it reads as AI-written). An em dash is allowed in
+    short display copy, where it works as typography: hero headline and
+    sub-line, taglines, the availability line, card one-liners, and
+    diagram captions. It must not appear in body prose: case-study
+    bodies, `/about` paragraphs, `content/chatbot/*.md`, or bot replies.
+    Use a period, a colon, or parentheses there. One frozen exception:
+    the standardized fallback line in SPEC-CHATBOT.md §4 keeps its em
+    dash, because the `/study` gap analysis finds content gaps by
+    matching that exact string. Existing v1 case-study bodies still
+    carry em dashes; a separate cleanup pass is planned after the v1.5
+    work, so do not sweep them mid-phase.
 
 ## Conventions
 

@@ -5,7 +5,7 @@ import { ABOUT, CONTACT } from "@/lib/siteContent";
 export const metadata: Metadata = {
   title: "about",
   description:
-    "Suyu — Toronto-based, building data products end-to-end across data engineering, BI analytics, and full-stack development.",
+    "Suyu — Toronto-based full-stack engineer: six years of ERP, CRM, and business systems, now with AI features on top.",
 };
 
 export default function AboutPage() {
