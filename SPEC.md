@@ -26,7 +26,7 @@ requires a knowledge-pack sync in SPEC-CHATBOT.md §4 (see
 C0-C4) is confirmed deployed and live as of 2026-08-07. Source of
 truth for the change: `SPEC_v1.5_amendment.md`, whose §11 records six
 deviations agreed with Suyu on 2026-08-08 during implementation.
-Status: approved direction; remaining TODO inputs in §10 pending.
+Status: approved; all §10 inputs supplied (last updated 2026-08-08).
 
 ---
 
