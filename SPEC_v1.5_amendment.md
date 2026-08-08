@@ -476,3 +476,10 @@ replies). Consequences here:
   per §10, and Suyu deferred the sweep (2026-08-08) to a separate plan
   after this amendment's six work groups are done. Do not sweep them
   mid-phase.
+
+**Later that day, the rule was narrowed.** Once the sweep was scoped,
+Suyu chose consistency over the display-copy carve-out: figure captions,
+chart titles, diagram rails, and card one-liners are swept too, and the
+system prompt with them. CLAUDE.md rule 10 now allows the em dash only
+as a name or title separator, plus the availability line. This paragraph
+records the change; the decision above is left as it was written.

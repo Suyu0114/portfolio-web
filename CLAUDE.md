@@ -40,18 +40,24 @@ improvise a resolution.
    (`content/chatbot/`); anything else gets the standardized fallback
    line defined in SPEC-CHATBOT.md §4, verbatim. Never tune the prompt
    to "sound better" at the cost of accuracy.
-10. **Em dashes are display-only** (added 2026-08-08, per Suyu: in
-    running prose it reads as AI-written). An em dash is allowed in
-    short display copy, where it works as typography: hero headline and
-    sub-line, taglines, the availability line, card one-liners, and
-    diagram captions. It must not appear in body prose: case-study
-    bodies, `/about` paragraphs, `content/chatbot/*.md`, or bot replies.
-    Use a period, a colon, or parentheses there. One frozen exception:
-    the standardized fallback line in SPEC-CHATBOT.md §4 keeps its em
-    dash, because the `/study` gap analysis finds content gaps by
-    matching that exact string. Existing v1 case-study bodies still
-    carry em dashes; a separate cleanup pass is planned after the v1.5
-    work, so do not sweep them mid-phase.
+10. **Em dashes separate names, not clauses** (added and narrowed
+    2026-08-08, per Suyu: in running prose the em dash reads as
+    AI-written). Allowed only as a name or title separator: the
+    `{Page} — Suyu` metadata pattern, `SITE_NAME`, the OG label and
+    `alt`, and a `Name — descriptor` metadata description such as the
+    one in `app/about/page.tsx`. Plus the availability line, which Suyu
+    approved with its em dash. Everywhere else a visitor can read, use a
+    period, colon,
+    semicolon, or parentheses instead: case-study bodies, `/about`
+    paragraphs, figure captions, chart titles, diagram rails, card
+    one-liners, `content/chatbot/*.md`, bot replies, and the system
+    prompt in `lib/chatbotPrompt.ts`. Two frozen exceptions: the
+    standardized fallback line (SPEC-CHATBOT.md §4) in **both** of its
+    copies, `content/ask-my-notes.mdx` and `lib/chatbotKnowledge.ts`,
+    because the `/study` gap analysis matches that exact string; and the
+    `Avoid the em dash (—)` instruction in `lib/chatbotPrompt.ts`, where
+    the glyph is the subject of the sentence. Code comments are not
+    visitor-facing and are out of scope.
 
 ## Conventions
 

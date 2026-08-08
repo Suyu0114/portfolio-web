@@ -23,7 +23,7 @@ links:
 ## Context
 
 I moved to Toronto and wanted a single place to actually *read* the Blue
-Jays season — not a wall of numbers, but the charts a curious fan would
+Jays season, not a wall of numbers but the charts a curious fan would
 recognise from a broadcast: where a hitter puts the ball in play, where a
 pitcher lives in the zone, how a player's value breaks down. Most public
 tools either assume you already speak sabermetrics or hide the good data
@@ -32,7 +32,7 @@ behind a membership.
 So I built one end-to-end: a Python pipeline that pulls Statcast and MLB
 data every night, a Postgres database that stores it, and a Next.js front
 end that renders it as hand-built D3 charts. English-first, with an
-optional Traditional Chinese toggle for the family back home — where the
+optional Traditional Chinese toggle for the family back home, where the
 navigation and prose translate but player names and baseball jargon
 (`OPS`, `wRC+`, `Statcast`) deliberately stay in English, because that is
 how the game is actually discussed here.
@@ -47,7 +47,7 @@ type.
 <Figure
   src="/screens/bluejays-fan-web-spray-chart.png"
   alt="Spray chart of batted balls on a Rogers Centre outline, points coloured by outcome and sized by exit velocity"
-  caption="spray chart — real park geometry, coloured by outcome"
+  caption="spray chart: real park geometry, coloured by outcome"
 />
 
 Alongside it: a pitch-zone heatmap built from a 16×20 grid smoothed with a
@@ -62,7 +62,7 @@ speak sabermetrics can still read the page.
 <Figure
   src="/screens/bluejays-fan-web-pitch-heatmap.png"
   alt="Pitch-location heatmap over the strike zone, warm where pitches concentrate"
-  caption="pitch-zone heatmap — 16×20 grid, Gaussian-smoothed"
+  caption="pitch-zone heatmap: 16×20 grid, Gaussian-smoothed"
 />
 
 The data flows through four stages, refreshed on a schedule:
@@ -75,18 +75,18 @@ The data flows through four stages, refreshed on a schedule:
 serverless request, so I never pull data at request time. A GitHub Actions
 cron runs the Python pipeline, writes to Supabase, then calls a
 `/api/revalidate` endpoint so Next.js ISR caches drop in seconds. The
-alternative — pulling inside a Vercel function — would have meant slow cold
+alternative (pulling inside a Vercel function) would have meant slow cold
 requests and timeouts. The cost is that the site is fresh overnight, not
 live; for a fan reading yesterday's game that is the right trade.
 
 **Season stats stay honest about their source.** FanGraphs is the only
-source for WAR components, wRC+ and the like — there is no API, and the
+source for WAR components, wRC+ and the like: there is no API, and the
 scrapers now return HTTP 403. Rather than scrape against their terms, I
 export the numbers as CSVs behind my own membership, drop them into a
 gitignored folder, and load them with a warning-not-crash if a file is
 missing. Roster enumeration ("who played for the Jays that year") moved to
 the MLB Stats API's full-season endpoint instead. The self-built Savant
-charts — spray, heatmap, fielding — are the part the public site actually
+charts (spray, heatmap, fielding) are the part the public site actually
 ships; the licensed numbers stay as private inputs.
 
 **Plate-alignment tagging, because the data quietly changed.** In 2026
@@ -110,18 +110,18 @@ are computed once in the ETL and stored per player-season; pages never
 grind thousands of Statcast rows on a request. The D3 components take plain
 JSON, not a database client, so they stay framework-pure and testable.
 Because the Supabase project is shared with other work, every table is
-namespaced with a `web_` prefix — a small discipline that avoids
+namespaced with a `web_` prefix, a small discipline that avoids
 collisions with a pre-existing `players` table.
 
 <Figure
   src="/screens/bluejays-fan-web-homepage.png"
   alt="Home page with a hand-drawn schedule calendar and a Today's Blue Jays module"
-  caption="home — a rough.js schedule calendar, box scores one click away"
+  caption="home: a rough.js schedule calendar, box scores one click away"
 />
 
 ## Results
 
-Three seasons — 2024 through 2026, including the 2025 playoffs — are
+Three seasons (2024 through 2026, including the 2025 playoffs) are
 backfilled for every 40-man Blue Jay, and the nightly cron keeps the
 current season current. Spray charts, the pitch heatmap, the fielding
 diagram and the batter deep-dive all ship in English and Traditional
@@ -132,7 +132,7 @@ The build also grew a full pitcher side: an arsenal table with per-pitch
 usage, velocity, spin, whiff rate and expected-wOBA-on-contact, a
 horizontal-and-vertical movement chart, and a rolling velocity trend.
 Fielding uses Statcast's fielding run value rather than a metric that would
-have required paid data — a recurring theme in the project, where the
+have required paid data: a recurring theme in the project, where the
 choice of source was as much a design decision as the chart on top of it.
 
 The project is really two disciplines meeting: a fail-loud data pipeline

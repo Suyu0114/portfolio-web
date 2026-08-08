@@ -7,7 +7,7 @@ export default function StudyArch() {
   return (
     <ArchFlow
       caption="from frozen hypotheses to a reported null"
-      rail="hypotheses.md frozen before the first inspected correlation — the analysis could only confirm or fail to confirm it"
+      rail="hypotheses.md frozen before the first inspected correlation: the analysis could only confirm or fail to confirm it"
       steps={[
         { label: "MLB Stats API + FanGraphs CSV", note: "1,181 players · 2016–2025" },
         { label: "three-pillar BaZi compute", note: "sxtwl · solar-term boundaries" },
