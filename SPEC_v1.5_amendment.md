@@ -11,7 +11,7 @@ beyond what is written here. If anything below conflicts with `SPEC.md`,
 `SPEC-CHATBOT.md`, or `CLAUDE.md`, STOP and flag it.
 
 **Read §11 first.** This file was drafted in claude.ai against stale repo
-knowledge. §11 "Implementation notes" records five deviations agreed with
+knowledge. §11 "Implementation notes" records six deviations agreed with
 Suyu on 2026-08-08 during implementation planning. Where §11 conflicts
 with an earlier section, **§11 wins**; §§1–10 are otherwise unchanged and
 still binding. Affected sections carry an inline pointer.
@@ -363,7 +363,7 @@ win. Everything §§0–10 says that is not contradicted here still stands.
 
 Reason for this section: §§0–10 were drafted in claude.ai against stale
 repo knowledge, and two items (§9 `faq.md`, plus an availability sentence
-nobody had looked at) were deliberately left open for Suyu. Five items
+nobody had looked at) were deliberately left open for Suyu. Six items
 were resolved on 2026-08-08 and are recorded here rather than silently
 absorbed into the implementation.
 
@@ -432,3 +432,12 @@ strings are therefore part of the ordinary metadata sync — the
 positioning sentence (without the "I'm Suyu." lead, matching its current
 style) and the new sub-line. No other visual change; the carve-out needs
 no decision from Suyu.
+
+### 11.6 SPEC.md §6.2 card count — one word, despite §10
+
+§10 puts SPEC.md §6.2 out of scope, but §6.2 says the `/projects` grid
+holds "3 full" project cards and §7 now lists four — the spec would
+contradict itself. Suyu decided 2026-08-08: **change the numeral only**
+(`3 full` → `4 full`). Everything else in §6.2 — the `FacetFilter`
+behaviour, the `?tag=` state, the empty-result hand note — is untouched.
+This is a fact sync with §7, not a design decision about `/projects`.

@@ -3,8 +3,13 @@
 Version: v2.0 (2026-08-01, designed with Claude in Claude Code; decisions
 confirmed by Suyu: model = Claude Opus 5, storage = Supabase Postgres,
 entry = site-wide floating widget, insights = on-demand only).
-Status: approved for implementation. Implemented with Opus 5 in phases
-C0–C4 (§9), after SPEC.md P0–P5 (all complete).
+v2.1 (2026-08-08, per Suyu): knowledge-pack sync for the SPEC.md v1.5
+repositioning — §1 goal 2 (four case studies), §4 table (`profile.md`
+source and education wording, `projects.md` count, `how-i-work.md` fifth
+item, `faq.md` work-authorization wording). The runtime surface in §2 is
+untouched. Driven by `SPEC_v1.5_amendment.md` §9 and §11.
+Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
+with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
 This spec **amends** SPEC.md v1 and CLAUDE.md where explicitly stated in
 §2 and nowhere else. If an implementation need falls outside the §2
@@ -20,7 +25,7 @@ allowlist, STOP and flag it — do not widen the exception.
    it; the feature itself is a portfolio piece (streaming LLM API,
    prompt caching, guardrails, logging, analysis loop).
 2. **Talks to interested visitors** (recruiters, engineers) about Suyu:
-   work experience, education, the three case-study projects, how he
+   work experience, education, the four case-study projects, how he
    works, and interests.
 3. **Collects market signal.** Conversations are logged; a private
    admin page lets Suyu generate an on-demand analysis: what visitors
@@ -132,11 +137,11 @@ concatenated into the system prompt at module init:
 
 | File | Content | Source |
 |---|---|---|
-| `profile.md` | Work experience, education (Humber Polytechnic graduate certificate), skills | CV (DE/AE version primary; other versions for extra detail) |
-| `projects.md` | Condensed versions of the three case studies, incl. links to `/projects/[slug]` | `content/*.mdx` (rewritten, framing rules of SPEC.md §7 apply — e.g. no betting foregrounding) |
-| `how-i-work.md` | Pre-registration, frozen golden vectors, fail-loud pipelines, design-then-implement | `lib/siteContent.ts` ABOUT |
+| `profile.md` | Work experience, education (Ontario College Graduate Certificate, Information Technology Solutions with Honours — Humber Polytechnic, Sep 2024 – May 2026), skills | CV — full-stack / ERP-CRM version primary (`notes/CV_FS_ERPCRM_v2.md`, v1.5); the DE/AE version is supplementary only |
+| `projects.md` | Condensed versions of the four case studies, incl. links to `/projects/[slug]` | `content/*.mdx` (rewritten, framing rules of SPEC.md §7 apply — e.g. no betting foregrounding) |
+| `how-i-work.md` | Pre-registration, frozen golden vectors, fail-loud pipelines, design-then-implement, accuracy over fluency (five items, SPEC.md §6.4) | `lib/siteContent.ts` ABOUT |
 | `interests.md` | MLB/Blue Jays, BaZi as a genuine long-term interest, personality | **NEW — Suyu supplies raw material (§10)** |
-| `faq.md` | Availability, work authorization (Taiwanese citizen, 3-yr Canadian work permit, open to relocation), contact, `/resume.pdf` link | SPEC.md §10 + Suyu |
+| `faq.md` | Availability, work authorization (Taiwanese citizen, **authorized to work in Canada, no employer sponsorship required** — see SPEC.md §10; never "3-yr", never an issued permit), contact, `/resume.pdf` link | SPEC.md §10 + Suyu |
 
 **Loader.** `lib/chatbotKnowledge.ts`, mirroring `lib/content.ts`
 fail-loud style: reads all five files at module init, throws (build
