@@ -11,7 +11,7 @@ beyond what is written here. If anything below conflicts with `SPEC.md`,
 `SPEC-CHATBOT.md`, or `CLAUDE.md`, STOP and flag it.
 
 **Read §11 first.** This file was drafted in claude.ai against stale repo
-knowledge. §11 "Implementation notes" records six deviations agreed with
+knowledge. §11 "Implementation notes" records seven deviations agreed with
 Suyu on 2026-08-08 during implementation planning. Where §11 conflicts
 with an earlier section, **§11 wins**; §§1–10 are otherwise unchanged and
 still binding. Affected sections carry an inline pointer.
@@ -363,7 +363,7 @@ win. Everything §§0–10 says that is not contradicted here still stands.
 
 Reason for this section: §§0–10 were drafted in claude.ai against stale
 repo knowledge, and two items (§9 `faq.md`, plus an availability sentence
-nobody had looked at) were deliberately left open for Suyu. Six items
+nobody had looked at) were deliberately left open for Suyu. Seven items
 were resolved on 2026-08-08 and are recorded here rather than silently
 absorbed into the implementation.
 
@@ -441,3 +441,30 @@ contradict itself. Suyu decided 2026-08-08: **change the numeral only**
 (`3 full` → `4 full`). Everything else in §6.2 — the `FacetFilter`
 behaviour, the `?tag=` state, the empty-result hand note — is untouched.
 This is a fact sync with §7, not a design decision about `/projects`.
+
+### 11.7 SPEC.md §6.3 budget raised, and a house style rule
+
+Two decisions taken 2026-08-08 while adding D2 and D5 to the assistant
+case study.
+
+**Length and decision count.** The body was already at 1,180 words, the
+old ceiling being 1,200, and the amendment requires two more decisions.
+Rather than cut verified content to fit, Suyu raised §6.3's budget to
+**≈ 900–1,400 words** and its decision count to **3–6**. §10 lists §6.3
+as out of scope; this supersedes that for these two numbers only. The
+template itself (the five-part body structure) is unchanged.
+
+Applied to `ask-my-notes.mdx`: "Raw IPs are never stored" is folded into
+the rate-limiting decision, since the HMAC is part of the same choice.
+That lands the study at six decisions.
+
+**No em dashes in visitor-facing copy.** Suyu, 2026-08-08: the em dash
+reads as AI-written. New and rewritten visitor-facing prose uses other
+punctuation. Two exceptions, both deliberate:
+
+- ⛔ The standardized fallback line (SPEC-CHATBOT.md §4) contains an em
+  dash and is **frozen**. The `/study` gap analysis finds content gaps by
+  matching that exact string, so rewording it orphans every gap already
+  logged. It stays as it is.
+- Code comments and the spec files themselves are not visitor-facing and
+  were left alone.

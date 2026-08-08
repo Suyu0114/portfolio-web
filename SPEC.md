@@ -24,7 +24,7 @@ list), §5 (resume.pdf), §6.1, §6.4, §6.5, and §7 (adds §7.4). Also
 requires a knowledge-pack sync in SPEC-CHATBOT.md §4 (see
 `SPEC_v1.5_amendment.md` §9). The chatbot (SPEC-CHATBOT.md, phases
 C0-C4) is confirmed deployed and live as of 2026-08-07. Source of
-truth for the change: `SPEC_v1.5_amendment.md`, whose §11 records six
+truth for the change: `SPEC_v1.5_amendment.md`, whose §11 records seven
 deviations agreed with Suyu on 2026-08-08 during implementation.
 Status: approved; all §10 inputs supplied (last updated 2026-08-08).
 
@@ -210,14 +210,17 @@ Body structure (enforced by authoring convention, checked at P3 review):
 1. **Context** — what problem, why built (2–3 short paragraphs).
 2. **What I built** — architecture diagram in sketch style (static SVG
    or rough.js), plus 1–2 `Figure` screenshots.
-3. **Key decisions & tradeoffs** — 3–5 decisions, each: the choice, the
+3. **Key decisions & tradeoffs** — 3–6 decisions (raised from 3–5 at
+   v1.5, so §7.4 can carry the full D1–D6 set), each: the choice, the
    alternative rejected, why. This is the longest and most valuable
    section; it is mandatory.
 4. **Results** — concrete outcomes/numbers (verified per CLAUDE.md
    rule 1).
 5. **Stack & links** — mono list + external links.
 
-Length budget ≈ 900–1,200 words per case study. Screenshots always
+Length budget ≈ 900–1,400 words per case study (upper bound raised from
+1,200 at v1.5, per Suyu: adding a required decision is worth more than
+cutting verified content to stay under the old cap). Screenshots always
 inside `Figure` sketch frames. At most 1–2 rough.js data charts per
 case study; screenshots carry the rest — this is a deliberate scope cap.
 
