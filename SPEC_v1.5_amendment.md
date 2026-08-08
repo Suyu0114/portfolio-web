@@ -458,13 +458,21 @@ Applied to `ask-my-notes.mdx`: "Raw IPs are never stored" is folded into
 the rate-limiting decision, since the HMAC is part of the same choice.
 That lands the study at six decisions.
 
-**No em dashes in visitor-facing copy.** Suyu, 2026-08-08: the em dash
-reads as AI-written. New and rewritten visitor-facing prose uses other
-punctuation. Two exceptions, both deliberate:
+**Em dashes are display-only.** Suyu, 2026-08-08: in running prose the
+em dash reads as AI-written. Now CLAUDE.md rule 10 — allowed in short
+display copy (hero headline and sub-line, taglines, the availability
+line, card one-liners, diagram captions), forbidden in body prose
+(case-study bodies, `/about` paragraphs, `content/chatbot/*.md`, bot
+replies). Consequences here:
 
-- ⛔ The standardized fallback line (SPEC-CHATBOT.md §4) contains an em
-  dash and is **frozen**. The `/study` gap analysis finds content gaps by
-  matching that exact string, so rewording it orphans every gap already
-  logged. It stays as it is.
-- Code comments and the spec files themselves are not visitor-facing and
-  were left alone.
+- The §11.4 availability sentence **keeps its em dash**. It is a
+  tagline, not prose.
+- ⛔ The standardized fallback line (SPEC-CHATBOT.md §4) keeps its em
+  dash and stays **frozen**. The `/study` gap analysis finds content
+  gaps by matching that exact string, so rewording it orphans every gap
+  already logged.
+- Code comments and the spec files are not visitor-facing; left alone.
+- The three v1 case-study bodies still carry ~35 em dashes. Out of scope
+  per §10, and Suyu deferred the sweep (2026-08-08) to a separate plan
+  after this amendment's six work groups are done. Do not sweep them
+  mid-phase.
