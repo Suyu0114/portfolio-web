@@ -2,6 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  getSessionId,
+  readTurns,
+  saveTurns,
+  type Turn,
+} from "@/lib/chatSession";
+
 /**
  * Chat panel — SPEC-CHATBOT §6. Loaded only when the widget is opened, so its
  * JS never lands in the first-load bundle.
@@ -9,6 +16,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * User and bot turns are distinguished by border treatment and alignment
  * (`.sk-border-b` vs `.sk-border-a`), never by a new colour — tokens are frozen
  * (CLAUDE.md rule 4).
+ *
+ * Once opened, the panel stays mounted and hides itself with `display: none`
+ * while minimized (§6): that is what keeps the thread, the draft input, and an
+ * in-flight reply alive. Ending the conversation unmounts it instead, so the
+ * reset path is the mount path.
  */
 
 /** Widget microcopy — component-level constant (CLAUDE.md conventions). */
@@ -16,7 +28,18 @@ const COPY = {
   // Matches the entry button's label so the panel does not appear to rename
   // itself on open.
   title: "ask my AI notes",
-  close: "Close the notebook",
+  /**
+   * Two dismiss actions, deliberately unequal (§6). Hiding is the reflex
+   * action and costs nothing; ending is the one that throws the conversation
+   * away, so it sits down in the footer rather than under the same thumb.
+   *
+   * Both aria-labels contain their visible word, so voice-control users can
+   * say what they see (WCAG 2.5.3 Label in Name).
+   */
+  hide: "hide",
+  hideLabel: "Hide the notebook",
+  end: "end chat",
+  endLabel: "End chat and clear this conversation",
   inputLabel: "Ask about Suyu",
   placeholder: "Ask about Suyu…",
   send: "Send",
@@ -54,56 +77,70 @@ const CHIPS = [
 
 const PROJECT_CHIP = "Ask about this project";
 
-type Turn = { role: "user" | "assistant"; content: string };
-
-/** §3 — client generates the session id and keeps it in sessionStorage. */
-function getSessionId(): string {
-  const KEY = "suyu-chat-session";
-  const existing = sessionStorage.getItem(KEY);
-  if (existing !== null) return existing;
-  // Must be a v4 UUID: the API validates with zod's strict uuid check.
-  const fresh = crypto.randomUUID();
-  sessionStorage.setItem(KEY, fresh);
-  return fresh;
-}
-
 export default function ChatPanel({
-  onClose,
+  open,
+  onHide,
+  onEnd,
   projectTitle,
 }: {
-  onClose: () => void;
+  /** False while minimized: the panel stays mounted but display: none (§6). */
+  open: boolean;
+  onHide: () => void;
+  onEnd: () => void;
   /** Title of the case study being read, when on /projects/[slug] (§6). */
   projectTitle: string | null;
 }) {
-  const [turns, setTurns] = useState<Turn[]>([]);
+  // Restoring in the initializer is safe because the panel is `ssr: false`, so
+  // it only ever renders on the client — no hydration mismatch to avoid here.
+  const [turns, setTurns] = useState<Turn[]>(() => readTurns());
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // §6 — the thread survives a reload, not just a minimize, so the visible
+  // conversation and the logged one stay the same conversation. This write is
+  // also what tells the entry button a conversation is waiting.
+  useEffect(() => {
+    saveTurns(turns);
+  }, [turns]);
+
+  // Ending the conversation unmounts the panel; drop the in-flight reply with
+  // it rather than paying for tokens nobody will read. Cancelling the body
+  // reaches the route's cancel() hook, which aborts the Anthropic stream.
+  // Minimizing deliberately does not abort — the panel stays mounted.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   // §6 a11y — focus moves into the panel on open; ChatWidget returns it to the
-  // entry button on close.
+  // entry button when the panel is hidden or ended.
   useEffect(() => {
+    if (!open) return;
     inputRef.current?.focus();
-  }, []);
+  }, [open]);
 
-  // §6 a11y — Esc closes. Bound to the document, not the panel: the panel is
+  // §6 a11y — Esc minimizes. Bound to the document, not the panel: the panel is
   // non-modal and does not trap focus, so a visitor who has tabbed back out to
-  // the page would otherwise lose the shortcut.
+  // the page would otherwise lose the shortcut. Only while visible, so a
+  // minimized panel does not swallow Esc from the rest of the page.
   useEffect(() => {
+    if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onHide();
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  }, [open, onHide]);
 
-  // Keep the newest turn in view as tokens stream in.
+  // Keep the newest turn in view as tokens stream in. `open` is a dependency
+  // because scrollHeight is 0 while the panel is display: none — without it a
+  // restored thread would reopen scrolled to the top.
   useEffect(() => {
+    if (!open) return;
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [turns, streaming]);
+  }, [turns, streaming, open]);
 
   const send = useCallback(
     async (raw: string) => {
@@ -125,9 +162,13 @@ export default function ChatPanel({
           ? `Visitor is currently reading the ${projectTitle} case study.\n\n${message}`
           : message;
 
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
+          signal: controller.signal,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             sessionId: getSessionId(),
@@ -170,10 +211,14 @@ export default function ChatPanel({
         }
 
         if (!started) setError(COPY.errorGeneric);
-      } catch {
+      } catch (err) {
+        // An abort is the visitor ending the chat, not a failure — showing an
+        // error note for it would be dishonest in the other direction.
+        if (err instanceof DOMException && err.name === "AbortError") return;
         // No silent catch, no retry loop — the visitor sees an honest note.
         setError(COPY.errorGeneric);
       } finally {
+        if (abortRef.current === controller) abortRef.current = null;
         setStreaming(false);
       }
     },
@@ -189,7 +234,12 @@ export default function ChatPanel({
       // sk-edge-accent-2 recolours the shared frame to --accent-2 so the panel
       // separates from the near-identical --paper page behind it (card and
       // paper differ by very little on their own).
-      className="sk-border-a sk-edge-accent-2 bg-card fixed right-4 bottom-4 z-50 flex w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden sm:right-6 sm:bottom-6"
+      //
+      // Exactly one display utility is emitted. Shipping `flex` and `hidden`
+      // together would be an equal-specificity coin flip, and the `hidden`
+      // *attribute* would lose to `.flex` outright (UA sheet vs author rule).
+      // display: none also takes the minimized panel out of the a11y tree.
+      className={`${open ? "flex" : "hidden"} sk-border-a sk-edge-accent-2 bg-card fixed right-4 bottom-4 z-50 w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden sm:right-6 sm:bottom-6`}
       // A fixed height, not just a cap: with max-height the panel collapsed to
       // fit the chips on an empty thread and then jumped taller on the first
       // reply. The calc keeps it inside short viewports.
@@ -210,11 +260,11 @@ export default function ChatPanel({
         </h2>
         <button
           type="button"
-          onClick={onClose}
-          aria-label={COPY.close}
+          onClick={onHide}
+          aria-label={COPY.hideLabel}
           className="sk-pill text-card px-2 py-0.5 text-xs"
         >
-          close
+          {COPY.hide}
         </button>
       </div>
 
@@ -314,9 +364,25 @@ export default function ChatPanel({
             {COPY.send}
           </button>
         </div>
-        <p className="text-muted mt-1.5 text-[0.6875rem] leading-snug">
-          {COPY.disclosure}
-        </p>
+        <div className="mt-1.5 flex items-start justify-between gap-2">
+          <p className="text-muted text-[0.6875rem] leading-snug">
+            {COPY.disclosure}
+          </p>
+          {/* Only rendered once there is a conversation to end, so an empty
+              thread offers one dismiss action rather than two. Sized like the
+              panel's other pills, but --muted rather than --ink so it does not
+              compete with Send; muted on card still passes 4.5:1 per §6. */}
+          {turns.length > 0 && (
+            <button
+              type="button"
+              onClick={onEnd}
+              aria-label={COPY.endLabel}
+              className="sk-pill text-muted hover:bg-rule shrink-0 px-2 py-0.5 text-xs"
+            >
+              {COPY.end}
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
