@@ -8,6 +8,10 @@ repositioning — §1 goal 2 (four case studies), §4 table (`profile.md`
 source and education wording, `projects.md` count, `how-i-work.md` fifth
 item, `faq.md` work-authorization wording). The runtime surface in §2 is
 untouched. Driven by `SPEC_v1.5_amendment.md` §9 and §11.
+v2.2 (2026-08-12, per Suyu): the widget's single close action becomes two,
+minimize and end (§3 session identity, §6 dismissal). Visitors were losing
+whole conversations to a button they pressed only to get the panel out of
+the way. The §2 allowlist is untouched: no new route, service, or env var.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -96,7 +100,7 @@ listed above.
 | Transport | Route handler returns a chunked plain-text stream of deltas (`client.messages.stream()` → `ReadableStream`); widget renders progressively via `fetch` + reader | SSE upgrade only if structured events become necessary — not v1 |
 | DB client | `@supabase/supabase-js` v2, server-side only | Schema in §5 |
 | Validation | `zod` (already a dependency) on every API request body | Limits in §7 |
-| Session identity | Client generates `crypto.randomUUID()`, stored in `sessionStorage`, sent with each request | No cookies for visitors, no accounts |
+| Session identity | Client generates `crypto.randomUUID()`, stored in `sessionStorage`, sent with each request | No cookies for visitors, no accounts. The transcript (last 20 turns) is stored beside the id, so a minimize or a reload keeps the same visible conversation the server is logging; "end chat" (§6) drops both, so the next message mints a new id and opens a new session row. Both keys live in `lib/chatSession.ts` — one owner, no drift. |
 
 **Statelessness.** The chat API is stateless: the client sends the
 conversation history each time; the server truncates to the most recent
@@ -221,6 +225,18 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   body text. User vs bot messages distinguished by **border treatment**
   (e.g. `.sk-border-a` vs `.sk-border-b` + alignment), not by new
   colors — tokens are frozen (CLAUDE.md rule 4).
+- **Minimize vs end (v2.2).** Two unequal dismiss actions. *Hide* (the
+  header pill, and Esc) is the reflex one and costs nothing: the panel
+  stays mounted behind `display: none`, so the thread, the draft input,
+  the session id and any in-flight reply survive, and the entry button
+  reads "back to my notes" until the visitor returns. *End chat* sits in
+  the footer beside the disclosure line and appears only once a thread
+  exists: it clears the transcript and the session id, aborts any stream
+  in flight, and remounts the panel empty, so the next message opens a
+  new `chat_sessions` row. No confirmation step — the control is labelled
+  for what it does and is deliberately not under the same thumb as hide.
+  Consequence for §5: a chat ended mid-stream leaves a logged user turn
+  with no assistant turn, which is honest about what the visitor saw.
 - **Suggested chips** (TagPill style, shown when the thread is empty;
   final list confirmed at C1):
   1. "What has Suyu built?"
@@ -240,7 +256,10 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   rate/daily limit → "the notebook is resting — back tomorrow. Email
   works too: suyu0229@gmail.com". No silent retry loops.
 - **A11y.** Visible focus states; focus moves into the panel on open
-  and returns to the button on close; Esc closes; `aria-live="polite"`
+  and returns to the button on both hide and end; Esc minimizes, and is
+  bound only while the panel is visible so a minimized panel never
+  swallows it; both dismiss controls carry an `aria-label` containing
+  their visible word (WCAG 2.5.3); `aria-live="polite"`
   on the message region; disclosure line ≥ 4.5:1 contrast (`--muted` on
   `--card` passes per SPEC.md v1.3 tokens); fully keyboard-operable.
 - **Copy.** Widget microcopy is a component-level constant (nav/microcopy
