@@ -3,6 +3,7 @@ import Link from "next/link";
 // Nav labels are microcopy (CLAUDE.md conventions exception).
 // resume is a static PDF, opened in a new tab so visitors keep the site.
 const NAV_LINKS = [
+  { href: "/", label: "home", newTab: false },
   { href: "/projects", label: "projects", newTab: false },
   { href: "/about", label: "about", newTab: false },
   { href: "/resume.pdf", label: "resume", newTab: true },
@@ -11,7 +12,7 @@ const NAV_LINKS = [
 export default function Nav() {
   return (
     <header className="mx-auto flex w-full max-w-5xl items-baseline justify-between px-6 py-6">
-      <Link href="/" className="font-display text-2xl font-bold text-ink">
+      <Link href="/" className="font-display text-4xl font-bold text-ink">
         Suyu.
       </Link>
       <nav aria-label="Primary" className="flex gap-5 text-sm text-muted sm:gap-7">
