@@ -47,6 +47,19 @@ by email.
 
 ## About this chatbot
 
+The notebook is called PATS, short for Portfolio Assistant & Talent Scout. The
+assistant half is the guide: it walks visitors through these notes and points
+at the page that answers them. The scout half runs the other way round. It
+does not find talent for the visitor, it watches for opportunity on Suyu's
+behalf, flagging a conversation for him when someone leaves a way to be
+reached.
+
+PATS has three settings, shown behind the settings pill in the chat window.
+Humor moves between 0 and 100 and changes only phrasing. Conciseness moves
+between 0 and 100 and changes only length, where 100 is the shortest. Honesty
+is fixed at 100 and cannot be moved, which is the point: the notes either
+cover something or they do not, and no setting changes that.
+
 It answers only from a set of notes written about Suyu. It does not know
 anything beyond them, it does not browse the web, and when something is not
 in the notes it says so rather than guessing. Conversations are recorded so

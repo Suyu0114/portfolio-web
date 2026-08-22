@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { ConcisenessLevel, HumorLevel } from "@/lib/chatPersonality";
 import type { SupabaseEnv } from "@/lib/env";
 
 /**
@@ -17,9 +18,18 @@ export const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 /**
  * §7 — global daily cap on assistant messages. This is the spend fuse: a
  * constant in code, deliberately not an env var, so changing it is a commit.
- * Confirmed at 500 by Suyu 2026-08-03.
+ * Confirmed at 500 by Suyu 2026-08-03; cut to 300 in v2.4, where max_tokens
+ * doubled to 2048 to pay for the conciseness dial. Trading half the ceiling on
+ * volume for double the ceiling on length keeps worst-case daily spend flat.
  */
-export const DAILY_ASSISTANT_MESSAGE_CAP = 500;
+export const DAILY_ASSISTANT_MESSAGE_CAP = 300;
+
+/**
+ * §7 (v2.3) — global daily cap on contact alerts. A constant for the same
+ * reason as the one above: raising it should be a commit, not a dashboard
+ * click. Sized well under Resend's free tier so the fuse is ours, not theirs.
+ */
+export const DAILY_ALERT_CAP = 20;
 
 export function createChatClient(env: SupabaseEnv): SupabaseClient {
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
@@ -130,6 +140,77 @@ export async function ensureSession(
   if (error) throw new Error(`Session upsert failed: ${error.message}`);
 }
 
+/**
+ * §7 — claims the one alert this session is allowed, atomically.
+ *
+ * The condition is `alerted_at`, not `signal_kind`, because the invariant is
+ * one *email* per session and `alerted_at` is the only column recording that
+ * one was sent. Gating on `signal_kind` forfeited the notification permanently
+ * whenever the claim succeeded but the send did not: an unset key, a Resend
+ * rejection, or a blown daily fuse each left the session flagged and
+ * unemailable for good, so a lead that arrived during a misconfiguration could
+ * never be recovered once it was fixed.
+ *
+ * Still one conditional update, so there is no read-then-write window, and
+ * `markAlertSent` closes it permanently. Two contact turns landing in the same
+ * instant could both claim, but the panel blocks input while a reply streams,
+ * and DAILY_ALERT_CAP bounds it regardless.
+ *
+ * Returns false when this session has already been emailed. A false is normal,
+ * not an error: it is the second contact message in a conversation.
+ */
+export async function claimSessionAlert(
+  db: SupabaseClient,
+  sessionId: string,
+  kind: string,
+): Promise<boolean> {
+  const { data, error } = await db
+    .from("chat_sessions")
+    .update({ signal_kind: kind })
+    .eq("id", sessionId)
+    .is("alerted_at", null)
+    .select("id");
+
+  if (error) throw new Error(`Alert claim failed: ${error.message}`);
+  return (data ?? []).length > 0;
+}
+
+/**
+ * §7 — today's sent alerts, counted the same way as the two limits above,
+ * including the guard that a null count is a failure and not a zero. That
+ * distinction was the fail-open bug found in C3; it applies here for the same
+ * reason, since this count is also a fuse.
+ */
+export async function countAlertsToday(db: SupabaseClient): Promise<number> {
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+
+  const { count, error } = await db
+    .from("chat_sessions")
+    .select("id", { count: "exact", head: true })
+    .gte("alerted_at", dayStart.toISOString());
+
+  if (error) throw new Error(`Alert-cap check failed: ${error.message}`);
+  if (count === null) throw new Error("Alert-cap check returned no count");
+  return count;
+}
+
+/**
+ * §5 — written only after the send succeeds, so `/study` can tell a session
+ * that was flagged from one that was actually delivered.
+ */
+export async function markAlertSent(
+  db: SupabaseClient,
+  sessionId: string,
+): Promise<void> {
+  const { error } = await db
+    .from("chat_sessions")
+    .update({ alerted_at: new Date().toISOString() })
+    .eq("id", sessionId);
+
+  if (error) throw new Error(`Alert timestamp update failed: ${error.message}`);
+}
+
 export async function logMessage(
   db: SupabaseClient,
   message: {
@@ -139,6 +220,9 @@ export async function logMessage(
     model?: string;
     inputTokens?: number;
     outputTokens?: number;
+    /** §6 — the dials this reply was generated at. Null on the user turn. */
+    humor?: HumorLevel;
+    conciseness?: ConcisenessLevel;
   },
 ): Promise<void> {
   const { error } = await db.from("chat_messages").insert({
@@ -148,6 +232,8 @@ export async function logMessage(
     model: message.model ?? null,
     input_tokens: message.inputTokens ?? null,
     output_tokens: message.outputTokens ?? null,
+    humor: message.humor ?? null,
+    conciseness: message.conciseness ?? null,
   });
   if (error) throw new Error(`Message insert failed: ${error.message}`);
 }

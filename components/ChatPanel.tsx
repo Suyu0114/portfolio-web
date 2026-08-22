@@ -3,8 +3,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
+  CONCISENESS_LABELS,
+  CONCISENESS_LEVELS,
+  HONESTY,
+  HUMOR_LABELS,
+  HUMOR_LEVELS,
+  type ConcisenessLevel,
+  type HumorLevel,
+} from "@/lib/chatPersonality";
+import {
   getSessionId,
+  readConciseness,
+  readHumor,
   readTurns,
+  saveConciseness,
+  saveHumor,
   saveTurns,
   type Turn,
 } from "@/lib/chatSession";
@@ -25,9 +38,16 @@ import {
 
 /** Widget microcopy — component-level constant (CLAUDE.md conventions). */
 const COPY = {
-  // Matches the entry button's label so the panel does not appear to rename
-  // itself on open.
-  title: "ask my AI notes",
+  /**
+   * The panel introduces the assistant; the entry button stays the call to
+   * action. A visitor scanning the page wants the verb ("ask my notes"), and
+   * a visitor who has already opened the panel wants to know who is
+   * answering. Splitting the two is why the header no longer echoes the
+   * button.
+   */
+  title: "PATS",
+  /** Name and purpose together, so the dialog announces both at once. */
+  dialogLabel: "PATS, ask my AI notes",
   /**
    * Two dismiss actions, deliberately unequal (§6). Hiding is the reflex
    * action and costs nothing; ending is the one that throws the conversation
@@ -40,6 +60,19 @@ const COPY = {
   hideLabel: "Hide the notebook",
   end: "end chat",
   endLabel: "End chat and clear this conversation",
+  settings: "settings",
+  honesty: "honesty",
+  humor: "humor",
+  conciseness: "conciseness",
+  honestyLocked: "locked",
+  /**
+   * The sighted joke is a dial that will not turn. A screen reader gets the
+   * same fact as a sentence, which is faster than making someone arrow across
+   * five inert steps to discover it.
+   */
+  honestyNote: "Honesty is fixed at 100 percent and cannot be changed.",
+  humorLabel: "Humor level, percent",
+  concisenessLabel: "Conciseness level, percent",
   inputLabel: "Ask about Suyu",
   placeholder: "Ask about Suyu…",
   send: "Send",
@@ -53,9 +86,21 @@ const COPY = {
    * transcript keeps whatever a visitor types, and recruiters routinely type
    * their name, company, and email. Claiming otherwise would be a false
    * privacy promise on a site whose whole argument is epistemic honesty.
+   *
+   * v2.3 widened "improve these notes" to "read them and improve these
+   * notes". Contact details now trigger a notification, and a purpose clause
+   * that only mentions improving the notes would not have covered that.
+   *
+   * v2.4 adds the second sentence, and its condition is exact rather than
+   * friendly: leaving an email is precisely what `detectContactSignal` matches
+   * on, so a visitor who follows this instruction always gets the alert it
+   * promises. "Leave a message and PATS will forward it" was the request, but
+   * a plain-text message with no handle in it matches nothing and sends
+   * nothing, so that phrasing would have promised a delivery the code does not
+   * make. Naming the trigger is what keeps the sentence true.
    */
   disclosure:
-    "Chats are recorded to help Suyu improve these notes. Your IP is only stored as a hash.",
+    "Chats are recorded so Suyu can read them. Leave your email and PATS will let him know.",
   emptyLead: "Ask me about Suyu's work. A few places to start:",
   /**
    * §6 error states: honest and specific, never a silent retry. Reworded off
@@ -77,6 +122,101 @@ const CHIPS = [
 
 const PROJECT_CHIP = "Ask about this project";
 
+/**
+ * One adjustable dial: a real radiogroup, with roving tabindex and arrow keys
+ * so it behaves the way a keyboard user expects a group of options to behave.
+ *
+ * Generic over the level type because humor and conciseness share a shape but
+ * not a meaning. Each radio's accessible name carries the step's label as well
+ * as its number, so arrowing through announces "50 percent, dry wit" rather
+ * than a bare number a listener has to guess at. The visible label beside the
+ * row is therefore aria-hidden: it is the same fact, drawn for sighted users.
+ */
+function Dial<T extends number>({
+  ariaLabel,
+  levels,
+  labels,
+  value,
+  onChange,
+}: {
+  ariaLabel: string;
+  levels: readonly T[];
+  labels: Record<T, string>;
+  value: T;
+  onChange: (next: T) => void;
+}) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  function move(from: number, delta: number) {
+    const next = (from + delta + levels.length) % levels.length;
+    onChange(levels[next]);
+    refs.current[next]?.focus();
+  }
+
+  return (
+    <div role="radiogroup" aria-label={ariaLabel} className="flex gap-1">
+      {levels.map((level, i) => {
+        const selected = level === value;
+        return (
+          <button
+            key={level}
+            ref={(el) => {
+              refs.current[i] = el;
+            }}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            aria-label={`${level} percent, ${labels[level]}`}
+            // Roving tabindex: one stop for the group, then arrows within it.
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(level)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                e.preventDefault();
+                move(i, 1);
+              } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                e.preventDefault();
+                move(i, -1);
+              }
+            }}
+            className={`sk-pill px-1.5 py-0.5 text-[0.6875rem] ${
+              selected ? "bg-ink text-card" : "text-ink hover:bg-rule"
+            }`}
+          >
+            {level}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The honesty dial, which is not a dial. Drawn to match the two rows below it
+ * step for step so the difference reads at a glance, but marked up as a
+ * readout: five disabled radios would announce an interaction that does not
+ * exist. The steps are the same five because it is the same scale, not because
+ * anything here can be set.
+ */
+function HonestyDial() {
+  return (
+    <div className="flex items-center gap-1">
+      <p className="sr-only">{COPY.honestyNote}</p>
+      {HUMOR_LEVELS.map((level) => (
+        <span
+          key={level}
+          aria-hidden="true"
+          className={`sk-pill px-1.5 py-0.5 text-[0.6875rem] ${
+            level === HONESTY ? "bg-ink text-card" : "text-muted opacity-40"
+          }`}
+        >
+          {level}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function ChatPanel({
   open,
   onHide,
@@ -96,6 +236,11 @@ export default function ChatPanel({
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [humor, setHumor] = useState<HumorLevel>(() => readHumor());
+  const [conciseness, setConciseness] = useState<ConcisenessLevel>(() =>
+    readConciseness(),
+  );
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -107,6 +252,16 @@ export default function ChatPanel({
   useEffect(() => {
     saveTurns(turns);
   }, [turns]);
+
+  // §6 — the dials are preferences, so they outlive the conversation they were
+  // set during. `clearChat` deliberately leaves their keys alone.
+  useEffect(() => {
+    saveHumor(humor);
+  }, [humor]);
+
+  useEffect(() => {
+    saveConciseness(conciseness);
+  }, [conciseness]);
 
   // Ending the conversation unmounts the panel; drop the in-flight reply with
   // it rather than paying for tokens nobody will read. Cancelling the body
@@ -177,6 +332,10 @@ export default function ChatPanel({
             // §5 — the page the chat was opened on. The server records it once
             // per session and ignores it on later turns.
             entryPath: window.location.pathname,
+            // §6 — sent per turn, so changing a dial mid-conversation takes
+            // effect on the next reply rather than the next session.
+            humor,
+            conciseness,
           }),
         });
 
@@ -222,7 +381,7 @@ export default function ChatPanel({
         setStreaming(false);
       }
     },
-    [projectTitle, streaming, turns],
+    [conciseness, humor, projectTitle, streaming, turns],
   );
 
   const chips = projectTitle !== null ? [PROJECT_CHIP, ...CHIPS.slice(1)] : CHIPS;
@@ -230,7 +389,7 @@ export default function ChatPanel({
   return (
     <div
       role="dialog"
-      aria-label={COPY.title}
+      aria-label={COPY.dialogLabel}
       // sk-edge-accent-2 recolours the shared frame to --accent-2 so the panel
       // separates from the near-identical --paper page behind it (card and
       // paper differ by very little on their own).
@@ -258,14 +417,75 @@ export default function ChatPanel({
         >
           {COPY.title}
         </h2>
-        <button
-          type="button"
-          onClick={onHide}
-          aria-label={COPY.hideLabel}
-          className="sk-pill text-card px-2 py-0.5 text-xs"
-        >
-          {COPY.hide}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((open) => !open)}
+            aria-expanded={settingsOpen}
+            aria-controls="chat-settings"
+            className="sk-pill text-card px-2 py-0.5 text-xs"
+          >
+            {COPY.settings}
+          </button>
+          <button
+            type="button"
+            onClick={onHide}
+            aria-label={COPY.hideLabel}
+            className="sk-pill text-card px-2 py-0.5 text-xs"
+          >
+            {COPY.hide}
+          </button>
+        </div>
+      </div>
+
+      {/*
+        Always rendered, shown with a single display utility, for the same
+        reason the panel itself is: emitting both `block` and `hidden` would be
+        an equal-specificity coin flip. Keeping it mounted also means
+        aria-controls always points at something real, and display: none takes
+        the collapsed strip out of the a11y tree.
+      */}
+      <div
+        id="chat-settings"
+        className={`${settingsOpen ? "block" : "hidden"} border-rule bg-card border-b-2 px-3 py-2`}
+      >
+        {/* Three columns so the active-step labels line up across the rows:
+            name, steps, then what the current step means. That third column is
+            the v2.4 fix for a dial nobody could tell was doing anything. */}
+        <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-2 gap-y-1">
+          <span className="text-muted text-[0.6875rem]">{COPY.honesty}</span>
+          <HonestyDial />
+          <span aria-hidden="true" className="text-muted text-[0.6875rem]">
+            {COPY.honestyLocked}
+          </span>
+
+          <span className="text-muted text-[0.6875rem]">{COPY.humor}</span>
+          <Dial
+            ariaLabel={COPY.humorLabel}
+            levels={HUMOR_LEVELS}
+            labels={HUMOR_LABELS}
+            value={humor}
+            onChange={setHumor}
+          />
+          {/* aria-hidden: each radio already announces its own label. */}
+          <span aria-hidden="true" className="text-muted text-[0.6875rem]">
+            {HUMOR_LABELS[humor]}
+          </span>
+
+          <span className="text-muted text-[0.6875rem]">
+            {COPY.conciseness}
+          </span>
+          <Dial
+            ariaLabel={COPY.concisenessLabel}
+            levels={CONCISENESS_LEVELS}
+            labels={CONCISENESS_LABELS}
+            value={conciseness}
+            onChange={setConciseness}
+          />
+          <span aria-hidden="true" className="text-muted text-[0.6875rem]">
+            {CONCISENESS_LABELS[conciseness]}
+          </span>
+        </div>
       </div>
 
       <div

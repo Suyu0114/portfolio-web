@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Runtime env for the chatbot surface — SPEC-CHATBOT §2.
  *
- * These five vars are the *exhaustive* allowlist. Nothing here is read at
+ * These six vars are the *exhaustive* allowlist. Nothing here is read at
  * module scope: `npm run build` must pass with zero env vars set (CI has no
  * secrets), so every read happens inside a function called at request time.
  * A missing var throws `MissingEnvError`, which the route handler turns into
@@ -39,6 +39,16 @@ const chatEnvSchema = z.object({
   ADMIN_COOKIE_SECRET: nonEmpty,
 });
 
+/**
+ * §2 (v2.3) — contact-signal alerts. The only optional var in the allowlist,
+ * and it is read through `readNotifyEnv` rather than `requireChatEnv` for a
+ * reason: alerting is a side channel, so a missing key must degrade to a
+ * server-log warning, never to a 500 on a visitor's conversation.
+ */
+const notifyEnvSchema = z.object({
+  RESEND_API_KEY: nonEmpty,
+});
+
 const adminEnvSchema = z.object({
   ADMIN_PASSWORD: nonEmpty,
   ADMIN_COOKIE_SECRET: nonEmpty,
@@ -51,6 +61,7 @@ const supabaseEnvSchema = chatEnvSchema.pick({
 });
 
 export type ChatEnv = z.infer<typeof chatEnvSchema>;
+export type NotifyEnv = z.infer<typeof notifyEnvSchema>;
 export type AdminEnv = z.infer<typeof adminEnvSchema>;
 export type SupabaseEnv = z.infer<typeof supabaseEnvSchema>;
 
@@ -75,6 +86,18 @@ export function requireChatEnv(): ChatEnv {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     ADMIN_COOKIE_SECRET: process.env.ADMIN_COOKIE_SECRET,
   });
+}
+
+/**
+ * Env for the alert path (§7). Returns null when the key is absent instead of
+ * throwing, which is what makes the alert optional: the caller warns and skips
+ * rather than failing the request that happened to contain a lead.
+ */
+export function readNotifyEnv(): NotifyEnv | null {
+  const parsed = notifyEnvSchema.safeParse({
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+  });
+  return parsed.success ? parsed.data : null;
 }
 
 /** Env needed to read or write the chat tables (the `/study` pages, §8). */
