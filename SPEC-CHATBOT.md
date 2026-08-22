@@ -19,6 +19,15 @@ first amendment that **widens** the §2 allowlist: one env var
 two drifts that were recorded in commit messages but never in this file:
 retention is 365 days (§5), and `ADMIN_COOKIE_SECRET` is a C3 dependency,
 not C4 (§10).
+v2.4 (2026-08-22, per Suyu): the assistant is renamed **PATS** (§4); the
+humor dial is rebuilt around per-level behaviour because the v2.3 wording
+gave all four non-zero steps the same instruction and so read as inert;
+and a third dial, **conciseness**, joins it (§6). Honesty stays welded at
+100. The entry button becomes "ask my AI notes - PATS", which knowingly
+reverses the string C5 restored (§6, §9). The cost envelope is re-cut to
+pay for the longer settings: `max_tokens` 1024 → 2048, daily cap 500 →
+300 (§7). §11.7 is resolved with measured delivery data. The §2
+allowlist is untouched — no new route, service, or env var.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -179,16 +188,33 @@ The system prompt instructs the bot to use this exact sentence whenever
 the answer isn't in the pack. The admin analyzer (§8) matches on it to
 surface content gaps.
 
-**The assistant's name (v2.3).** The notebook is called **STET**. A stet
-is the proofreader's mark meaning "let it stand" — ignore the correction,
-keep what was written. The name is the behaviour: this bot states what the
-notes already say and nothing else. It is also a deliberate echo of
-Interstellar's four-letter robots (TARS, CASE, KIPP, PLEX), which is what
-makes the personality dials in §6 legible at a glance.
+**The assistant's name (v2.4).** The notebook is called **PATS**, for
+Portfolio Assistant & Talent Scout. It replaces STET (v2.3), which punned
+on the proofreader's mark meaning "let it stand". The pun *argued* the
+behaviour; PATS states the job instead, and the behaviour is now argued by
+the honesty dial that renders at 100 and will not turn (§6). The trade is
+deliberate: a control a recruiter can reach for and find welded makes the
+point better than a word they have to look up.
+
+Both halves of the acronym are load-bearing. *Portfolio Assistant* is the
+guide: it walks a visitor through the notes and points at the page that
+answers them. *Talent Scout* runs the other way round — it does not find
+talent **for** the visitor, it watches for opportunity **on Suyu's
+behalf**, which is precisely what the contact-signal alert in §7 already
+does. The four-letter shape keeps the Interstellar echo (TARS, CASE, KIPP,
+PLEX) that makes the dials in §6 legible at a glance.
+
+**Tone (v2.4): practical and proactive.** Proactive means volunteering
+*routes*, never *facts*: offering `/resume.pdf`, naming the case study
+that covers a topic, suggesting the next thing worth asking. It must never
+mean volunteering a fact the notes do not contain. That would invert
+CLAUDE.md rules 1 and 9 under cover of helpfulness, and it is the failure
+mode this persona is most exposed to — "proactive" and "makes things up"
+are neighbours.
 
 The name is a fact like any other, so it lives in the pack (`faq.md`,
 "About this chatbot") and the bot answers "what is your name?" from there,
-not from the persona line. Unchanged by the naming: the persona still
+not from the persona line. Unchanged by the renaming: the persona still
 talks *about* Suyu in the third person, the six hard rules, the fallback
 line, and the `ask-my-notes` slug (a live URL, and named inside the
 response-style block's allowed-links list).
@@ -257,7 +283,16 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
 
 - **Entry button.** Fixed bottom-right: a small hand-drawn speech-bubble
   SVG (ink line work only, per the sketch system) with Caveat label
-  "ask my notes" (≥ 20px — CLAUDE.md rule 5), rotation within ±1.5deg.
+  "ask my AI notes - PATS" (≥ 20px — CLAUDE.md rule 5), rotation within
+  ±1.5deg; resuming a minimized thread reads "back to my AI notes -
+  PATS". **v2.4 reverses a v2.3 decision deliberately:** C5's acceptance
+  restored "ask my notes" after the shipped string had drifted to "ask my
+  AI notes", reasoning that the button should carry the verb and the panel
+  header the name. Suyu's call is that it should carry both, so the name
+  is discoverable without opening anything. Since the label is Caveat at
+  20px and the size cannot be reduced (rule 5), the longer string is a
+  layout constraint: verify it neither wraps nor overflows at 360px
+  viewport width, trimming horizontal padding rather than type size.
 - **Panel.** `--card` background, `.sk-border-a` frame, JetBrains Mono
   body text. User vs bot messages distinguished by **border treatment**
   (e.g. `.sk-border-a` vs `.sk-border-b` + alignment), not by new
@@ -274,35 +309,96 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   for what it does and is deliberately not under the same thumb as hide.
   Consequence for §5: a chat ended mid-stream leaves a logged user turn
   with no assistant turn, which is honest about what the visitor saw.
-- **Personality dials (v2.3).** A `settings` pill in the header bar opens
-  a strip holding two rows that are drawn identically — that visual
-  parity is the whole point:
-  - **honesty — 100, and it does not move.** Rendered as five steps with
-    100 selected and every step disabled (`aria-disabled`), plus a short
-    note. A lowerable honesty setting would contradict CLAUDE.md rules 1
-    and 9 and §1 criterion 1, so it is welded rather than omitted: a
-    recruiter can reach for it and find it will not turn. This inverts
-    Interstellar, where Cooper *lowers* TARS to 90% because absolute
-    honesty is not diplomatic, and it states the site's positioning as a
-    control instead of a claim.
-  - **humor — 0 / 25 / 50 / 75 / 100, default 25.** Changes phrasing
-    only: never which facts are stated, never a detail absent from the
-    notes, and never the fixed sentence in §4. Persisted per tab beside
-    the session id and thread, but deliberately **not** cleared by "end
-    chat" — it is a preference, not conversation state.
-  - Both rows are `role="radiogroup"` with roving tabindex and arrow-key
-    navigation, built from the shared `.sk-pill` class (no ad-hoc wobble
-    styles), all under 20px so the handwriting face stays out (rule 5).
-  - The dial value rides in a mid-conversation `{ role: "system" }`
-    message appended to `messages[]`, never in `system`: that block is
-    byte-frozen and carries the only `cache_control` breakpoint.
-    Measured 2026-08-22: 207 uncached tokens per request against a
-    10,445-token cached prefix that still reads from cache in full.
-    Folding the dial into the system prompt instead would forfeit that
-    cache on every request, taking input cost from about $0.0062 to
-    $0.0528 per request, roughly 8.5×. It is also the non-spoofable
-    operator channel, which matters because the value originates in the
-    browser.
+- **Personality dials (v2.4).** A `settings` pill in the header bar opens
+  a strip holding three rows that are drawn identically — that visual
+  parity is the whole point, because one of them does not move:
+  - **honesty — 100, and it does not turn.** Five steps with 100
+    selected. Marked up as a *readout*, not as five disabled radios: the
+    pills are `aria-hidden` and a single `sr-only` sentence states the
+    fact, because making a screen-reader user arrow across five inert
+    steps to discover inertness is worse than telling them. A lowerable
+    honesty setting would contradict CLAUDE.md rules 1 and 9 and §1
+    criterion 1, so it is welded rather than omitted: a recruiter can
+    reach for it and find it will not turn. This inverts Interstellar,
+    where Cooper *lowers* TARS to 90% because absolute honesty is not
+    diplomatic, and it states the site's positioning as a control rather
+    than a claim.
+  - **humor — 0 / 25 / 50 / 75 / 100, default 50** (was 25 in v2.3).
+  - **conciseness — 0 / 25 / 50 / 75 / 100, default 50** (new in v2.4).
+    100 is the *most* compressed end, so the scale runs long to short.
+
+  **Why v2.4 rebuilt humor.** The v2.3 instruction was a single hedged
+  permission — "above 0 you may use light dry wit in at most one sentence
+  per reply" — issued identically to 25, 50, 75 and 100. Only the header
+  number differed, so the model had nothing telling it how 100 should
+  differ from 25, and the safe reading of "may" is "need not". Three
+  further forces pushed the same way: the frozen response-style block
+  said "be concise, two or three sentences", which leaves no room for a
+  trailing aside; `effort: "low"` biases short and direct; and the
+  default sat at 25, the second-lowest step. The dial was therefore
+  imperceptible in practice. The fix is not a bigger number but **one
+  distinct, directive behaviour per step**, and moving length out of the
+  frozen prompt into its own dial so the two stop contradicting each
+  other.
+
+  | humor | label | behaviour |
+  |---|---|---|
+  | 0 | clinical | Completely serious. No metaphors, jokes, or asides. |
+  | 25 | polite | Professional warmth, ordinary courtesy, nothing more. |
+  | 50 | dry wit | Subtle understated engineering humor where it fits. |
+  | 75 | deadpan | Self-aware quips and banter, at least one dry aside. |
+  | 100 | max sarcasm | Relentless deadpan irony, sardonic aside first. |
+
+  | conciseness | label | behaviour |
+  |---|---|---|
+  | 0 | narrative | Storytelling: full background, descriptive flow. |
+  | 25 | detailed | Multi-paragraph, complete context, worked examples. |
+  | 50 | balanced | Crisp paragraphs plus short lists. No fluff. |
+  | 75 | efficient | Direct answer first, compact bullets, no filler. |
+  | 100 | terminal | One to three sentences or a list. No pleasantries. |
+
+  - **Three adaptations of Suyu's level text, made to hold rule 1.**
+    (a) Humor 100 originally licensed jokes about "recruitment clichés"
+    and "coffee-fueled debugging". The second is a fact-shaped claim
+    about Suyu that the notes do not contain, and the first lands on the
+    visitor, who is usually a recruiter. Retargeted: **every joke is
+    aimed at PATS itself** — its self-destruct routine, its refusal to
+    improvise, its habit of quoting notes at people. The register is
+    unchanged; only the target is. (b) Conciseness 0 and 25 originally
+    asked for "extensive explanations" and "comprehensive examples" from
+    a fixed 10k-token pack, where the only way to reach length is to
+    invent. Both now specify that length comes from telling more of what
+    the notes **already contain**, and that running out of notes means
+    stopping, not padding. (c) Conciseness 75 originally asked for bold
+    text; the panel renders plain text with no markdown, so asterisks
+    would reach the visitor literally. Bullets stay (plain hyphens),
+    bold is dropped.
+  - The **invariant block** is a constant appended at every setting:
+    tone and length only, never which facts are stated, never a detail
+    absent from the notes, and never a softened, shortened, or omitted
+    fixed sentence from §4 — which matters most at conciseness 100,
+    where "one to three sentences" would otherwise clip the line that §8
+    matches on to find content gaps.
+  - The two adjustable rows are `role="radiogroup"` with roving tabindex
+    and arrow-key navigation, built from the shared `.sk-pill` class (no
+    ad-hoc wobble styles), all under 20px so the handwriting face stays
+    out (rule 5). Each row shows the **active step's label** in the slot
+    the honesty row uses for "locked", so a visitor can read what a
+    setting does without changing it and discovering by accident. Both
+    values persist per tab beside the session id and thread, and both are
+    deliberately **not** cleared by "end chat" — they are preferences,
+    not conversation state.
+  - Only the **selected** step's text is sent, never the whole table, and
+    it rides in a mid-conversation `{ role: "system" }` message appended
+    to `messages[]` rather than in `system`: that block is byte-frozen
+    and carries the only `cache_control` breakpoint. Measured
+    2026-08-22: 323 uncached tokens per request against a
+    10,724-token cached prefix that still reads from cache in full.
+    Folding the dials into the system prompt would forfeit that cache on
+    every request, taking input cost from about $0.0070 to
+    $0.0552 per request, roughly 7.9×. It is also the
+    non-spoofable operator channel, which matters because both values
+    originate in the browser.
 - **Suggested chips** (TagPill style, shown when the thread is empty;
   final list confirmed at C1):
   1. "What has Suyu built?"
@@ -345,10 +441,27 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   API call uses at most the last 20 messages.
 - **Rate limits (Supabase-backed, D4).**
   - Per IP-hash: 20 requests / 5 minutes → 429 with the "resting" copy.
-  - Global daily cap: 500 assistant messages/day (constant in code) —
-    the spend fuse. Exceeded → same "resting" state. Both checks are
-    one indexed count query each.
-- **Output cap.** `max_tokens: 1024` bounds the worst-case reply cost.
+  - Global daily cap: **300** assistant messages/day (constant in code)
+    — the spend fuse. Exceeded → same "resting" state. Both checks are
+    one indexed count query each. Was 500 through v2.3; cut to 300 in
+    v2.4 to pay for the doubled output cap below, which keeps the
+    worst-case daily spend flat rather than doubling it.
+- **Output cap.** `max_tokens: 2048` bounds the worst-case reply cost
+  (1024 through v2.3). Conciseness 0 and 25 ask for multi-paragraph
+  answers, and 1024 was measured against the terse style that preceded
+  the dial, so the old ceiling would have truncated the long end.
+  `stop_reason === "max_tokens"` is handled explicitly: a clipped reply
+  says it was clipped instead of ending mid-sentence, the same fail-loud
+  reasoning that gives a refusal the fallback line.
+
+  | | daily cap | max_tokens | worst case/day |
+  |---|---|---|---|
+  | v2.3 | 500 | 1024 | ~$16 |
+  | v2.4 | 300 | 2048 | ~$18 |
+
+  Typical spend is far below the ceiling: at the default conciseness of
+  50 a reply runs a few hundred output tokens, so 300 replies land nearer
+  $4/day.
 - **Contact-signal alerts (v2.3).** A deterministic regex over the
   visitor's turn — no second model call, the same reasoning as D3 —
   looks for two narrow signals: a contact handle the visitor volunteered
@@ -356,8 +469,9 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   declaration. Broad phrasing is deliberately excluded, because "What is
   Suyu looking for?" is one of the four suggested chips and a detector
   that fires on its own chips is a detector nobody trusts.
-  - **Caps.** One alert per `chat_sessions` row, claimed by a conditional
-    update so concurrent turns cannot both fire, plus a global daily fuse
+  - **Caps.** One *email* per `chat_sessions` row, claimed by a
+    conditional update on `alerted_at` so concurrent turns cannot both
+    fire, plus a global daily fuse
     counted the same way as the two limits above (including the
     `count === null` guard that was the fail-open bug found in C3).
   - **Not a spam relay.** The recipient is a hardcoded constant. Mail
@@ -446,6 +560,9 @@ Persona clause, `faq.md` entry, panel header, case-study paragraph.
 pack; the entry button reads "ask my notes" (restoring §6 — the shipped
 string had drifted to "ask my AI notes"); the panel header reads STET;
 `npm run build` passes with zero env vars; no new colors or fonts.
+**Superseded by C8 (v2.4):** the name is PATS and the button string is
+deliberately reverted to "ask my AI notes - PATS". This acceptance is
+kept as the record of what shipped, not as a live target.
 
 **C6 — the personality dials (v2.3).**
 Storage key, settings strip, request field, injected operator message,
@@ -467,6 +584,36 @@ anything; the daily fuse holds when lowered locally; with `RESEND_API_KEY`
 unset the chat is unaffected and the server logs a warning; `npm run
 build` passes with zero env vars.
 
+**C8 — PATS, and dials that can be felt (v2.4).**
+Rename throughout, entry-button string, per-level humor behaviour, the
+conciseness dial, active-step labels, the re-cut cost envelope, and the
+`claimSessionAlert` gating fix.
+✓ when:
+- "what is your name?" answers PATS from the pack, and the panel header,
+  dialog label, and Resend sender display name all read PATS;
+- the entry button neither wraps nor overflows at 360px viewport width,
+  with Caveat still ≥ 20px;
+- `usage.cache_read_input_tokens > 0` on the second consecutive request
+  *at any humor × conciseness combination* — a third dial must not break
+  the cache any more than the second did;
+- humor 0, 50 and 100 are visibly different in register and identical in
+  every fact stated, across a fixed question set; humor 100 aims every
+  joke at PATS itself and introduces no fact-shaped claim about Suyu;
+- conciseness 0, 50 and 100 differ visibly in length; conciseness 0 adds
+  nothing absent from the notes and stops rather than padding when the
+  notes on a topic run out;
+- the fallback line is byte-identical at conciseness 100;
+- a reply that hits `max_tokens` says so rather than ending mid-sentence;
+- all three rows are keyboard-only operable and each shows its active
+  step's label; both adjustable values survive minimize, reload, and end
+  chat;
+- `/study/session/<id>` shows `humor` and `conciseness` per assistant
+  reply;
+- a session flagged while `RESEND_API_KEY` was unset still alerts on a
+  later contact turn once the key is present;
+- `npm run build` passes with zero env vars; no new colors or fonts; zero
+  em dashes in `content/chatbot/*.md`; Lighthouse on `/` still ≥ 95 ×3.
+
 **v2.1 backlog (not now):** weekly cron digest (Vercel Cron), Turnstile,
 SSE structured events. (Email notification left this list in v2.3.)
 
@@ -486,7 +633,7 @@ SSE structured events. (Email notification left this list in v2.3.)
 - C1: confirm the suggested-chip list (§6) and the fallback line
   wording (§4).
 - C3: confirm retention period (365 days, chosen 2026-08-03) and daily
-  cap (default 500).
+  cap (500 at C3, cut to 300 in v2.4 — see §7).
 
 ## 11. Verify before build (C0, report findings — do not assume)
 
@@ -521,3 +668,19 @@ SSE structured events. (Email notification left this list in v2.3.)
    account owner's own address, which is the case the free tier is built
    for) and does not land in spam. If it does not, report before
    building; the fallback is the `/study` badge with no email.
+
+   **RESOLVED 2026-08-22 (v2.4) — measured, not assumed.** The shared
+   sender does reach Gmail. Evidence: Resend `GET /emails` reports
+   `last_event: delivered` for the alert created at 19:45:13 UTC
+   (subject "Chat lead: contact details on /", to `suyu0229@gmail.com`,
+   from `STET <onboarding@resend.dev>`), and the matching `chat_sessions`
+   row carries `alerted_at`, which is written only after a 2xx. `GET
+   /domains` returns an empty list, confirming this is the shared-sender
+   path and not a verified domain. **One caveat: delivered is not
+   noticed.** That message never reached `opened`, while other mail from
+   the same sender to the same inbox shows `opened`/`clicked`, so Gmail
+   most likely filed it under Spam or Promotions. The fix belongs on the
+   receiving end (a filter on `from:onboarding@resend.dev`, never send to
+   spam); the sending end needs no DNS, SPF, or DKIM work, because those
+   are only required to reach addresses other than the account owner's.
+   The `/study`-badge-only fallback above therefore stays unused.
