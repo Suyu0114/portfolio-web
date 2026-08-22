@@ -1,6 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { FALLBACK_LINE } from "@/lib/chatbotKnowledge";
+import {
+  DEFAULT_HUMOR,
+  HUMOR_LEVELS,
+  personalityInstruction,
+} from "@/lib/chatPersonality";
 import { SYSTEM_PROMPT } from "@/lib/chatbotPrompt";
 import {
   checkRateLimits,
@@ -14,7 +19,7 @@ import { MissingEnvError, requireChatEnv } from "@/lib/env";
 
 /**
  * Visitor chat — SPEC-CHATBOT §2 (allowed server surface), §3 (transport),
- * §5 (logging), §7 (validation, rate limits).
+ * §5 (logging), §6 (personality dials), §7 (validation, rate limits).
  */
 
 const MODEL = "claude-opus-5";
@@ -43,6 +48,13 @@ const chatRequestSchema = z
     history: z.array(historyEntrySchema).max(MAX_HISTORY_ENTRIES).default([]),
     /** §5 — the page the chat was opened on. Recorded once per session. */
     entryPath: z.string().max(512).optional(),
+    /**
+     * §6 — the humor dial. Only the five steps are accepted, so a hand-edited
+     * value is a 400 rather than something to sanitize downstream. Honesty is
+     * never sent: it is a server-side constant, which is exactly what stops a
+     * crafted request from turning it down.
+     */
+    humor: z.literal(HUMOR_LEVELS).default(DEFAULT_HUMOR),
   })
   .strict();
 
@@ -99,7 +111,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // 4. Record the session and the visitor's turn (§5) before calling the model,
   // so the per-IP window counts this request even if the reply later fails.
-  const { sessionId, message, entryPath } = parsed.data;
+  const { sessionId, message, entryPath, humor } = parsed.data;
   try {
     await ensureSession(db, {
       id: sessionId,
@@ -119,6 +131,24 @@ export async function POST(request: Request): Promise<Response> {
     { role: "user" as const, content: message },
   ].slice(-API_HISTORY_LIMIT);
 
+  // §6 — the dial rides in a mid-conversation system turn rather than in
+  // `system`, which is byte-frozen and carries the only cache breakpoint.
+  // Measured: 207 uncached tokens per request while the 10,445-token prefix
+  // still reads from cache in full; folding it into the system prompt would
+  // forfeit that cache every request instead.
+  //
+  // Appended *after* truncation, so a long conversation can never slide the
+  // instruction out of the window. Its placement satisfies the API's rules by
+  // construction: `conversation` always ends with the visitor's turn, so this
+  // follows a user message and is last.
+  const messages: Anthropic.MessageParam[] = [
+    ...conversation.map((entry) => ({
+      role: entry.role,
+      content: entry.content,
+    })),
+    { role: "system", content: personalityInstruction(humor) },
+  ];
+
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
   const stream = client.messages.stream({
@@ -132,10 +162,7 @@ export async function POST(request: Request): Promise<Response> {
         cache_control: { type: "ephemeral" },
       },
     ],
-    messages: conversation.map((entry) => ({
-      role: entry.role,
-      content: entry.content,
-    })),
+    messages,
   });
 
   const iterator = stream[Symbol.asyncIterator]();
@@ -232,6 +259,7 @@ export async function POST(request: Request): Promise<Response> {
               model: MODEL,
               inputTokens: usage.inputTokens,
               outputTokens: usage.outputTokens,
+              humor,
             });
           }
         } catch (error) {

@@ -8,16 +8,58 @@
  * server's `chat_sessions` row now start and end together.
  *
  * Browser-only: every function touches `sessionStorage`. Never import this
- * from a server component or a route handler.
+ * from a server component or a route handler. The dial's domain (steps,
+ * default, validation) lives in `lib/chatPersonality.ts` instead, because the
+ * route handler needs it too and must not import this file.
  */
+
+import {
+  DEFAULT_HUMOR,
+  isHumorLevel,
+  type HumorLevel,
+} from "@/lib/chatPersonality";
 
 const SESSION_KEY = "suyu-chat-session";
 const THREAD_KEY = "suyu-chat-thread";
+/** §6 (v2.3) — the humor dial. Honesty has no key: it is a constant. */
+const HUMOR_KEY = "suyu-chat-humor";
 
 /** Mirrors the server-side history truncation in app/api/chat/route.ts (§3). */
 const PERSISTED_TURNS = 20;
 
 export type Turn = { role: "user" | "assistant"; content: string };
+
+/**
+ * §6 — the dial setting, restored per tab like the thread beside it.
+ *
+ * Same narrow exception to fail-loud as `readTurns` below: the value is
+ * visitor-editable, so a bad one resets to the default and says so rather
+ * than throwing and taking the widget down site-wide.
+ */
+export function readHumor(): HumorLevel {
+  const raw = sessionStorage.getItem(HUMOR_KEY);
+  if (raw === null) return DEFAULT_HUMOR;
+
+  const parsed = Number(raw);
+  if (!isHumorLevel(parsed)) {
+    console.warn(
+      "[chat] stored humor level was not one of the five steps; using the default.",
+    );
+    sessionStorage.removeItem(HUMOR_KEY);
+    return DEFAULT_HUMOR;
+  }
+  return parsed;
+}
+
+export function saveHumor(level: HumorLevel): void {
+  try {
+    sessionStorage.setItem(HUMOR_KEY, String(level));
+  } catch (error) {
+    // Same reasoning as saveTurns: losing the preference across a reload is
+    // not worth interrupting a conversation over.
+    console.warn("[chat] could not persist the humor level:", error);
+  }
+}
 
 /**
  * Subscription so the entry button can track whether a thread is waiting
@@ -123,6 +165,10 @@ export function saveTurns(turns: Turn[]): void {
  * Ends the conversation. Dropping the id as well as the thread is the point:
  * the next message mints a new id, so the server opens a fresh
  * `chat_sessions` row instead of appending to the finished one (§5).
+ *
+ * HUMOR_KEY is deliberately left alone. The dial is a preference about how a
+ * visitor wants to be spoken to, not part of the conversation being ended, so
+ * resetting it here would silently undo a setting they chose on purpose.
  */
 export function clearChat(): void {
   sessionStorage.removeItem(THREAD_KEY);

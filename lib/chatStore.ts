@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { HumorLevel } from "@/lib/chatPersonality";
 import type { SupabaseEnv } from "@/lib/env";
 
 /**
@@ -139,6 +140,8 @@ export async function logMessage(
     model?: string;
     inputTokens?: number;
     outputTokens?: number;
+    /** §6 — the dial this reply was generated at. Null on the user turn. */
+    humor?: HumorLevel;
   },
 ): Promise<void> {
   const { error } = await db.from("chat_messages").insert({
@@ -148,6 +151,7 @@ export async function logMessage(
     model: message.model ?? null,
     input_tokens: message.inputTokens ?? null,
     output_tokens: message.outputTokens ?? null,
+    humor: message.humor ?? null,
   });
   if (error) throw new Error(`Message insert failed: ${error.message}`);
 }

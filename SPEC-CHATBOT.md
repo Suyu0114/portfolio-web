@@ -297,7 +297,7 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     message appended to `messages[]`, never in `system`: that block is
     byte-frozen and carries the only `cache_control` breakpoint.
     Measured 2026-08-22: 207 uncached tokens per request against a
-    10,344-token cached prefix that still reads from cache in full.
+    10,445-token cached prefix that still reads from cache in full.
     Folding the dial into the system prompt instead would forfeit that
     cache on every request, taking input cost from about $0.0062 to
     $0.0528 per request, roughly 8.5×. It is also the non-spoofable

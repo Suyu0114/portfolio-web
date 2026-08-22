@@ -3,8 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
+  HONESTY,
+  HUMOR_LEVELS,
+  type HumorLevel,
+} from "@/lib/chatPersonality";
+import {
   getSessionId,
+  readHumor,
   readTurns,
+  saveHumor,
   saveTurns,
   type Turn,
 } from "@/lib/chatSession";
@@ -47,6 +54,17 @@ const COPY = {
   hideLabel: "Hide the notebook",
   end: "end chat",
   endLabel: "End chat and clear this conversation",
+  settings: "settings",
+  honesty: "honesty",
+  humor: "humor",
+  honestyLocked: "locked",
+  /**
+   * The sighted joke is a dial that will not turn. A screen reader gets the
+   * same fact as a sentence, which is faster than making someone arrow across
+   * five inert steps to discover it.
+   */
+  honestyNote: "Honesty is fixed at 100 percent and cannot be changed.",
+  humorLabel: "Humor level, percent",
   inputLabel: "Ask about Suyu",
   placeholder: "Ask about Suyu…",
   send: "Send",
@@ -84,6 +102,91 @@ const CHIPS = [
 
 const PROJECT_CHIP = "Ask about this project";
 
+/**
+ * The humor dial: a real radiogroup, with roving tabindex and arrow keys so
+ * it behaves the way a keyboard user expects a group of options to behave.
+ */
+function HumorDial({
+  value,
+  onChange,
+}: {
+  value: HumorLevel;
+  onChange: (next: HumorLevel) => void;
+}) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  function move(from: number, delta: number) {
+    const next = (from + delta + HUMOR_LEVELS.length) % HUMOR_LEVELS.length;
+    onChange(HUMOR_LEVELS[next]);
+    refs.current[next]?.focus();
+  }
+
+  return (
+    <div role="radiogroup" aria-label={COPY.humorLabel} className="flex gap-1">
+      {HUMOR_LEVELS.map((level, i) => {
+        const selected = level === value;
+        return (
+          <button
+            key={level}
+            ref={(el) => {
+              refs.current[i] = el;
+            }}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            // Roving tabindex: one stop for the group, then arrows within it.
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(level)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                e.preventDefault();
+                move(i, 1);
+              } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                e.preventDefault();
+                move(i, -1);
+              }
+            }}
+            className={`sk-pill px-1.5 py-0.5 text-[0.6875rem] ${
+              selected ? "bg-ink text-card" : "text-ink hover:bg-rule"
+            }`}
+          >
+            {level}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The honesty dial, which is not a dial. Drawn to match the humor row step
+ * for step so the difference reads at a glance, but marked up as a readout:
+ * five disabled radios would announce an interaction that does not exist.
+ * The steps are the same five as humor because it is the same scale, not
+ * because anything here can be set.
+ */
+function HonestyDial() {
+  return (
+    <div className="flex items-center gap-1">
+      <p className="sr-only">{COPY.honestyNote}</p>
+      {HUMOR_LEVELS.map((level) => (
+        <span
+          key={level}
+          aria-hidden="true"
+          className={`sk-pill px-1.5 py-0.5 text-[0.6875rem] ${
+            level === HONESTY ? "bg-ink text-card" : "text-muted opacity-40"
+          }`}
+        >
+          {level}
+        </span>
+      ))}
+      <span aria-hidden="true" className="text-muted ml-1 text-[0.6875rem]">
+        {COPY.honestyLocked}
+      </span>
+    </div>
+  );
+}
+
 export default function ChatPanel({
   open,
   onHide,
@@ -103,6 +206,8 @@ export default function ChatPanel({
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [humor, setHumor] = useState<HumorLevel>(() => readHumor());
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -114,6 +219,12 @@ export default function ChatPanel({
   useEffect(() => {
     saveTurns(turns);
   }, [turns]);
+
+  // §6 — the dial is a preference, so it outlives the conversation it was
+  // set during. `clearChat` deliberately leaves this key alone.
+  useEffect(() => {
+    saveHumor(humor);
+  }, [humor]);
 
   // Ending the conversation unmounts the panel; drop the in-flight reply with
   // it rather than paying for tokens nobody will read. Cancelling the body
@@ -184,6 +295,9 @@ export default function ChatPanel({
             // §5 — the page the chat was opened on. The server records it once
             // per session and ignores it on later turns.
             entryPath: window.location.pathname,
+            // §6 — sent per turn, so changing the dial mid-conversation takes
+            // effect on the next reply rather than the next session.
+            humor,
           }),
         });
 
@@ -229,7 +343,7 @@ export default function ChatPanel({
         setStreaming(false);
       }
     },
-    [projectTitle, streaming, turns],
+    [humor, projectTitle, streaming, turns],
   );
 
   const chips = projectTitle !== null ? [PROJECT_CHIP, ...CHIPS.slice(1)] : CHIPS;
@@ -265,14 +379,44 @@ export default function ChatPanel({
         >
           {COPY.title}
         </h2>
-        <button
-          type="button"
-          onClick={onHide}
-          aria-label={COPY.hideLabel}
-          className="sk-pill text-card px-2 py-0.5 text-xs"
-        >
-          {COPY.hide}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((open) => !open)}
+            aria-expanded={settingsOpen}
+            aria-controls="chat-settings"
+            className="sk-pill text-card px-2 py-0.5 text-xs"
+          >
+            {COPY.settings}
+          </button>
+          <button
+            type="button"
+            onClick={onHide}
+            aria-label={COPY.hideLabel}
+            className="sk-pill text-card px-2 py-0.5 text-xs"
+          >
+            {COPY.hide}
+          </button>
+        </div>
+      </div>
+
+      {/*
+        Always rendered, shown with a single display utility, for the same
+        reason the panel itself is: emitting both `block` and `hidden` would be
+        an equal-specificity coin flip. Keeping it mounted also means
+        aria-controls always points at something real, and display: none takes
+        the collapsed strip out of the a11y tree.
+      */}
+      <div
+        id="chat-settings"
+        className={`${settingsOpen ? "block" : "hidden"} border-rule bg-card border-b-2 px-3 py-2`}
+      >
+        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1">
+          <span className="text-muted text-[0.6875rem]">{COPY.honesty}</span>
+          <HonestyDial />
+          <span className="text-muted text-[0.6875rem]">{COPY.humor}</span>
+          <HumorDial value={humor} onChange={setHumor} />
+        </div>
       </div>
 
       <div

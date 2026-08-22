@@ -29,7 +29,10 @@ create table if not exists public.chat_messages (
   created_at     timestamptz not null default now(),
   model          text,
   input_tokens   int,
-  output_tokens  int
+  output_tokens  int,
+  -- v2.3 (§6): the humor dial this reply was generated at. Null on user rows
+  -- and on every row written before the dials shipped.
+  humor          smallint
 );
 
 create table if not exists public.chat_insights (
@@ -59,6 +62,15 @@ create index if not exists chat_messages_role_created_idx
 -- Admin session list, newest first (§8).
 create index if not exists chat_sessions_started_at_idx
   on public.chat_sessions (started_at desc);
+
+-- ---------------------------------------------------------------------------
+-- v2.3 additions. Re-runnable like everything above: `add column if not
+-- exists` is what lets an already-applied database catch up without a
+-- migration tool (§5).
+-- ---------------------------------------------------------------------------
+
+alter table public.chat_messages
+  add column if not exists humor smallint;
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security — enabled with NO policies, so nothing is publicly

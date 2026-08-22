@@ -22,7 +22,9 @@ export default async function SessionPage({ params }: Params) {
         .maybeSingle(),
       db
         .from("chat_messages")
-        .select("id, role, content, created_at, model, input_tokens, output_tokens")
+        .select(
+          "id, role, content, created_at, model, input_tokens, output_tokens, humor",
+        )
         .eq("session_id", id)
         .order("created_at", { ascending: true }),
     ]);
@@ -73,6 +75,8 @@ export default async function SessionPage({ params }: Params) {
               <p className="text-muted text-[0.6875rem]">
                 {m.role}
                 {m.output_tokens !== null ? ` · ${m.output_tokens} out` : ""}
+                {/* §6 — which dial setting produced this reply. */}
+                {m.humor !== null ? ` · humor ${m.humor}` : ""}
               </p>
               <p className="text-ink mt-1 text-sm whitespace-pre-wrap">
                 {m.content}
