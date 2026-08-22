@@ -46,7 +46,7 @@ export const ABOUT = {
     points: [
       {
         title: "Design, then implement",
-        body: "A written spec is the source of truth. I plan the decisions on paper first, then write code against them — so the hard choices are made deliberately, not mid-keystroke.",
+        body: "A written spec is the source of truth. I plan the decisions on paper first, then write code against them, so the hard choices are made deliberately, not mid-keystroke.",
       },
       {
         title: "Pre-registration",
@@ -54,7 +54,7 @@ export const ABOUT = {
       },
       {
         title: "Frozen test vectors",
-        body: "The World Cup value maths was written once in Python and ported to TypeScript, with golden vectors keeping the two locked in sync — 84 passing tests.",
+        body: "The World Cup value maths was written once in Python and ported to TypeScript, with golden vectors keeping the two locked in sync: 84 passing tests.",
       },
       {
         title: "Fail-loud pipelines",
@@ -67,7 +67,7 @@ export const ABOUT = {
     ],
   },
   interests: [
-    "Outside the code: baseball, and the Blue Jays in particular — which is how BlueJaysFanWeb happened.",
+    "Outside the code: baseball, and the Blue Jays in particular, which is how BlueJaysFanWeb happened.",
     "I also have a long-standing interest in BaZi (八字), Chinese birth-chart astrology. It's the honest origin of the pre-registered study: a subject I have a soft spot for made the perfect adversary for testing whether I could stay rigorous about something I wanted to believe.",
   ],
 } as const;

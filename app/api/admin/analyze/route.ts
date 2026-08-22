@@ -121,7 +121,7 @@ export async function POST(): Promise<Response> {
 
   const gapBlock =
     gaps.length === 0
-      ? "(none — no reply in this period contained the fallback line)"
+      ? "(none: no reply in this period contained the fallback line)"
       : gaps.map((g) => `- ${g.question.replace(/\n/g, " ")}`).join("\n");
 
   const prompt = `You are analysing visitor conversations with the chatbot on Suyu Cheng's portfolio site, to help Suyu decide what to add to its notes.
@@ -129,7 +129,7 @@ export async function POST(): Promise<Response> {
 Period: ${periodStart.toISOString()} to ${periodEnd.toISOString()}
 Messages: ${rows.length}${truncated ? " (transcript truncated to the most recent exchanges)" : ""}
 
-The following visitor questions were answered with the bot's "not in my notes" fallback line. This list was matched exactly in code — reproduce it faithfully and do not add to it or drop from it:
+The following visitor questions were answered with the bot's "not in my notes" fallback line. This list was matched exactly in code, so reproduce it faithfully and do not add to it or drop from it:
 
 ${gapBlock}
 

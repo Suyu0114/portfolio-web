@@ -1,7 +1,7 @@
 ---
 title: "A pre-registered study on unconventional features"
 slug: "pre-registered-study"
-oneLiner: "47 frozen hypotheses, BH-FDR correction, n=1,181 — and the honest story of finding nothing."
+oneLiner: "47 frozen hypotheses, BH-FDR correction, n=1,181. And the honest story of finding nothing."
 tags:
   - "research"
   - "modeling"
@@ -29,7 +29,7 @@ most invisible.
 My test case was a genuinely unconventional one: whether features derived
 from **BaZi** (八字, a traditional Chinese birth-chart system) carry any
 association with Major League batting performance. I find the subject
-interesting, which is precisely why it made a good adversary — a topic I
+interesting, which is precisely why it made a good adversary: a topic I
 had a soft spot for was the hardest place to stay honest. The real
 deliverable here is not the answer. It's the method.
 
@@ -41,15 +41,15 @@ the full study was designed to refuse.
 ## What I built
 
 A full population, not a convenient sample: every non-pitcher across all
-30 MLB teams from 2016 to 2025 with at least 100 plate appearances —
-1,181 players. A Python pipeline computes each player's three-pillar chart
-from birth data (solar-term boundaries handled with `sxtwl`), engineers
+30 MLB teams from 2016 to 2025 with at least 100 plate appearances. That
+is 1,181 players. A Python pipeline computes each player's three-pillar
+chart from birth data (solar-term boundaries handled with `sxtwl`), engineers
 the features, and stores everything in Postgres. Two pre-committed
 statistical specifications then run against it.
 
 <StudyArch />
 
-The load-bearing piece isn't any single model — it's the
+The load-bearing piece isn't any single model; it's the
 pre-registration. Every hypothesis, with its predicted sign and its tier,
 was frozen in a document *before* a single real correlation was inspected.
 The first time the pipeline looked at a real `r` (it was −0.0140), a hard
@@ -60,7 +60,7 @@ justification.
 That constraint forces an unusual engineering habit. Because the first
 inspected correlation ends the design phase forever, I couldn't debug the
 pipeline against real results. So the plumbing was validated on a small
-slice — five teams, two seasons — with a smoke test that asserts shapes,
+slice (five teams, two seasons) with a smoke test that asserts shapes,
 joins and null-counts but *computes no correlation at all*. Only once the
 machinery was proven did the full-population run touch a real number.
 
@@ -70,8 +70,8 @@ machinery was proven did the full-population run touch a real number.
 anti-p-hacking rule mechanical and timestamped rather than a good
 intention. Because the hypotheses were frozen before inspection, there is
 no path by which I could tune signs, thresholds or the feature set to
-manufacture a positive result. The alternative — explore first, then
-"confirm" — is the standard way honest people accidentally fool
+manufacture a positive result. The alternative (explore first, then
+"confirm") is the standard way honest people accidentally fool
 themselves. The cost is real: I gave up the freedom to chase whatever the
 data suggested. That was the point.
 
@@ -95,7 +95,7 @@ on). Reporting raw p-values would have been the easy way to find a
 leaned on a composite "favorability" block of four features. I registered,
 in advance, that the block would only be trusted as a single construct if
 its first principal component explained at least 50% of the variance. It
-explained 26.74% — so the block is reported as *not* unidimensional rather
+explained 26.74%, so the block is reported as *not* unidimensional rather
 than quietly treated as one thing. Pre-committing the structural test is
 what stops you from over-reading a composite that isn't really one signal.
 
@@ -103,7 +103,7 @@ what stops you from over-reading a composite that isn't really one signal.
 
 <StudyNulls />
 
-All 47 confirmatory tests came back null at q=0.10 — reported exactly as
+All 47 confirmatory tests came back null at q=0.10, reported exactly as
 they landed. The closest thing to a signal was a yearly "resource" feature
 against isolated power, with a raw p of 0.099 (0.053 two-way) in the
 pre-registered direction; under the correction it is not significant, and I
@@ -111,11 +111,11 @@ have registered it for out-of-sample validation rather than claiming it.
 
 I also built in a falsifier the data could fail on its own terms. If a
 feature captured genuine skill rather than luck, it should track a hitter's
-*expected* outcomes (xwOBA) more tightly than their actual ones — a test
+*expected* outcomes (xwOBA) more tightly than their actual ones, a test
 that can only be passed, never gamed. Five of fourteen predictors passed;
 the rest pointed the wrong way. Outcomes were held era-relative throughout,
 because a decade that spans rule and baseball changes makes raw numbers a
-moving target — comparing a 2016 season to a 2025 one without that
+moving target: comparing a 2016 season to a 2025 one without that
 adjustment would smuggle the era into the result.
 
 A null result is not proof that nothing is there; three-pillar charts drop

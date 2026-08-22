@@ -8,7 +8,7 @@ export default function StudyNulls() {
   return (
     <figure className="sk-border-a my-8 bg-card p-5">
       <RoughBarChart
-        title="Lowest BH-FDR adjusted p-value per outcome family — all far above the q=0.10 threshold"
+        title="Lowest BH-FDR adjusted p-value per outcome family: all far above the q=0.10 threshold"
         bars={[
           { label: "power", value: 0.79 },
           { label: "discipline", value: 0.65 },
@@ -24,7 +24,7 @@ export default function StudyNulls() {
         thresholdLabel="q = 0.10"
       />
       <figcaption className="mt-2 font-display text-xl text-muted">
-        the best result in each family — nothing reaches the line (n=1,181)
+        the best result in each family: nothing reaches the line (n=1,181)
       </figcaption>
     </figure>
   );
