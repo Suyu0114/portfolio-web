@@ -141,12 +141,21 @@ export async function ensureSession(
 /**
  * §7 — claims the one alert this session is allowed, atomically.
  *
- * The conditional update is what makes it exactly one: two turns arriving
- * together both issue it, and only the one that finds `signal_kind` still null
- * gets a row back. No read-then-write, so there is no window between the two.
+ * The condition is `alerted_at`, not `signal_kind`, because the invariant is
+ * one *email* per session and `alerted_at` is the only column recording that
+ * one was sent. Gating on `signal_kind` forfeited the notification permanently
+ * whenever the claim succeeded but the send did not: an unset key, a Resend
+ * rejection, or a blown daily fuse each left the session flagged and
+ * unemailable for good, so a lead that arrived during a misconfiguration could
+ * never be recovered once it was fixed.
  *
- * Returns false when the session was already claimed. A false is normal, not
- * an error: it is the second contact message in a conversation.
+ * Still one conditional update, so there is no read-then-write window, and
+ * `markAlertSent` closes it permanently. Two contact turns landing in the same
+ * instant could both claim, but the panel blocks input while a reply streams,
+ * and DAILY_ALERT_CAP bounds it regardless.
+ *
+ * Returns false when this session has already been emailed. A false is normal,
+ * not an error: it is the second contact message in a conversation.
  */
 export async function claimSessionAlert(
   db: SupabaseClient,
@@ -157,7 +166,7 @@ export async function claimSessionAlert(
     .from("chat_sessions")
     .update({ signal_kind: kind })
     .eq("id", sessionId)
-    .is("signal_kind", null)
+    .is("alerted_at", null)
     .select("id");
 
   if (error) throw new Error(`Alert claim failed: ${error.message}`);
