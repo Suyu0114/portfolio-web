@@ -14,15 +14,19 @@
  */
 
 import {
+  DEFAULT_CONCISENESS,
   DEFAULT_HUMOR,
+  isConcisenessLevel,
   isHumorLevel,
+  type ConcisenessLevel,
   type HumorLevel,
 } from "@/lib/chatPersonality";
 
 const SESSION_KEY = "suyu-chat-session";
 const THREAD_KEY = "suyu-chat-thread";
-/** §6 (v2.3) — the humor dial. Honesty has no key: it is a constant. */
+/** §6 — the two adjustable dials. Honesty has no key: it is a constant. */
 const HUMOR_KEY = "suyu-chat-humor";
+const CONCISENESS_KEY = "suyu-chat-conciseness";
 
 /** Mirrors the server-side history truncation in app/api/chat/route.ts (§3). */
 const PERSISTED_TURNS = 20;
@@ -30,35 +34,61 @@ const PERSISTED_TURNS = 20;
 export type Turn = { role: "user" | "assistant"; content: string };
 
 /**
- * §6 — the dial setting, restored per tab like the thread beside it.
+ * §6 — a dial setting, restored per tab like the thread beside it.
  *
  * Same narrow exception to fail-loud as `readTurns` below: the value is
  * visitor-editable, so a bad one resets to the default and says so rather
  * than throwing and taking the widget down site-wide.
  */
-export function readHumor(): HumorLevel {
-  const raw = sessionStorage.getItem(HUMOR_KEY);
-  if (raw === null) return DEFAULT_HUMOR;
+function readLevel<T extends number>(
+  key: string,
+  name: string,
+  guard: (value: unknown) => value is T,
+  fallback: T,
+): T {
+  const raw = sessionStorage.getItem(key);
+  if (raw === null) return fallback;
 
   const parsed = Number(raw);
-  if (!isHumorLevel(parsed)) {
+  if (!guard(parsed)) {
     console.warn(
-      "[chat] stored humor level was not one of the five steps; using the default.",
+      `[chat] stored ${name} level was not one of the five steps; using the default.`,
     );
-    sessionStorage.removeItem(HUMOR_KEY);
-    return DEFAULT_HUMOR;
+    sessionStorage.removeItem(key);
+    return fallback;
   }
   return parsed;
 }
 
-export function saveHumor(level: HumorLevel): void {
+function saveLevel(key: string, name: string, level: number): void {
   try {
-    sessionStorage.setItem(HUMOR_KEY, String(level));
+    sessionStorage.setItem(key, String(level));
   } catch (error) {
     // Same reasoning as saveTurns: losing the preference across a reload is
     // not worth interrupting a conversation over.
-    console.warn("[chat] could not persist the humor level:", error);
+    console.warn(`[chat] could not persist the ${name} level:`, error);
   }
+}
+
+export function readHumor(): HumorLevel {
+  return readLevel(HUMOR_KEY, "humor", isHumorLevel, DEFAULT_HUMOR);
+}
+
+export function saveHumor(level: HumorLevel): void {
+  saveLevel(HUMOR_KEY, "humor", level);
+}
+
+export function readConciseness(): ConcisenessLevel {
+  return readLevel(
+    CONCISENESS_KEY,
+    "conciseness",
+    isConcisenessLevel,
+    DEFAULT_CONCISENESS,
+  );
+}
+
+export function saveConciseness(level: ConcisenessLevel): void {
+  saveLevel(CONCISENESS_KEY, "conciseness", level);
 }
 
 /**
@@ -166,9 +196,9 @@ export function saveTurns(turns: Turn[]): void {
  * the next message mints a new id, so the server opens a fresh
  * `chat_sessions` row instead of appending to the finished one (§5).
  *
- * HUMOR_KEY is deliberately left alone. The dial is a preference about how a
+ * The dial keys are deliberately left alone. They are preferences about how a
  * visitor wants to be spoken to, not part of the conversation being ended, so
- * resetting it here would silently undo a setting they chose on purpose.
+ * resetting them here would silently undo a setting they chose on purpose.
  */
 export function clearChat(): void {
   sessionStorage.removeItem(THREAD_KEY);

@@ -2,6 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { FALLBACK_LINE } from "@/lib/chatbotKnowledge";
 import {
+  CONCISENESS_LEVELS,
+  DEFAULT_CONCISENESS,
   DEFAULT_HUMOR,
   HUMOR_LEVELS,
   personalityInstruction,
@@ -31,6 +33,24 @@ export const dynamic = "force-dynamic";
 /** §3 — the server truncates to the most recent 20 messages before calling the API. */
 const API_HISTORY_LIMIT = 20;
 
+/**
+ * §7 — worst-case reply cost. Raised from 1024 in v2.4: conciseness 0 and 25
+ * ask for multi-paragraph answers, and 1024 was measured against the terse
+ * style that preceded the dial. The daily cap dropped 500 to 300 in the same
+ * change, so the worst-case daily spend stays flat rather than doubling.
+ */
+const MAX_TOKENS = 2048;
+
+/**
+ * §7 — what a visitor sees when a reply hits that ceiling. Deliberately not
+ * the fallback line: that sentence means "this is not in the notes", and §8
+ * counts it to find content gaps, so reusing it here would file a truncation
+ * as a missing-content report. Fail loud in the visitor's direction too, since
+ * ending mid-sentence just reads as the bot losing its train of thought.
+ */
+const TRUNCATION_NOTE =
+  "\n\n(That answer hit its length limit and stopped early. Ask me to continue, or narrow the question.)";
+
 /** §7 — request validation limits. */
 const MAX_MESSAGE_CHARS = 1_000;
 const MAX_HISTORY_ENTRIES = 30;
@@ -50,12 +70,13 @@ const chatRequestSchema = z
     /** §5 — the page the chat was opened on. Recorded once per session. */
     entryPath: z.string().max(512).optional(),
     /**
-     * §6 — the humor dial. Only the five steps are accepted, so a hand-edited
-     * value is a 400 rather than something to sanitize downstream. Honesty is
-     * never sent: it is a server-side constant, which is exactly what stops a
-     * crafted request from turning it down.
+     * §6 — the two adjustable dials. Only the five steps are accepted, so a
+     * hand-edited value is a 400 rather than something to sanitize downstream.
+     * Honesty is never sent: it is a server-side constant, which is exactly
+     * what stops a crafted request from turning it down.
      */
     humor: z.literal(HUMOR_LEVELS).default(DEFAULT_HUMOR),
+    conciseness: z.literal(CONCISENESS_LEVELS).default(DEFAULT_CONCISENESS),
   })
   .strict();
 
@@ -112,7 +133,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // 4. Record the session and the visitor's turn (§5) before calling the model,
   // so the per-IP window counts this request even if the reply later fails.
-  const { sessionId, message, entryPath, humor } = parsed.data;
+  const { sessionId, message, entryPath, humor, conciseness } = parsed.data;
   try {
     await ensureSession(db, {
       id: sessionId,
@@ -145,11 +166,11 @@ export async function POST(request: Request): Promise<Response> {
     { role: "user" as const, content: message },
   ].slice(-API_HISTORY_LIMIT);
 
-  // §6 — the dial rides in a mid-conversation system turn rather than in
+  // §6 — the dials ride in a mid-conversation system turn rather than in
   // `system`, which is byte-frozen and carries the only cache breakpoint.
-  // Measured: 207 uncached tokens per request while the 10,445-token prefix
-  // still reads from cache in full; folding it into the system prompt would
-  // forfeit that cache every request instead.
+  // Measured: 323 uncached tokens per request while the
+  // 10,724-token prefix still reads from cache in full; folding them into
+  // the system prompt would forfeit that cache every request instead.
   //
   // Appended *after* truncation, so a long conversation can never slide the
   // instruction out of the window. Its placement satisfies the API's rules by
@@ -160,14 +181,14 @@ export async function POST(request: Request): Promise<Response> {
       role: entry.role,
       content: entry.content,
     })),
-    { role: "system", content: personalityInstruction(humor) },
+    { role: "system", content: personalityInstruction({ humor, conciseness }) },
   ];
 
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
   const stream = client.messages.stream({
     model: MODEL,
-    max_tokens: 1024,
+    max_tokens: MAX_TOKENS,
     output_config: { effort: "low" },
     system: [
       {
@@ -253,6 +274,9 @@ export async function POST(request: Request): Promise<Response> {
           const line = (emittedText ? "\n\n" : "") + FALLBACK_LINE;
           reply += line;
           controller.enqueue(encoder.encode(line));
+        } else if (stopReason === "max_tokens") {
+          reply += TRUNCATION_NOTE;
+          controller.enqueue(encoder.encode(TRUNCATION_NOTE));
         }
         console.log(
           `[api/chat] stop=${stopReason} in=${usage.inputTokens} out=${usage.outputTokens} ` +
@@ -274,6 +298,7 @@ export async function POST(request: Request): Promise<Response> {
               inputTokens: usage.inputTokens,
               outputTokens: usage.outputTokens,
               humor,
+              conciseness,
             });
           }
         } catch (error) {

@@ -38,7 +38,9 @@ create table if not exists public.chat_messages (
   output_tokens  int,
   -- v2.3 (§6): the humor dial this reply was generated at. Null on user rows
   -- and on every row written before the dials shipped.
-  humor          smallint
+  humor          smallint,
+  -- v2.4 (§6): the conciseness dial, same rules as humor above.
+  conciseness    smallint
 );
 
 create table if not exists public.chat_insights (
@@ -77,6 +79,10 @@ create index if not exists chat_sessions_started_at_idx
 
 alter table public.chat_messages
   add column if not exists humor smallint;
+
+-- v2.4.
+alter table public.chat_messages
+  add column if not exists conciseness smallint;
 
 alter table public.chat_sessions
   add column if not exists signal_kind text;

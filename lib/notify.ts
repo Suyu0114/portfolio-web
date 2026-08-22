@@ -31,7 +31,7 @@ const ALERT_TO = "suyu0229@gmail.com";
  * tier's own address is the only option. It is allowed to deliver to the
  * account owner, which is the only address this ever writes to.
  */
-const ALERT_FROM = "STET <onboarding@resend.dev>";
+const ALERT_FROM = "PATS <onboarding@resend.dev>";
 
 const ENDPOINT = "https://api.resend.com/emails";
 

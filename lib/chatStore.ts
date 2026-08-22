@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { HumorLevel } from "@/lib/chatPersonality";
+import type { ConcisenessLevel, HumorLevel } from "@/lib/chatPersonality";
 import type { SupabaseEnv } from "@/lib/env";
 
 /**
@@ -18,9 +18,11 @@ export const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 /**
  * §7 — global daily cap on assistant messages. This is the spend fuse: a
  * constant in code, deliberately not an env var, so changing it is a commit.
- * Confirmed at 500 by Suyu 2026-08-03.
+ * Confirmed at 500 by Suyu 2026-08-03; cut to 300 in v2.4, where max_tokens
+ * doubled to 2048 to pay for the conciseness dial. Trading half the ceiling on
+ * volume for double the ceiling on length keeps worst-case daily spend flat.
  */
-export const DAILY_ASSISTANT_MESSAGE_CAP = 500;
+export const DAILY_ASSISTANT_MESSAGE_CAP = 300;
 
 /**
  * §7 (v2.3) — global daily cap on contact alerts. A constant for the same
@@ -218,8 +220,9 @@ export async function logMessage(
     model?: string;
     inputTokens?: number;
     outputTokens?: number;
-    /** §6 — the dial this reply was generated at. Null on the user turn. */
+    /** §6 — the dials this reply was generated at. Null on the user turn. */
     humor?: HumorLevel;
+    conciseness?: ConcisenessLevel;
   },
 ): Promise<void> {
   const { error } = await db.from("chat_messages").insert({
@@ -230,6 +233,7 @@ export async function logMessage(
     input_tokens: message.inputTokens ?? null,
     output_tokens: message.outputTokens ?? null,
     humor: message.humor ?? null,
+    conciseness: message.conciseness ?? null,
   });
   if (error) throw new Error(`Message insert failed: ${error.message}`);
 }

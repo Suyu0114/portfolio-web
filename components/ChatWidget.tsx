@@ -35,10 +35,18 @@ const ChatPanel = dynamic(() => import("@/components/ChatPanel"), {
   ssr: false,
 });
 
+/**
+ * §6 (v2.4) — the button carries the verb *and* the name, so PATS is
+ * discoverable without opening anything. This knowingly reverses C5, which had
+ * restored "ask my notes" after the shipped string drifted to "ask my AI
+ * notes"; Suyu's call is that the name belongs on the button. Caveat at 20px
+ * cannot shrink (rule 5), so the longer label is a layout constraint: it is
+ * padding, not type size, that gives way at narrow widths.
+ */
 const COPY = {
-  open: "ask my notes",
+  open: "ask my AI notes - PATS",
   // Tells a visitor their conversation was kept, not thrown away.
-  resume: "back to my notes",
+  resume: "back to my AI notes - PATS",
 } as const;
 
 /** Hand-drawn speech bubble — ink line work only, no fill, no shadow (§6). */
@@ -96,7 +104,7 @@ export default function ChatWidget({
   // rather than mirrored into state: this component is statically imported and
   // does render on the server, so the server snapshot is false and the real
   // value lands right after hydration. The cost is that a reload with a stored
-  // thread shows "ask my AI notes" for one frame before the swap.
+  // thread shows the "ask" label for one frame before the swap.
   const hasThread = useSyncExternalStore(
     subscribeToThread,
     hasStoredTurns,
@@ -149,7 +157,7 @@ export default function ChatWidget({
         >
           <SpeechBubble />
           {/* Caveat is display-only and never below 20px (CLAUDE.md rule 5). */}
-          <span className="font-display text-xl leading-none">
+          <span className="font-display text-xl leading-none whitespace-nowrap">
             {hasThread ? COPY.resume : COPY.open}
           </span>
         </button>

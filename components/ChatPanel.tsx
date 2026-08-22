@@ -3,14 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
+  CONCISENESS_LABELS,
+  CONCISENESS_LEVELS,
   HONESTY,
+  HUMOR_LABELS,
   HUMOR_LEVELS,
+  type ConcisenessLevel,
   type HumorLevel,
 } from "@/lib/chatPersonality";
 import {
   getSessionId,
+  readConciseness,
   readHumor,
   readTurns,
+  saveConciseness,
   saveHumor,
   saveTurns,
   type Turn,
@@ -39,9 +45,9 @@ const COPY = {
    * answering. Splitting the two is why the header no longer echoes the
    * button.
    */
-  title: "STET",
+  title: "PATS",
   /** Name and purpose together, so the dialog announces both at once. */
-  dialogLabel: "STET, ask my notes",
+  dialogLabel: "PATS, ask my AI notes",
   /**
    * Two dismiss actions, deliberately unequal (§6). Hiding is the reflex
    * action and costs nothing; ending is the one that throws the conversation
@@ -57,6 +63,7 @@ const COPY = {
   settings: "settings",
   honesty: "honesty",
   humor: "humor",
+  conciseness: "conciseness",
   honestyLocked: "locked",
   /**
    * The sighted joke is a dial that will not turn. A screen reader gets the
@@ -65,6 +72,7 @@ const COPY = {
    */
   honestyNote: "Honesty is fixed at 100 percent and cannot be changed.",
   humorLabel: "Humor level, percent",
+  concisenessLabel: "Conciseness level, percent",
   inputLabel: "Ask about Suyu",
   placeholder: "Ask about Suyu…",
   send: "Send",
@@ -108,27 +116,39 @@ const CHIPS = [
 const PROJECT_CHIP = "Ask about this project";
 
 /**
- * The humor dial: a real radiogroup, with roving tabindex and arrow keys so
- * it behaves the way a keyboard user expects a group of options to behave.
+ * One adjustable dial: a real radiogroup, with roving tabindex and arrow keys
+ * so it behaves the way a keyboard user expects a group of options to behave.
+ *
+ * Generic over the level type because humor and conciseness share a shape but
+ * not a meaning. Each radio's accessible name carries the step's label as well
+ * as its number, so arrowing through announces "50 percent, dry wit" rather
+ * than a bare number a listener has to guess at. The visible label beside the
+ * row is therefore aria-hidden: it is the same fact, drawn for sighted users.
  */
-function HumorDial({
+function Dial<T extends number>({
+  ariaLabel,
+  levels,
+  labels,
   value,
   onChange,
 }: {
-  value: HumorLevel;
-  onChange: (next: HumorLevel) => void;
+  ariaLabel: string;
+  levels: readonly T[];
+  labels: Record<T, string>;
+  value: T;
+  onChange: (next: T) => void;
 }) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
 
   function move(from: number, delta: number) {
-    const next = (from + delta + HUMOR_LEVELS.length) % HUMOR_LEVELS.length;
-    onChange(HUMOR_LEVELS[next]);
+    const next = (from + delta + levels.length) % levels.length;
+    onChange(levels[next]);
     refs.current[next]?.focus();
   }
 
   return (
-    <div role="radiogroup" aria-label={COPY.humorLabel} className="flex gap-1">
-      {HUMOR_LEVELS.map((level, i) => {
+    <div role="radiogroup" aria-label={ariaLabel} className="flex gap-1">
+      {levels.map((level, i) => {
         const selected = level === value;
         return (
           <button
@@ -139,6 +159,7 @@ function HumorDial({
             type="button"
             role="radio"
             aria-checked={selected}
+            aria-label={`${level} percent, ${labels[level]}`}
             // Roving tabindex: one stop for the group, then arrows within it.
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(level)}
@@ -164,11 +185,11 @@ function HumorDial({
 }
 
 /**
- * The honesty dial, which is not a dial. Drawn to match the humor row step
- * for step so the difference reads at a glance, but marked up as a readout:
- * five disabled radios would announce an interaction that does not exist.
- * The steps are the same five as humor because it is the same scale, not
- * because anything here can be set.
+ * The honesty dial, which is not a dial. Drawn to match the two rows below it
+ * step for step so the difference reads at a glance, but marked up as a
+ * readout: five disabled radios would announce an interaction that does not
+ * exist. The steps are the same five because it is the same scale, not because
+ * anything here can be set.
  */
 function HonestyDial() {
   return (
@@ -185,9 +206,6 @@ function HonestyDial() {
           {level}
         </span>
       ))}
-      <span aria-hidden="true" className="text-muted ml-1 text-[0.6875rem]">
-        {COPY.honestyLocked}
-      </span>
     </div>
   );
 }
@@ -212,6 +230,9 @@ export default function ChatPanel({
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [humor, setHumor] = useState<HumorLevel>(() => readHumor());
+  const [conciseness, setConciseness] = useState<ConcisenessLevel>(() =>
+    readConciseness(),
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -225,11 +246,15 @@ export default function ChatPanel({
     saveTurns(turns);
   }, [turns]);
 
-  // §6 — the dial is a preference, so it outlives the conversation it was
-  // set during. `clearChat` deliberately leaves this key alone.
+  // §6 — the dials are preferences, so they outlive the conversation they were
+  // set during. `clearChat` deliberately leaves their keys alone.
   useEffect(() => {
     saveHumor(humor);
   }, [humor]);
+
+  useEffect(() => {
+    saveConciseness(conciseness);
+  }, [conciseness]);
 
   // Ending the conversation unmounts the panel; drop the in-flight reply with
   // it rather than paying for tokens nobody will read. Cancelling the body
@@ -300,9 +325,10 @@ export default function ChatPanel({
             // §5 — the page the chat was opened on. The server records it once
             // per session and ignores it on later turns.
             entryPath: window.location.pathname,
-            // §6 — sent per turn, so changing the dial mid-conversation takes
+            // §6 — sent per turn, so changing a dial mid-conversation takes
             // effect on the next reply rather than the next session.
             humor,
+            conciseness,
           }),
         });
 
@@ -348,7 +374,7 @@ export default function ChatPanel({
         setStreaming(false);
       }
     },
-    [humor, projectTitle, streaming, turns],
+    [conciseness, humor, projectTitle, streaming, turns],
   );
 
   const chips = projectTitle !== null ? [PROJECT_CHIP, ...CHIPS.slice(1)] : CHIPS;
@@ -416,11 +442,42 @@ export default function ChatPanel({
         id="chat-settings"
         className={`${settingsOpen ? "block" : "hidden"} border-rule bg-card border-b-2 px-3 py-2`}
       >
-        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1">
+        {/* Three columns so the active-step labels line up across the rows:
+            name, steps, then what the current step means. That third column is
+            the v2.4 fix for a dial nobody could tell was doing anything. */}
+        <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-2 gap-y-1">
           <span className="text-muted text-[0.6875rem]">{COPY.honesty}</span>
           <HonestyDial />
+          <span aria-hidden="true" className="text-muted text-[0.6875rem]">
+            {COPY.honestyLocked}
+          </span>
+
           <span className="text-muted text-[0.6875rem]">{COPY.humor}</span>
-          <HumorDial value={humor} onChange={setHumor} />
+          <Dial
+            ariaLabel={COPY.humorLabel}
+            levels={HUMOR_LEVELS}
+            labels={HUMOR_LABELS}
+            value={humor}
+            onChange={setHumor}
+          />
+          {/* aria-hidden: each radio already announces its own label. */}
+          <span aria-hidden="true" className="text-muted text-[0.6875rem]">
+            {HUMOR_LABELS[humor]}
+          </span>
+
+          <span className="text-muted text-[0.6875rem]">
+            {COPY.conciseness}
+          </span>
+          <Dial
+            ariaLabel={COPY.concisenessLabel}
+            levels={CONCISENESS_LEVELS}
+            labels={CONCISENESS_LABELS}
+            value={conciseness}
+            onChange={setConciseness}
+          />
+          <span aria-hidden="true" className="text-muted text-[0.6875rem]">
+            {CONCISENESS_LABELS[conciseness]}
+          </span>
         </div>
       </div>
 
