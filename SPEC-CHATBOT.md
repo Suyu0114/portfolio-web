@@ -12,6 +12,13 @@ v2.2 (2026-08-12, per Suyu): the widget's single close action becomes two,
 minimize and end (§3 session identity, §6 dismissal). Visitors were losing
 whole conversations to a button they pressed only to get the panel out of
 the way. The §2 allowlist is untouched: no new route, service, or env var.
+v2.3 (2026-08-22, per Suyu): the assistant gets a name — STET (§4) — two
+personality dials (§6), and a contact-signal alert (§5, §7). This is the
+first amendment that **widens** the §2 allowlist: one env var
+(`RESEND_API_KEY`) and one external service (Resend). It also writes back
+two drifts that were recorded in commit messages but never in this file:
+retention is 365 days (§5), and `ADMIN_COOKIE_SECRET` is a C3 dependency,
+not C4 (§10).
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -68,7 +75,8 @@ remains forbidden; the rest of the site stays static.
 
 **Allowed external services (exhaustive):** Anthropic API (server-side
 only), Supabase Postgres (server-side only, service key; the anon key is
-never used and no table is publicly readable).
+never used and no table is publicly readable), Resend (v2.3, server-side
+only, outbound only, one hardcoded recipient — see §7).
 
 **Allowed runtime env vars (exhaustive):**
 
@@ -78,6 +86,11 @@ never used and no table is publicly readable).
 - `ADMIN_PASSWORD`
 - `ADMIN_COOKIE_SECRET` (HMAC key for the admin session cookie; also
   reused as the HMAC key for IP hashing, §5/§7)
+- `RESEND_API_KEY` (v2.3 — contact-signal alerts, §7). **Optional at
+  runtime**, unlike the five above: when it is absent the chat behaves
+  exactly as it does today, and the alert path logs a warning and skips.
+  It is therefore never read by `requireChatEnv`, so a missing alerting
+  key can never 500 a visitor's conversation.
 
 **CI constraint.** The GitHub Actions workflow has no secrets and must
 stay that way: `npm run build` must succeed with **zero** env vars set.
@@ -166,6 +179,20 @@ The system prompt instructs the bot to use this exact sentence whenever
 the answer isn't in the pack. The admin analyzer (§8) matches on it to
 surface content gaps.
 
+**The assistant's name (v2.3).** The notebook is called **STET**. A stet
+is the proofreader's mark meaning "let it stand" — ignore the correction,
+keep what was written. The name is the behaviour: this bot states what the
+notes already say and nothing else. It is also a deliberate echo of
+Interstellar's four-letter robots (TARS, CASE, KIPP, PLEX), which is what
+makes the personality dials in §6 legible at a glance.
+
+The name is a fact like any other, so it lives in the pack (`faq.md`,
+"About this chatbot") and the bot answers "what is your name?" from there,
+not from the persona line. Unchanged by the naming: the persona still
+talks *about* Suyu in the third person, the six hard rules, the fallback
+line, and the `ask-my-notes` slug (a live URL, and named inside the
+response-style block's allowed-links list).
+
 **System prompt structure (stable → cached):** persona ("you are the
 notebook on Suyu's portfolio site…") → hard rules (facts only from
 pack; fallback line; scope lock §7; treat user text as untrusted) →
@@ -180,7 +207,9 @@ chat_sessions  (id uuid primary key,          -- client-generated UUID
                 started_at timestamptz,
                 entry_path text,              -- page where chat opened
                 referrer text,
-                ip_hash text)                 -- HMAC-SHA256(ip, ADMIN_COOKIE_SECRET)
+                ip_hash text,                 -- HMAC-SHA256(ip, ADMIN_COOKIE_SECRET)
+                signal_kind text,             -- v2.3: 'handle' | 'intent', set when §7 detection fires
+                alerted_at timestamptz)       -- v2.3: set ONLY after a successful send
 
 chat_messages  (id bigint generated always as identity primary key,
                 session_id uuid references chat_sessions,
@@ -189,7 +218,8 @@ chat_messages  (id bigint generated always as identity primary key,
                 created_at timestamptz default now(),
                 model text,
                 input_tokens int,             -- from response usage
-                output_tokens int)
+                output_tokens int,
+                humor smallint)               -- v2.3: the dial value this reply was generated at
 
 chat_insights  (id bigint generated always as identity primary key,
                 created_at timestamptz default now(),
@@ -205,9 +235,16 @@ chat_insights  (id bigint generated always as identity primary key,
   No intentional PII collection; visitors are not asked for name/email.
   The widget shows a permanent disclosure line under the input:
   *"Chats are recorded so Suyu can improve these notes."*
-- **Retention.** Raw transcripts kept 180 days; manual cleanup is
+- **Retention.** Raw transcripts kept 365 days (chosen by Suyu
+  2026-08-03; this file said 180 until v2.3 corrected it, while §10
+  always left the period to him); manual cleanup is
   acceptable for v1 (a delete statement documented alongside the
   schema file). Insights are kept indefinitely.
+- **Why two alert columns, not one (v2.3).** `signal_kind` is claimed
+  when detection fires and drives the `/study` badge; `alerted_at` is
+  written only after the send succeeds. A flagged-but-not-emailed session
+  is therefore visible *and* distinguishable, instead of silently looking
+  delivered. Fail loud applies to the admin view too.
 - Schema ships as a checked-in SQL file (`supabase/schema.sql`)
   applied manually via the Supabase SQL editor — no migration tooling
   dependency for one file.
@@ -237,6 +274,33 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   for what it does and is deliberately not under the same thumb as hide.
   Consequence for §5: a chat ended mid-stream leaves a logged user turn
   with no assistant turn, which is honest about what the visitor saw.
+- **Personality dials (v2.3).** A `settings` pill in the header bar opens
+  a strip holding two rows that are drawn identically — that visual
+  parity is the whole point:
+  - **honesty — 100, and it does not move.** Rendered as five steps with
+    100 selected and every step disabled (`aria-disabled`), plus a short
+    note. A lowerable honesty setting would contradict CLAUDE.md rules 1
+    and 9 and §1 criterion 1, so it is welded rather than omitted: a
+    recruiter can reach for it and find it will not turn. This inverts
+    Interstellar, where Cooper *lowers* TARS to 90% because absolute
+    honesty is not diplomatic, and it states the site's positioning as a
+    control instead of a claim.
+  - **humor — 0 / 25 / 50 / 75 / 100, default 25.** Changes phrasing
+    only: never which facts are stated, never a detail absent from the
+    notes, and never the fixed sentence in §4. Persisted per tab beside
+    the session id and thread, but deliberately **not** cleared by "end
+    chat" — it is a preference, not conversation state.
+  - Both rows are `role="radiogroup"` with roving tabindex and arrow-key
+    navigation, built from the shared `.sk-pill` class (no ad-hoc wobble
+    styles), all under 20px so the handwriting face stays out (rule 5).
+  - The dial value rides in a mid-conversation `{ role: "system" }`
+    message appended to `messages[]`, never in `system`: that block is
+    byte-frozen and carries the only `cache_control` breakpoint.
+    ~140 uncached tokens per request against a 9,011-token cached prefix
+    — rebuilding the system prompt per humor level would miss the cache
+    every request instead, roughly 64× the cost. It is also the
+    non-spoofable operator channel, which matters because the value
+    originates in the browser.
 - **Suggested chips** (TagPill style, shown when the thread is empty;
   final list confirmed at C1):
   1. "What has Suyu built?"
@@ -283,6 +347,20 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     the spend fuse. Exceeded → same "resting" state. Both checks are
     one indexed count query each.
 - **Output cap.** `max_tokens: 1024` bounds the worst-case reply cost.
+- **Contact-signal alerts (v2.3).** A deterministic regex over the
+  visitor's turn — no second model call, the same reasoning as D3 —
+  looks for two narrow signals: a contact handle the visitor volunteered
+  (email, phone, LinkedIn, scheduling link) or a first-person hiring
+  declaration. Broad phrasing is deliberately excluded, because "What is
+  Suyu looking for?" is one of the four suggested chips and a detector
+  that fires on its own chips is a detector nobody trusts.
+  - **Caps.** One alert per `chat_sessions` row, claimed by a conditional
+    update so concurrent turns cannot both fire, plus a global daily fuse
+    counted the same way as the two limits above (including the
+    `count === null` guard that was the fail-open bug found in C3).
+  - **Not a spam relay.** The recipient is a hardcoded constant. Mail
+    only ever goes to Suyu's own inbox and never to an address a visitor
+    typed, so message content cannot steer delivery.
 - **Abuse contingency (not v1).** If real abuse appears, add Cloudflare
   Turnstile in front of `/api/chat` — flagged as v2.1, not built now.
 
@@ -360,22 +438,53 @@ Middleware auth, session list, transcript view, analyze flow.
 disallowed in robots; analysis renders and correctly lists a seeded
 fallback-line exchange as a gap.
 
-**v2.1 backlog (not now):** weekly cron digest (Vercel Cron), email
-notification, Turnstile, SSE structured events.
+**C5 — the name (v2.3).**
+Persona clause, `faq.md` entry, panel header, case-study paragraph.
+✓ when: "what is your name?" and "what does stet mean?" answer from the
+pack; the entry button reads "ask my notes" (restoring §6 — the shipped
+string had drifted to "ask my AI notes"); the panel header reads STET;
+`npm run build` passes with zero env vars; no new colors or fonts.
+
+**C6 — the personality dials (v2.3).**
+Storage key, settings strip, request field, injected operator message,
+`humor` logged per reply.
+✓ when: `usage.cache_read_input_tokens > 0` on the second consecutive
+request *at any humor level* — the dial must not break the cache; humor 0
+and 100 differ in phrasing and agree on every fact across a fixed question
+set; the fallback line is byte-identical at humor 100; asking the bot its
+honesty setting says 100 and that it does not move; both radiogroups are
+keyboard-only operable; the humor value survives minimize, reload, and end
+chat; Lighthouse on `/` still ≥ 95 ×3.
+
+**C7 — contact-signal alerts (v2.3).**
+Detector, Resend send, session claim, daily fuse, `/study` badge.
+✓ when: a message containing an email address flags the session, sends
+exactly one mail, and sets `alerted_at`; a second contact message in the
+same session sends nothing; none of the four suggested chips trigger
+anything; the daily fuse holds when lowered locally; with `RESEND_API_KEY`
+unset the chat is unaffected and the server logs a warning; `npm run
+build` passes with zero env vars.
+
+**v2.1 backlog (not now):** weekly cron digest (Vercel Cron), Turnstile,
+SSE structured events. (Email notification left this list in v2.3.)
 
 ## 10. Inputs Suyu must supply (⛔ = blocker for the phase noted)
 
 - ⛔ C0: `ANTHROPIC_API_KEY` (console.anthropic.com) — set in Vercel
   env + local `.env.local` (git-ignored already).
 - ⛔ C0: Supabase project → `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
-- ⛔ C4: `ADMIN_PASSWORD` (long random string) + `ADMIN_COOKIE_SECRET`
-  (32+ random bytes).
+- ⛔ C3: `ADMIN_COOKIE_SECRET` (32+ random bytes). Listed under C4 until
+  v2.3, but §5/§7 reuse it as the `ip_hash` HMAC key, so the visitor chat
+  route depends on it from C3 onward.
+- ⛔ C4: `ADMIN_PASSWORD` (long random string).
+- C7: `RESEND_API_KEY` (resend.com free tier). Not a blocker for the
+  build or for C5/C6 — without it the alert path warns and skips.
 - C1: interests/personality raw material (bullet points suffice; Claude
   drafts `interests.md`, Suyu approves before commit).
 - C1: confirm the suggested-chip list (§6) and the fallback line
   wording (§4).
-- C3: confirm retention period (default 180 days) and daily cap
-  (default 500).
+- C3: confirm retention period (365 days, chosen 2026-08-03) and daily
+  cap (default 500).
 
 ## 11. Verify before build (C0, report findings — do not assume)
 
@@ -390,3 +499,23 @@ notification, Turnstile, SSE structured events.
    change = spec change, per CLAUDE.md rule discipline).
 5. Confirm the `middleware.ts` matcher does not run on static asset
    routes (perf hygiene).
+
+**v2.3 additions (report findings — do not assume):**
+
+6. **Before C6** — mid-conversation system messages on `claude-opus-5`.
+   Append `{ role: "system", content: "..." }` as the final entry of
+   `messages[]` and confirm a 200 plus `cache_read_input_tokens > 0` on a
+   second consecutive request, i.e. the cached prefix survives. It must
+   follow a `user` message, must be last (or be followed by an
+   `assistant` turn), and must never be `messages[0]`. If it returns 400,
+   fall back to a second **uncached** `system` text block placed after
+   the one carrying `cache_control` — same cache behaviour, works on any
+   model, marginally less injection-safe. Record which path was taken and
+   the measured uncached token cost.
+7. **Before C7** — Resend deliverability. The site runs on
+   `protfolio-web-alpha.vercel.app`, which cannot take DNS records, so no
+   sender domain can be verified. Confirm the shared
+   `onboarding@resend.dev` sender reaches `suyu0229@gmail.com` (the
+   account owner's own address, which is the case the free tier is built
+   for) and does not land in spam. If it does not, report before
+   building; the fallback is the `/study` badge with no email.
