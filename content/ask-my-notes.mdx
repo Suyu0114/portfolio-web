@@ -37,8 +37,13 @@ notes, and when it does not know, it must say so in a way I can count.
 
 ## What I built
 
+The assistant is called STET, after the proofreader's mark that means "let it
+stand": ignore the correction, keep the text as written. The name is the
+specification. Everything below is machinery for making a language model
+behave like that mark.
+
 Five markdown files (profile, projects, how I work, interests, FAQ) are
-concatenated at module load into a system prompt that currently runs to 10,285
+concatenated at module load into a system prompt that currently runs to 10,344
 tokens. Every fact the bot can state lives in those files. If a file is
 missing or empty, the build fails rather than deploying a bot with a hole in
 its knowledge.
@@ -83,7 +88,7 @@ recruiter.
 prefix is identical every time, so nothing dynamic may touch it. No
 timestamps, no visitor context. When you open the chat on a case-study page
 the bot knows which one you are reading, but that context is injected into
-the *user* turn instead. Measured result: the full 10,285 tokens are read from
+the *user* turn instead. Measured result: the full 10,344 tokens are read from
 cache on every repeat request, at roughly a tenth of the input price.
 
 **The official SDK, not a wrapper.** Vercel's AI SDK would have given a

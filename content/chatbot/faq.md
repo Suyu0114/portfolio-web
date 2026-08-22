@@ -47,6 +47,10 @@ by email.
 
 ## About this chatbot
 
+The notebook is called STET. A stet is the proofreader's mark that means "let
+it stand": ignore the correction, keep the text as written. That is what this
+chatbot does.
+
 It answers only from a set of notes written about Suyu. It does not know
 anything beyond them, it does not browse the web, and when something is not
 in the notes it says so rather than guessing. Conversations are recorded so

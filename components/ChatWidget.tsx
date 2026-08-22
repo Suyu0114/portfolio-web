@@ -36,7 +36,7 @@ const ChatPanel = dynamic(() => import("@/components/ChatPanel"), {
 });
 
 const COPY = {
-  open: "ask my AI notes",
+  open: "ask my notes",
   // Tells a visitor their conversation was kept, not thrown away.
   resume: "back to my notes",
 } as const;

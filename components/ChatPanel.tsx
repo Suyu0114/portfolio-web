@@ -25,9 +25,16 @@ import {
 
 /** Widget microcopy — component-level constant (CLAUDE.md conventions). */
 const COPY = {
-  // Matches the entry button's label so the panel does not appear to rename
-  // itself on open.
-  title: "ask my AI notes",
+  /**
+   * The panel introduces the assistant; the entry button stays the call to
+   * action. A visitor scanning the page wants the verb ("ask my notes"), and
+   * a visitor who has already opened the panel wants to know who is
+   * answering. Splitting the two is why the header no longer echoes the
+   * button.
+   */
+  title: "STET",
+  /** Name and purpose together, so the dialog announces both at once. */
+  dialogLabel: "STET, ask my notes",
   /**
    * Two dismiss actions, deliberately unequal (§6). Hiding is the reflex
    * action and costs nothing; ending is the one that throws the conversation
@@ -230,7 +237,7 @@ export default function ChatPanel({
   return (
     <div
       role="dialog"
-      aria-label={COPY.title}
+      aria-label={COPY.dialogLabel}
       // sk-edge-accent-2 recolours the shared frame to --accent-2 so the panel
       // separates from the near-identical --paper page behind it (card and
       // paper differ by very little on their own).
