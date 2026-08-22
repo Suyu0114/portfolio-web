@@ -672,8 +672,9 @@ SSE structured events. (Email notification left this list in v2.3.)
    model, marginally less injection-safe. Record which path was taken and
    the measured uncached token cost.
 7. **Before C7** — Resend deliverability. The site runs on
-   `protfolio-web-alpha.vercel.app`, which cannot take DNS records, so no
-   sender domain can be verified. Confirm the shared
+   `suyu-portfolio.vercel.app` (named `protfolio-web-alpha.vercel.app`
+   until 2026-08-22), which cannot take DNS records, so no sender domain
+   can be verified. Confirm the shared
    `onboarding@resend.dev` sender reaches `suyu0229@gmail.com` (the
    account owner's own address, which is the case the free tier is built
    for) and does not land in spam. If it does not, report before

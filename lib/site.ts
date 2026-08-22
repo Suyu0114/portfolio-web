@@ -1,11 +1,18 @@
 /**
  * Canonical site metadata — SPEC §6.5.
  *
- * v1 production origin (Vercel default, per SPEC §10 fallback). If a
- * custom domain is added later, update this one constant — it feeds
- * metadataBase, OG/Twitter tags, sitemap, and robots.
+ * Production origin (Vercel default, per SPEC §10 fallback). If a custom
+ * domain is added later, update this one constant — it feeds metadataBase,
+ * OG/Twitter tags, sitemap, and robots.
+ *
+ * Changed 2026-08-22 from `protfolio-web-alpha.vercel.app`, which Suyu
+ * renamed and which now 307s here. A redirecting canonical is not a broken
+ * one, but it costs on both surfaces this constant feeds: every URL in the
+ * sitemap pointed at a redirect, and OG tags on the old origin made every
+ * shared link unfurl through a hop, which is the wrong first impression when
+ * the sharer is a recruiter.
  */
-export const SITE_URL = "https://protfolio-web-alpha.vercel.app";
+export const SITE_URL = "https://suyu-portfolio.vercel.app";
 
 export const SITE_NAME = "Suyu — field notes";
 

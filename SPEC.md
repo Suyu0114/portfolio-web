@@ -449,8 +449,11 @@ downloads.
   residency — point specifics to Suyu. (Confirmed 2026-08-08; see
   `SPEC_v1.5_amendment.md` §11.3.)
 - ✅ Domain: v1 uses the Vercel origin
-  `https://protfolio-web-alpha.vercel.app` (SPEC §10 `*.vercel.app`
+  `https://suyu-portfolio.vercel.app` (SPEC §10 `*.vercel.app`
   fallback); custom domain is a future swap of `SITE_URL` in `lib/site.ts`.
+  Renamed 2026-08-22 from `protfolio-web-alpha.vercel.app`, which still
+  307s to it; `SITE_URL` was updated to match so the sitemap and OG tags
+  stop pointing at a redirect.
 - ✅ Resume PDF: `public/resume.pdf` = the full-stack / ERP-CRM version,
   byte-copied from `notes/cv/resume_fullstack.pdf` (v1.5, 2026-08-08 —
   supersedes the DE/AE version chosen 2026-07-30, which no longer
