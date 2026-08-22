@@ -78,9 +78,14 @@ const COPY = {
    * transcript keeps whatever a visitor types, and recruiters routinely type
    * their name, company, and email. Claiming otherwise would be a false
    * privacy promise on a site whose whole argument is epistemic honesty.
+   *
+   * v2.3 widened "improve these notes" to "read them and improve these
+   * notes". Contact details now trigger a notification, and a purpose clause
+   * that only mentions improving the notes would not have covered that. Same
+   * sentence, still one line, no new promise.
    */
   disclosure:
-    "Chats are recorded to help Suyu improve these notes. Your IP is only stored as a hash.",
+    "Chats are recorded so Suyu can read them and improve these notes.",
   emptyLead: "Ask me about Suyu's work. A few places to start:",
   /**
    * §6 error states: honest and specific, never a silent retry. Reworded off

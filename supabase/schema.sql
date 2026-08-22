@@ -18,7 +18,13 @@ create table if not exists public.chat_sessions (
   entry_path  text,
   referrer    text,
   -- HMAC-SHA256(ip, ADMIN_COOKIE_SECRET). Raw IPs are never stored (§5).
-  ip_hash     text
+  ip_hash     text,
+  -- v2.3 (§7): 'handle' | 'intent'. Claimed when contact detection fires, by a
+  -- conditional update, which is what caps this at one alert per session.
+  signal_kind text,
+  -- v2.3 (§5): set ONLY after the mail actually left. Two columns rather than
+  -- one so a flagged-but-not-emailed session stays distinguishable in /study.
+  alerted_at  timestamptz
 );
 
 create table if not exists public.chat_messages (
@@ -71,6 +77,22 @@ create index if not exists chat_sessions_started_at_idx
 
 alter table public.chat_messages
   add column if not exists humor smallint;
+
+alter table public.chat_sessions
+  add column if not exists signal_kind text;
+
+alter table public.chat_sessions
+  add column if not exists alerted_at timestamptz;
+
+-- Flagged sessions float to the top of /study (§8). Partial: only a handful of
+-- rows ever carry a signal, so the index stays tiny.
+create index if not exists chat_sessions_signal_kind_idx
+  on public.chat_sessions (signal_kind)
+  where signal_kind is not null;
+
+-- Daily alert fuse (§7): count today's sent alerts.
+create index if not exists chat_sessions_alerted_at_idx
+  on public.chat_sessions (alerted_at desc);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security — enabled with NO policies, so nothing is publicly

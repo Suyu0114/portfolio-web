@@ -16,6 +16,7 @@ import {
   logMessage,
 } from "@/lib/chatStore";
 import { MissingEnvError, requireChatEnv } from "@/lib/env";
+import { maybeAlertOnContact } from "@/lib/notify";
 
 /**
  * Visitor chat — SPEC-CHATBOT §2 (allowed server surface), §3 (transport),
@@ -124,6 +125,19 @@ export async function POST(request: Request): Promise<Response> {
     console.error("[api/chat] failed to log the user turn:", error);
     return jsonError("Could not record the conversation.", 503);
   }
+
+  // 4b. §7 — contact-signal alert. Detection is a regex, so an ordinary turn
+  // pays nothing. The send is awaited here rather than queued after the stream
+  // closes because ending the chat cancels the response body, which aborts the
+  // stream and skips anything left behind it: a visitor who types an address
+  // and immediately closes the tab is exactly the lead worth not losing. The
+  // extra round trip only lands on turns that actually matched, and the call
+  // never throws.
+  await maybeAlertOnContact(db, {
+    sessionId,
+    message,
+    entryPath: entryPath ?? null,
+  });
 
   // 5. Server-side truncation — regardless of what the client sent (§3).
   const conversation = [
