@@ -259,8 +259,18 @@ chat_insights  (id bigint generated always as identity primary key,
   from server code only.
 - **Privacy.** Raw IPs are never stored (hash only, for rate limiting).
   No intentional PII collection; visitors are not asked for name/email.
-  The widget shows a permanent disclosure line under the input:
-  *"Chats are recorded so Suyu can improve these notes."*
+  The widget shows a permanent disclosure line under the input. v2.4:
+  *"Chats are recorded so Suyu can read them. Leave your email and PATS
+  will let him know."* (v2.0 shipped "Chats are recorded so Suyu can
+  improve these notes"; v2.3 widened it to "read them and improve these
+  notes" without recording that here.) The second sentence names the
+  **trigger**, not a general promise to forward messages: leaving a
+  handle is exactly what \u00a77's detector matches, so a visitor who does it
+  always gets the alert the line promises, whereas "leave a message and
+  PATS will email it" would overpromise on every plain-text message that
+  matches nothing. The recording clause stays first and is not
+  negotiable: transcripts are kept (\u00a75), so the line must say so before
+  it invites anyone to type anything.
 - **Retention.** Raw transcripts kept 365 days (chosen by Suyu
   2026-08-03; this file said 180 until v2.3 corrected it, while §10
   always left the period to him); manual cleanup is

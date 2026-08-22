@@ -89,11 +89,18 @@ const COPY = {
    *
    * v2.3 widened "improve these notes" to "read them and improve these
    * notes". Contact details now trigger a notification, and a purpose clause
-   * that only mentions improving the notes would not have covered that. Same
-   * sentence, still one line, no new promise.
+   * that only mentions improving the notes would not have covered that.
+   *
+   * v2.4 adds the second sentence, and its condition is exact rather than
+   * friendly: leaving an email is precisely what `detectContactSignal` matches
+   * on, so a visitor who follows this instruction always gets the alert it
+   * promises. "Leave a message and PATS will forward it" was the request, but
+   * a plain-text message with no handle in it matches nothing and sends
+   * nothing, so that phrasing would have promised a delivery the code does not
+   * make. Naming the trigger is what keeps the sentence true.
    */
   disclosure:
-    "Chats are recorded so Suyu can read them and improve these notes.",
+    "Chats are recorded so Suyu can read them. Leave your email and PATS will let him know.",
   emptyLead: "Ask me about Suyu's work. A few places to start:",
   /**
    * §6 error states: honest and specific, never a silent retry. Reworded off
