@@ -31,8 +31,14 @@ allowlist is untouched — no new route, service, or env var.
 v2.5 (2026-08-23, per Suyu): the disclosure line drops its recording
 clause (§5), the transcript marks dial changes inline the way Claude
 Code marks a model switch (§6), and the empty state introduces PATS by
-name (§6). UI and copy only: no route, service, env var, schema, or
-system prompt change, so the measured token figures in §6 still hold.
+name (§6). It also corrects a content gap that testing exposed: the pack
+described the scout half as *flagging* a conversation and never mentioned
+the email, so PATS correctly refused to claim it sent one, contradicting
+the very line under the input that promises it will (§4, §7). Rule 9
+working as designed, on notes that were simply incomplete. Finally the
+conciseness default moves 50 -> 75. No route, service, env var, or schema
+change, but `faq.md` is in the cached prefix, so the token figures in §6
+were re-measured.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -347,8 +353,9 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     diplomatic, and it states the site's positioning as a control rather
     than a claim.
   - **humor — 0 / 25 / 50 / 75 / 100, default 50** (was 25 in v2.3).
-  - **conciseness — 0 / 25 / 50 / 75 / 100, default 50** (new in v2.4).
-    100 is the *most* compressed end, so the scale runs long to short.
+  - **conciseness — 0 / 25 / 50 / 75 / 100, default 75** (new in v2.4;
+    default raised from 50 in v2.5, per Suyu). 100 is the *most*
+    compressed end, so the scale runs long to short.
 
   **Why v2.4 rebuilt humor.** The v2.3 instruction was a single hedged
   permission — "above 0 you may use light dry wit in at most one sentence
@@ -415,11 +422,11 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     it rides in a mid-conversation `{ role: "system" }` message appended
     to `messages[]` rather than in `system`: that block is byte-frozen
     and carries the only `cache_control` breakpoint. Measured
-    2026-08-22: 323 uncached tokens per request against a
-    10,724-token cached prefix that still reads from cache in full.
+    2026-08-23: 324 uncached tokens per request against a
+    10,808-token cached prefix that still reads from cache in full.
     Folding the dials into the system prompt would forfeit that cache on
     every request, taking input cost from about $0.0070 to
-    $0.0552 per request, roughly 7.9×. It is also the
+    $0.0557 per request, roughly 7.9×. It is also the
     non-spoofable operator channel, which matters because both values
     originate in the browser.
 - **Style-change notice (v2.5).** When a dial differs from the one used

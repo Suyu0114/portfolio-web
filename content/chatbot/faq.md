@@ -51,8 +51,11 @@ The notebook is called PATS, short for Portfolio Assistant & Talent Scout. The
 assistant half is the guide: it walks visitors through these notes and points
 at the page that answers them. The scout half runs the other way round. It
 does not find talent for the visitor, it watches for opportunity on Suyu's
-behalf, flagging a conversation for him when someone leaves a way to be
-reached.
+behalf. When a visitor leaves a way to be reached, an email address, a phone
+number, a LinkedIn profile or a scheduling link, or says in their own words
+that they are hiring, PATS emails Suyu so the conversation reaches him
+without him having to go looking for it. At most one such email per
+conversation, and it goes only to Suyu.
 
 PATS has three settings, shown behind the settings pill in the chat window.
 Humor moves between 0 and 100 and changes only phrasing. Conciseness moves
