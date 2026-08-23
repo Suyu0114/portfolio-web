@@ -28,6 +28,11 @@ reverses the string C5 restored (§6, §9). The cost envelope is re-cut to
 pay for the longer settings: `max_tokens` 1024 → 2048, daily cap 500 →
 300 (§7). §11.7 is resolved with measured delivery data. The §2
 allowlist is untouched — no new route, service, or env var.
+v2.5 (2026-08-23, per Suyu): the disclosure line drops its recording
+clause (§5), the transcript marks dial changes inline the way Claude
+Code marks a model switch (§6), and the empty state introduces PATS by
+name (§6). UI and copy only: no route, service, env var, schema, or
+system prompt change, so the measured token figures in §6 still hold.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -259,18 +264,26 @@ chat_insights  (id bigint generated always as identity primary key,
   from server code only.
 - **Privacy.** Raw IPs are never stored (hash only, for rate limiting).
   No intentional PII collection; visitors are not asked for name/email.
-  The widget shows a permanent disclosure line under the input. v2.4:
-  *"Chats are recorded so Suyu can read them. Leave your email and PATS
-  will let him know."* (v2.0 shipped "Chats are recorded so Suyu can
-  improve these notes"; v2.3 widened it to "read them and improve these
-  notes" without recording that here.) The second sentence names the
-  **trigger**, not a general promise to forward messages: leaving a
-  handle is exactly what \u00a77's detector matches, so a visitor who does it
-  always gets the alert the line promises, whereas "leave a message and
-  PATS will email it" would overpromise on every plain-text message that
-  matches nothing. The recording clause stays first and is not
-  negotiable: transcripts are kept (\u00a75), so the line must say so before
-  it invites anyone to type anything.
+  The widget shows a permanent line under the input. **v2.5:** *"Leave
+  your email and PATS will let him know."*
+
+  It names the **trigger**, not a general promise to forward messages:
+  leaving a handle is exactly what §7's detector matches, so a visitor
+  who does it always gets the alert the line promises, whereas "leave a
+  message and PATS will email it" would overpromise on every plain-text
+  message that matches nothing.
+
+  **The recording clause was removed in v2.5, deliberately.** Earlier
+  versions opened the line with it (v2.0 "Chats are recorded so Suyu can
+  improve these notes"; v2.3 "read them and improve these notes"; v2.4
+  "Chats are recorded so Suyu can read them."). Suyu was shown that
+  removing it leaves the site with no visible notice that transcripts are
+  kept for 365 days and read in `/study`, while the same line solicits an
+  email address, and chose removal anyway. **Do not restore it as a bug
+  fix.** It is a product decision, not drift, and reversing it needs
+  Suyu, not a session that noticed the asymmetry. The remaining channel
+  is `faq.md`, which still records that conversations are logged, so PATS
+  answers honestly when a visitor asks.
 - **Retention.** Raw transcripts kept 365 days (chosen by Suyu
   2026-08-03; this file said 180 until v2.3 corrected it, while §10
   always left the period to him); manual cleanup is
@@ -409,8 +422,36 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     $0.0552 per request, roughly 7.9×. It is also the
     non-spoofable operator channel, which matters because both values
     originate in the browser.
+- **Style-change notice (v2.5).** When a dial differs from the one used
+  for the previous request, the transcript gets a dim one-line marker
+  above the message the new setting first applies to, the way Claude Code
+  marks a model switch. Two dials changed at once produce two lines.
+
+  - **It appears on send, not on change.** The marker's position is its
+    meaning: everything above it used the old setting, everything below
+    uses the new one. Appending on change would put it above a reply that
+    is still streaming under the old setting, which states the opposite
+    of what happened. Appending on send also keeps the transcript clean
+    for a visitor who only spins a dial to see what it does.
+  - **It is display-only and never reaches the model.** It is a third
+    `role` on the client-side turn, filtered out of the `history` the
+    panel posts. `historyEntrySchema` accepts only `user`/`assistant`, so
+    a missed filter is a 400 rather than a marker silently entering the
+    context and competing with the authoritative `{ role: "system" }`
+    dial instruction.
+  - **It is not logged.** `chat_messages.role` is checked against
+    `user`/`assistant`, and §5 already stores `humor` and `conciseness`
+    per assistant row, which is the same fact in the place that can be
+    queried. No schema change.
+  - Drawn from existing tokens only: `--muted` JetBrains Mono under 20px
+    (so the handwriting face stays out, rule 5) between two `--rule`
+    hairlines. It rides in the `aria-live="polite"` log, so a screen
+    reader hears the change too.
 - **Suggested chips** (TagPill style, shown when the thread is empty;
-  final list confirmed at C1):
+  final list confirmed at C1). **v2.5:** the empty state opens
+  *"Hi, I'm PATS."* before the lead line, because that sentence is the
+  first thing a visitor actually reads and the name lands better there
+  than in the header they scan past:
   1. "What has Suyu built?"
   2. "Is Suyu authorized to work in Canada?"
   3. "How does Suyu approach data quality?"
@@ -623,6 +664,28 @@ conciseness dial, active-step labels, the re-cut cost envelope, and the
   later contact turn once the key is present;
 - `npm run build` passes with zero env vars; no new colors or fonts; zero
   em dashes in `content/chatbot/*.md`; Lighthouse on `/` still ≥ 95 ×3.
+
+**C9 — transcript style markers and copy (v2.5).**
+Third turn role, send-time comparison, the marker's render branch, the
+trimmed disclosure line, and the PATS greeting on the empty state.
+✓ when:
+- sending without touching a dial adds no marker; changing a dial and
+  sending adds one above that message; changing both adds two;
+- spinning a dial without sending leaves the transcript untouched, and
+  moving a dial away and back before sending adds nothing, because the
+  value did not actually change;
+- markers survive minimize and reload in position, and are cleared by
+  end chat along with the rest of the thread, while the dial values
+  themselves survive it (they are preferences, §6);
+- **no marker reaches the API**: the posted `history` contains only
+  `user`/`assistant` entries, and the server's `in=` token count does
+  not grow with the number of markers in the transcript;
+- the thinking indicator still appears while a reply streams;
+- the empty state reads "Hi, I'm PATS." and still offers four chips;
+- the line under the input is exactly "Leave your email and PATS will
+  let him know.", and leaving an email in the chat still fires one alert;
+- `npm run build` passes with zero env vars; no new colors or fonts; the
+  marker does not break at 360px.
 
 **v2.1 backlog (not now):** weekly cron digest (Vercel Cron), Turnstile,
 SSE structured events. (Email notification left this list in v2.3.)
