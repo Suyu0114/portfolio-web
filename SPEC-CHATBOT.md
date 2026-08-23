@@ -292,9 +292,14 @@ chat_insights  (id bigint generated always as identity primary key,
   answers honestly when a visitor asks.
 - **Retention.** Raw transcripts kept 365 days (chosen by Suyu
   2026-08-03; this file said 180 until v2.3 corrected it, while §10
-  always left the period to him); manual cleanup is
-  acceptable for v1 (a delete statement documented alongside the
-  schema file). Insights are kept indefinitely.
+  always left the period to him); manual cleanup is acceptable for v1,
+  documented in `supabase/cleanup-chat-data.sql` alongside the schema
+  file. Every delete in that file ships commented out, because
+  `schema.sql` trains the habit of pasting a whole file into the SQL
+  editor and this is the one file where that would be a disaster.
+  Insights are kept indefinitely and do not cascade from sessions, so
+  clearing transcripts leaves reports about conversations that no longer
+  exist unless they are cleared too.
 - **Why two alert columns, not one (v2.3).** `signal_kind` is claimed
   when detection fires and drives the `/study` badge; `alerted_at` is
   written only after the send succeeds. A flagged-but-not-emailed session
@@ -757,11 +762,14 @@ SSE structured events. (Email notification left this list in v2.3.)
    from `STET <onboarding@resend.dev>`), and the matching `chat_sessions`
    row carries `alerted_at`, which is written only after a 2xx. `GET
    /domains` returns an empty list, confirming this is the shared-sender
-   path and not a verified domain. **One caveat: delivered is not
-   noticed.** That message never reached `opened`, while other mail from
-   the same sender to the same inbox shows `opened`/`clicked`, so Gmail
-   most likely filed it under Spam or Promotions. The fix belongs on the
-   receiving end (a filter on `from:onboarding@resend.dev`, never send to
-   spam); the sending end needs no DNS, SPF, or DKIM work, because those
-   are only required to reach addresses other than the account owner's.
-   The `/study`-badge-only fallback above therefore stays unused.
+   path and not a verified domain. The sending end needs no DNS, SPF, or
+   DKIM work, because those are only required to reach addresses other
+   than the account owner's.
+
+   Delivery initially stopped at `delivered` without reaching `opened`,
+   while other mail from the same sender to the same inbox showed
+   `opened`/`clicked`, which pointed at Gmail filing it under Spam or
+   Promotions. Suyu added a receiving-end filter on
+   `from:onboarding@resend.dev` and **confirmed receipt 2026-08-23**, so
+   the path is verified end to end: detector to Resend to inbox. The
+   `/study`-badge-only fallback stays unused.
