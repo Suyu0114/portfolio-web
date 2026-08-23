@@ -168,8 +168,8 @@ export async function POST(request: Request): Promise<Response> {
 
   // §6 — the dials ride in a mid-conversation system turn rather than in
   // `system`, which is byte-frozen and carries the only cache breakpoint.
-  // Measured: 323 uncached tokens per request while the
-  // 10,724-token prefix still reads from cache in full; folding them into
+  // Measured: 324 uncached tokens per request while the
+  // 10,808-token prefix still reads from cache in full; folding them into
   // the system prompt would forfeit that cache every request instead.
   //
   // Appended *after* truncation, so a long conversation can never slide the

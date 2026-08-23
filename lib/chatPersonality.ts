@@ -33,9 +33,14 @@ export type ConcisenessLevel = (typeof CONCISENESS_LEVELS)[number];
  * rather than two positional numbers: the call site has to say which is which.
  */
 
-/** Mid-scale on both, so each dial has visible room in both directions. */
+/** Mid-scale, so the dial has visible room in both directions. */
 export const DEFAULT_HUMOR: HumorLevel = 50;
-export const DEFAULT_CONCISENESS: ConcisenessLevel = 50;
+
+/**
+ * One step above mid, per Suyu 2026-08-23: a recruiter skimming the widget
+ * wants the answer before the context, and "efficient" leads with it.
+ */
+export const DEFAULT_CONCISENESS: ConcisenessLevel = 75;
 
 /**
  * Not a parameter. It is displayed as a percentage because that is the joke,
@@ -121,8 +126,8 @@ const CONCISENESS_BEHAVIOUR: Record<ConcisenessLevel, string> = {
  *
  * This is appended to `messages` as a `{ role: "system" }` turn, never merged
  * into `SYSTEM_PROMPT`: that block is byte-frozen and carries the only
- * `cache_control` breakpoint. Measured 2026-08-22 — 323 uncached
- * tokens per request while the 10,724-token prefix still reads from cache
+ * `cache_control` breakpoint. Measured 2026-08-23 — 324 uncached
+ * tokens per request while the 10,808-token prefix still reads from cache
  * in full. Folding it into the system prompt would forfeit that cache every
  * request, about 7.9x the input cost.
  *

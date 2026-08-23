@@ -13,6 +13,7 @@ import {
 } from "@/lib/chatPersonality";
 import {
   getSessionId,
+  isChatTurn,
   readConciseness,
   readHumor,
   readTurns,
@@ -78,30 +79,31 @@ const COPY = {
   send: "Send",
   thinking: "Looking through the notes",
   /**
-   * §5/§6 privacy disclosure. Extended past the spec's one sentence to state
-   * the IP hashing, which is a genuine positive worth claiming.
+   * §5/§6 — the line under the input.
    *
-   * It deliberately does NOT say "no personal data is collected". Nothing
-   * identifying is *asked for*, and the raw IP is never stored — but the
-   * transcript keeps whatever a visitor types, and recruiters routinely type
-   * their name, company, and email. Claiming otherwise would be a false
-   * privacy promise on a site whose whole argument is epistemic honesty.
+   * Its condition is exact rather than friendly: leaving an email is precisely
+   * what `detectContactSignal` matches on, so a visitor who follows this
+   * instruction always gets the alert it promises. "Leave a message and PATS
+   * will forward it" was the original request, but a plain-text message with
+   * no handle in it matches nothing and sends nothing, so that phrasing would
+   * have promised a delivery the code does not make.
    *
-   * v2.3 widened "improve these notes" to "read them and improve these
-   * notes". Contact details now trigger a notification, and a purpose clause
-   * that only mentions improving the notes would not have covered that.
-   *
-   * v2.4 adds the second sentence, and its condition is exact rather than
-   * friendly: leaving an email is precisely what `detectContactSignal` matches
-   * on, so a visitor who follows this instruction always gets the alert it
-   * promises. "Leave a message and PATS will forward it" was the request, but
-   * a plain-text message with no handle in it matches nothing and sends
-   * nothing, so that phrasing would have promised a delivery the code does not
-   * make. Naming the trigger is what keeps the sentence true.
+   * v2.5 removed the recording clause this line opened with from v2.0 through
+   * v2.4 ("Chats are recorded so Suyu can read them."). That is Suyu's
+   * decision, made after being shown that it leaves no visible notice that
+   * transcripts are kept 365 days and read in /study while this same line asks
+   * for an email address. **Do not restore it as a bug fix** — §5 still
+   * describes a disclosure line, so its absence reads like drift, and it is
+   * not. `faq.md` still records the logging, so PATS answers honestly when a
+   * visitor asks.
    */
-  disclosure:
-    "Chats are recorded so Suyu can read them. Leave your email and PATS will let him know.",
-  emptyLead: "Ask me about Suyu's work. A few places to start:",
+  disclosure: "Leave your email and PATS will let him know.",
+  /**
+   * §6 (v2.5) — the greeting leads. The header carries the name too, but this
+   * is the first line a visitor actually reads, and a header is the kind of
+   * thing eyes skip on the way to the thing they came to use.
+   */
+  emptyLead: "Hi, I'm PATS. Ask me about Suyu's work. A few places to start:",
   /**
    * §6 error states: honest and specific, never a silent retry. Reworded off
    * the spec's em dashes; nothing matches on these strings (unlike the frozen
@@ -121,6 +123,33 @@ const CHIPS = [
 ] as const;
 
 const PROJECT_CHIP = "Ask about this project";
+
+/** Both adjustable dials as one value, so two same-typed numbers cannot swap. */
+type Dials = { humor: HumorLevel; conciseness: ConcisenessLevel };
+
+/**
+ * §6 (v2.5) — one marker per dial that moved since the last request.
+ *
+ * Returns empty when nothing changed, which is what keeps the transcript quiet
+ * for a visitor who moves a dial and puts it back, or who spins one just to
+ * see what the labels say.
+ */
+function dialNotices(previous: Dials, next: Dials): Turn[] {
+  const markers: Turn[] = [];
+  if (next.humor !== previous.humor) {
+    markers.push({
+      role: "notice",
+      content: `${COPY.humor} ${next.humor} \u00b7 ${HUMOR_LABELS[next.humor]}`,
+    });
+  }
+  if (next.conciseness !== previous.conciseness) {
+    markers.push({
+      role: "notice",
+      content: `${COPY.conciseness} ${next.conciseness} \u00b7 ${CONCISENESS_LABELS[next.conciseness]}`,
+    });
+  }
+  return markers;
+}
 
 /**
  * One adjustable dial: a real radiogroup, with roving tabindex and arrow keys
@@ -242,6 +271,13 @@ export default function ChatPanel({
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  /**
+   * §6 (v2.5) — the dials the last request actually used. Seeded from the
+   * restored values so a reload never announces a change that did not happen.
+   * A ref rather than state: updating it must not cause a render.
+   */
+  const sentDialsRef = useRef<Dials>({ humor, conciseness });
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -306,8 +342,22 @@ export default function ChatPanel({
       setError(null);
       setStreaming(true);
 
-      const history = turns;
-      setTurns([...history, { role: "user", content: message }]);
+      // Markers never leave the browser. `isChatTurn` is a type guard rather
+      // than a comment so the compiler enforces it, and the route's role enum
+      // rejects "notice" anyway, making a missed filter a loud 400 instead of
+      // a marker quietly entering the context and arguing with the
+      // authoritative system-role dial instruction.
+      const history = turns.filter(isChatTurn);
+
+      // §6 (v2.5) — mark the boundary here, not in the dial's onChange, so the
+      // marker lands exactly where it takes effect: everything above it was
+      // generated at the old setting, everything below at the new one.
+      // Appending on change would put it above a reply still streaming under
+      // the old setting, which states the opposite of what happened.
+      const markers = dialNotices(sentDialsRef.current, { humor, conciseness });
+      sentDialsRef.current = { humor, conciseness };
+
+      setTurns([...turns, ...markers, { role: "user", content: message }]);
 
       // §6 context awareness — the page context rides in the *user* turn, never
       // in `system`, so the cached prefix stays byte-identical. Only the first
@@ -513,22 +563,44 @@ export default function ChatPanel({
         )}
 
         <ul className="space-y-2.5">
-          {turns.map((turn, i) => (
-            <li
-              key={i}
-              className={turn.role === "user" ? "flex justify-end" : ""}
-            >
-              <div
-                className={`${
-                  turn.role === "user" ? "sk-border-b" : "sk-border-a"
-                } max-w-[85%] px-2.5 py-1.5 text-xs whitespace-pre-wrap ${
-                  turn.role === "user" ? "text-ink-soft" : "text-ink"
-                }`}
+          {turns.map((turn, i) =>
+            turn.role === "notice" ? (
+              /* A rule with the label set into it, so the marker reads as a
+                 boundary in the transcript rather than as something someone
+                 said. Shared --rule border and --muted text, no ad-hoc wobble
+                 style, and well under 20px so the handwriting face stays out
+                 (rule 5). It sits inside the aria-live log, so a screen reader
+                 hears the change alongside the message it applies to. */
+              <li key={i} className="flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="border-rule flex-1 border-t"
+                />
+                <span className="text-muted text-[0.6875rem]">
+                  {turn.content}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="border-rule flex-1 border-t"
+                />
+              </li>
+            ) : (
+              <li
+                key={i}
+                className={turn.role === "user" ? "flex justify-end" : ""}
               >
-                {turn.content}
-              </div>
-            </li>
-          ))}
+                <div
+                  className={`${
+                    turn.role === "user" ? "sk-border-b" : "sk-border-a"
+                  } max-w-[85%] px-2.5 py-1.5 text-xs whitespace-pre-wrap ${
+                    turn.role === "user" ? "text-ink-soft" : "text-ink"
+                  }`}
+                >
+                  {turn.content}
+                </div>
+              </li>
+            ),
+          )}
         </ul>
 
         {streaming && turns.at(-1)?.role === "user" && (

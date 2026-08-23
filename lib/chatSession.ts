@@ -28,10 +28,34 @@ const THREAD_KEY = "suyu-chat-thread";
 const HUMOR_KEY = "suyu-chat-humor";
 const CONCISENESS_KEY = "suyu-chat-conciseness";
 
-/** Mirrors the server-side history truncation in app/api/chat/route.ts (§3). */
+/**
+ * Mirrors the server-side history truncation in app/api/chat/route.ts (§3).
+ *
+ * Since v2.5 this counts notice markers too, so a visitor who spins the dials
+ * a lot keeps slightly less conversation across a reload. Harmless: the server
+ * truncates the real messages to its own limit regardless, and markers are
+ * filtered out before the post, so this can only ever cost reload history,
+ * never context the model sees.
+ */
 const PERSISTED_TURNS = 20;
 
-export type Turn = { role: "user" | "assistant"; content: string };
+/** A real message, the only kind that may be sent to the model. */
+export type ChatTurn = { role: "user" | "assistant"; content: string };
+
+/**
+ * §6 (v2.5) — a transcript marker saying a dial changed here. Display only:
+ * it is written by the panel, never by a person or the model, and it must be
+ * filtered out before the thread is posted. `isChatTurn` below is that filter,
+ * written as a type guard so the compiler narrows the array for the caller
+ * rather than leaving it to a comment nobody reads.
+ */
+export type NoticeTurn = { role: "notice"; content: string };
+
+export type Turn = ChatTurn | NoticeTurn;
+
+export function isChatTurn(turn: Turn): turn is ChatTurn {
+  return turn.role !== "notice";
+}
 
 /**
  * §6 — a dial setting, restored per tab like the thread beside it.
@@ -128,7 +152,9 @@ function isTurn(value: unknown): value is Turn {
   if (typeof value !== "object" || value === null) return false;
   const turn = value as Record<string, unknown>;
   return (
-    (turn.role === "user" || turn.role === "assistant") &&
+    (turn.role === "user" ||
+      turn.role === "assistant" ||
+      turn.role === "notice") &&
     typeof turn.content === "string"
   );
 }
