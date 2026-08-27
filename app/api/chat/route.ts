@@ -51,16 +51,73 @@ const MAX_TOKENS = 2048;
 const TRUNCATION_NOTE =
   "\n\n(That answer hit its length limit and stopped early. Ask me to continue, or narrow the question.)";
 
-/** §7 — request validation limits. */
+/**
+ * §7 — request validation limits. Two constants because there are two threat
+ * models, and collapsing them into one is what broke multi-turn chat:
+ * `message` is what a visitor typed, and the textarea's `maxLength` matches
+ * it, while a `history` entry is what *this bot* wrote on an earlier turn and
+ * the client is echoing back. A reply may run the whole `MAX_TOKENS` budget,
+ * so measuring it against the typed-input limit rejected every conversation
+ * whose previous reply ran long, which is most of them (measured on prod
+ * 2026-08-27: 1,486 chars at conciseness 75 and 4,527 at 0, against a 1,000
+ * cap, so only conciseness 100 survived a second turn).
+ */
 const MAX_MESSAGE_CHARS = 1_000;
+const MAX_HISTORY_ENTRY_CHARS = 10_000;
 const MAX_HISTORY_ENTRIES = 30;
+/** §6 — bounds the page-context prefix; the longest real title is far below it. */
+const MAX_PROJECT_TITLE_CHARS = 120;
+
+/**
+ * §7 — the cost fuse on replayed context. `history` arrives from the client on
+ * a public route, so nothing stops a crafted request from filling every entry;
+ * the entry-count limit bounds how many entries there are, never how large
+ * they are, so this budget is what actually bounds the input tokens billed.
+ * It is enforced by trimming rather than by a 400, because history is context
+ * rather than intent: a visitor cannot repair an oversized transcript, and
+ * rejecting it would wedge the thread until they cleared session storage.
+ */
+const MAX_HISTORY_CHARS = 18_000;
 
 const historyEntrySchema = z
   .object({
     role: z.enum(["user", "assistant"]),
-    content: z.string().trim().min(1).max(MAX_MESSAGE_CHARS),
+    content: z.string().trim().min(1).max(MAX_HISTORY_ENTRY_CHARS),
   })
   .strict();
+
+type HistoryEntry = z.infer<typeof historyEntrySchema>;
+
+/**
+ * §3 — the conversation window actually sent to the model.
+ *
+ * Trims oldest-first until the transcript fits both the character budget and
+ * the message limit, then drops a leading assistant turn: the Messages API
+ * requires the window to open on a user turn, and trimming an alternating
+ * transcript to an even length lands on an assistant turn half the time. The
+ * visitor's current message is never a trim candidate, because it is the
+ * request rather than context for it.
+ */
+function windowForApi(
+  history: readonly HistoryEntry[],
+  message: string,
+): HistoryEntry[] {
+  const kept: HistoryEntry[] = [];
+  let chars = 0;
+  // Backwards: the most recent context is the context worth keeping.
+  for (let i = history.length - 1; i >= 0; i -= 1) {
+    const entry = history[i];
+    if (kept.length >= API_HISTORY_LIMIT - 1) break;
+    if (chars + entry.content.length > MAX_HISTORY_CHARS) break;
+    chars += entry.content.length;
+    kept.push(entry);
+  }
+  kept.reverse();
+  while (kept.length > 0 && kept[0].role === "assistant") {
+    kept.shift();
+  }
+  return [...kept, { role: "user", content: message }];
+}
 
 const chatRequestSchema = z
   .object({
@@ -69,6 +126,21 @@ const chatRequestSchema = z
     history: z.array(historyEntrySchema).max(MAX_HISTORY_ENTRIES).default([]),
     /** §5 — the page the chat was opened on. Recorded once per session. */
     entryPath: z.string().max(512).optional(),
+    /**
+     * §6 — the case study the visitor is reading, when they are on one. The
+     * panel used to prepend this to `message` itself, which quietly spent the
+     * visitor's own 1,000-char budget on server-added text: a question over
+     * roughly 945 chars on a project page became a 400 even though the
+     * textarea had accepted it. The title travels in its own field so
+     * `message` means one thing, the visitor's typed text, and the prefix is
+     * composed below where its cost is the server's to account for.
+     */
+    projectTitle: z
+      .string()
+      .trim()
+      .min(1)
+      .max(MAX_PROJECT_TITLE_CHARS)
+      .optional(),
     /**
      * §6 — the two adjustable dials. Only the five steps are accepted, so a
      * hand-edited value is a 400 rather than something to sanitize downstream.
@@ -133,7 +205,20 @@ export async function POST(request: Request): Promise<Response> {
 
   // 4. Record the session and the visitor's turn (§5) before calling the model,
   // so the per-IP window counts this request even if the reply later fails.
-  const { sessionId, message, entryPath, humor, conciseness } = parsed.data;
+  const { sessionId, message, entryPath, humor, conciseness, projectTitle } =
+    parsed.data;
+
+  // §6 — page context rides in the visitor's turn, never in `system`, so the
+  // cached prefix stays byte-identical. Only the first turn carries it, and the
+  // visitor never sees it. Composed here rather than in the panel so that the
+  // 1,000-char limit on `message` measures only what the visitor typed; it is
+  // the logged content as well, which keeps /study transcripts reading exactly
+  // as they did before the field moved.
+  const contextualMessage =
+    parsed.data.history.length === 0 && projectTitle !== undefined
+      ? `Visitor is currently reading the ${projectTitle} case study.\n\n${message}`
+      : message;
+
   try {
     await ensureSession(db, {
       id: sessionId,
@@ -141,7 +226,11 @@ export async function POST(request: Request): Promise<Response> {
       referrer: request.headers.get("referer"),
       ipHash,
     });
-    await logMessage(db, { sessionId, role: "user", content: message });
+    await logMessage(db, {
+      sessionId,
+      role: "user",
+      content: contextualMessage,
+    });
   } catch (error) {
     console.error("[api/chat] failed to log the user turn:", error);
     return jsonError("Could not record the conversation.", 503);
@@ -161,10 +250,7 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   // 5. Server-side truncation — regardless of what the client sent (§3).
-  const conversation = [
-    ...parsed.data.history,
-    { role: "user" as const, content: message },
-  ].slice(-API_HISTORY_LIMIT);
+  const conversation = windowForApi(parsed.data.history, contextualMessage);
 
   // §6 — the dials ride in a mid-conversation system turn rather than in
   // `system`, which is byte-frozen and carries the only cache breakpoint.

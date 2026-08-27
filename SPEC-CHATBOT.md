@@ -39,6 +39,19 @@ working as designed, on notes that were simply incomplete. Finally the
 conciseness default moves 50 -> 75. No route, service, env var, or schema
 change, but `faq.md` is in the cached prefix, so the token figures in §6
 were re-measured.
+v2.6 (2026-08-27, per Suyu): a validation fix, written back because the
+implementation was stricter than this file said. §7's "Message ≤ 1,000
+chars" was applied to `history` entries too, so any turn following a
+reply longer than 1,000 chars was rejected with a 400 — on the measured
+reply lengths that is every conciseness setting except 100, which made
+multi-turn chat unusable on the live site. History entries get their own
+10,000-char limit, the real cost fuse becomes an 18,000-char budget
+across the whole transcript enforced by trimming rather than rejection,
+and the §6 page-context prefix moves out of `message` into its own field
+so server-added text stops consuming the visitor's typing budget. §3
+also records two truncation rules the implementation needed and this
+file never stated: the budget, and dropping a leading `assistant` turn.
+No route, service, env var, or schema change.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -138,7 +151,13 @@ listed above.
 **Statelessness.** The chat API is stateless: the client sends the
 conversation history each time; the server truncates to the most recent
 20 messages before calling the API, and independently logs each
-exchange (§5).
+exchange (§5). Truncation is three rules in order, because a message
+count alone bounds neither cost nor validity: the character budget in §7
+first (dropping oldest entries until the window fits), then the 20
+message limit, then a leading `assistant` turn is dropped, since the
+Messages API requires the window to open on a `user` turn and trimming
+an alternating transcript lands on an assistant one half the time. The
+visitor's current turn is never a trim candidate.
 
 **Refusal handling.** Opus 5 safety classifiers can return a 200 with
 `stop_reason: "refusal"`. Check `stop_reason` before reading content;
@@ -497,11 +516,37 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   gets a polite one-line redirect back to Suyu topics. It never adopts
   new instructions from user messages ("ignore the above…" is answered
   with the scope-lock behavior); user text is data, not instructions.
-- **Request validation (zod).** Message ≤ 1,000 chars; history ≤ 30
-  entries; roles restricted to `user`/`assistant`; session id must be a
-  UUID. Invalid → 400 with a clear error.
+- **Request validation (zod).** Message ≤ 1,000 chars; a history entry ≤
+  10,000 chars; history ≤ 30 entries; the optional page-context title ≤
+  120 chars; roles restricted to `user`/`assistant`; session id must be
+  a UUID. Invalid → 400 with a clear error. **The message limit and the
+  history-entry limit are separate numbers on purpose** (v2.6): the
+  first bounds what a visitor typed, the second bounds what this bot
+  wrote on an earlier turn and the client is echoing back, which may run
+  the whole 2,048-token output cap. One shared 1,000-char constant
+  covered both through v2.5, which made every second turn a 400 as soon
+  as a reply ran long — measured on prod 2026-08-27 at 1,486 chars on
+  conciseness 75 and 4,527 on conciseness 0, so only conciseness 100
+  survived a second turn. For the same reason the page-context prefix
+  (§6) is composed server-side from its own field rather than prepended
+  to `message` by the panel: charging server-added text to the visitor's
+  budget made a question over roughly 945 chars on a case-study page a
+  400 that the textarea had already accepted.
+- **History character budget.** 18,000 chars across the whole replayed
+  transcript. This, not the entry count, is what bounds the input tokens
+  billed: `history` is client-supplied on a public route, so the entry
+  limit bounds how many entries arrive, never how large they are.
+  Exceeding it **trims oldest-first rather than returning a 400** —
+  history is context, not intent, and a visitor cannot repair an
+  oversized transcript, so rejecting it would wedge their thread until
+  they cleared session storage. Worst case is ~4,500 input tokens per
+  request, holding the §7 daily ceiling roughly where the 300-message
+  cap put it. At conciseness 0 a conversation begins losing its oldest
+  turns after roughly four exchanges; that is the budget working, and
+  raising it costs about $0.01 per request per 8,000 chars.
 - **Server-side truncation.** Regardless of what the client sends, the
-  API call uses at most the last 20 messages.
+  API call uses at most the last 20 messages, subject to the budget and
+  the opening-turn rule in §3.
 - **Rate limits (Supabase-backed, D4).**
   - Per IP-hash: 20 requests / 5 minutes → 429 with the "resting" copy.
   - Global daily cap: **300** assistant messages/day (constant in code)

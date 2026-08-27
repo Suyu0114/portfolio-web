@@ -359,14 +359,6 @@ export default function ChatPanel({
 
       setTurns([...turns, ...markers, { role: "user", content: message }]);
 
-      // §6 context awareness — the page context rides in the *user* turn, never
-      // in `system`, so the cached prefix stays byte-identical. Only the first
-      // turn carries it, and the visitor never sees it.
-      const outbound =
-        history.length === 0 && projectTitle !== null
-          ? `Visitor is currently reading the ${projectTitle} case study.\n\n${message}`
-          : message;
-
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -377,11 +369,16 @@ export default function ChatPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             sessionId: getSessionId(),
-            message: outbound,
+            message,
             history,
             // §5 — the page the chat was opened on. The server records it once
             // per session and ignores it on later turns.
             entryPath: window.location.pathname,
+            // §6 context awareness — the title travels on its own, and the
+            // server composes the prefix into the user turn. Sending it inside
+            // `message` was spending the visitor's 1,000-char budget on text
+            // they did not type, so a long question here was a 400.
+            ...(projectTitle !== null ? { projectTitle } : {}),
             // §6 — sent per turn, so changing a dial mid-conversation takes
             // effect on the next reply rather than the next session.
             humor,
