@@ -12,7 +12,7 @@ export default function AssistantArch() {
       steps={[
         { label: "chat widget", note: "lazy-loaded · streams deltas" },
         { label: "/api/chat", note: "zod · per-IP and daily fuses" },
-        { label: "Claude Opus 5", note: "byte-frozen cached prompt · 1,024 max tokens" },
+        { label: "Claude Opus 5", note: "byte-frozen cached prompt · 2,048 max tokens" },
         { label: "streamed reply", note: "chunked plain text" },
       ]}
     />

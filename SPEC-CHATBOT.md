@@ -128,7 +128,7 @@ listed above.
 |---|---|---|
 | LLM SDK | `@anthropic-ai/sdk` (official TypeScript SDK) | See decision D1 below |
 | Model | `claude-opus-5` ($5 / $25 per MTok) | Highest answer quality; at portfolio traffic the monthly cost is single-digit USD with caching |
-| Request params | `max_tokens: 1024`, `output_config: { effort: "low" }` | Opus 5 thinking is on by default (adaptive); `low` effort keeps chat latency snappy. Tune at C0 if needed. |
+| Request params | `max_tokens: 2048`, `output_config: { effort: "low" }` | Opus 5 thinking is on by default (adaptive); `low` effort keeps chat latency snappy. **Was `1024` through v2.3**; doubled in v2.4 because the conciseness dial's long settings were being truncated at 1024, and the daily cap was cut 500 → 300 to pay for it (§6, §7). |
 | Prompt caching | `cache_control: {type: "ephemeral"}` on the system prompt (knowledge pack) | Opus 5 minimum cacheable prefix is 512 tokens; the pack is ~6–10k tokens, so it caches reliably. The system prompt is byte-frozen at runtime — dynamic context (current page) goes in the user turn, never into `system`. |
 | Transport | Route handler returns a chunked plain-text stream of deltas (`client.messages.stream()` → `ReadableStream`); widget renders progressively via `fetch` + reader | SSE upgrade only if structured events become necessary — not v1 |
 | DB client | `@supabase/supabase-js` v2, server-side only | Schema in §5 |
