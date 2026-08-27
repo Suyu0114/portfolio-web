@@ -45,10 +45,17 @@ two beside it, and every step is inert. A recruiter can reach for it, try to
 lower it, and find it welded.
 
 That is this project's specification rendered as a control instead of a
-sentence, and it inverts the joke it borrows from. In Interstellar, Cooper
-turns his robot's honesty down to 90 percent, because total honesty is not
-diplomatic. Here it is the one setting that will not move. Everything below is
-the machinery that makes it true.
+sentence, and the joke it borrows makes the point. In Interstellar, TARS runs
+at a 90 percent honesty setting, and when Cooper asks about it the answer is
+that absolute honesty is not always the most diplomatic, nor the safest form
+of communication with emotional beings.
+
+That reason does not apply here. TARS is managing a crew's morale in deep
+space. PATS answers questions about a resume, where nothing it says is
+emotionally load-bearing, so the ten percent TARS holds back would buy no
+diplomacy at all and would only cost accuracy. It runs at 100, and it is the
+one setting that will not move. Everything below is the machinery that makes
+it true.
 
 Five markdown files (profile, projects, how I work, interests, FAQ) are
 concatenated at module load into a system prompt that currently runs to 10,808
@@ -115,7 +122,7 @@ code. The volume argument for a document store never applies here either: the
 daily cap fuses writes long before scale becomes the problem.
 
 **Rate limiting in Postgres, not another service.** Two indexed count queries
-(twenty requests per five minutes per hashed IP, and a global cap of five
+(twenty requests per five minutes per hashed IP, and a global cap of three
 hundred assistant messages a day) reuse the database that was already there
 rather than adding a queue or a KV store for two counters. The daily cap is a
 constant in code, not an environment variable, so raising my own spending
@@ -159,9 +166,13 @@ as compensation, family, and immigration specifics with a short note rather
 than the refusal line, so those never pollute the content-gap list.
 
 On a deliberately maximal question it used 591 of its 1,024 output token
-budget, so replies are not being silently truncated. The widget keeps the
-home page at a Lighthouse 96 for performance and 100 for accessibility and
-best practices, with zero cumulative layout shift.
+budget. That held until the conciseness dial shipped, whose longer settings
+started hitting the ceiling, so the budget doubled to 2,048 and the daily cap
+came down from five hundred assistant messages to three hundred to pay for
+it. The worst case stayed roughly where it was.
+
+The widget keeps the home page at a Lighthouse 96 for performance and 100 for
+accessibility and best practices, with zero cumulative layout shift.
 
 Two accessibility defects turned up while verifying it, both mine. The entry
 button carried an `aria-label` that did not contain its own visible text,
