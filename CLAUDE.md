@@ -5,7 +5,7 @@ Static Next.js site, English-only, no backend — except the narrowly
 scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
 `SPEC.md` (site, currently v1.5) and `SPEC-CHATBOT.md` (chatbot,
-currently v2.6) are the source of truth for scope, IA, design tokens,
+currently v2.7) are the source of truth for scope, IA, design tokens,
 and content. `SPEC_v1.5_amendment.md` is the source of truth for the
 v1.5 repositioning specifically; its outcome is already folded into
 SPEC.md's v1.5 version block, so read it only for the rationale or for
