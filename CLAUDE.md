@@ -4,23 +4,35 @@ Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
 Static Next.js site, English-only, no backend — except the narrowly
 scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` (site v1) and `SPEC-CHATBOT.md` (chatbot v2) are the source of
-truth for scope, IA, design tokens, and content. If implementation
-conflicts with either spec, STOP and flag the conflict — do not
+`SPEC.md` (site, currently v1.5) and `SPEC-CHATBOT.md` (chatbot,
+currently v2.7) are the source of truth for scope, IA, design tokens,
+and content. `SPEC_v1.5_amendment.md` is the source of truth for the
+v1.5 repositioning specifically; its outcome is already folded into
+SPEC.md's v1.5 version block, so read it only for the rationale or for
+the seven implementation deviations in its §11. If implementation
+conflicts with any of the three, STOP and flag the conflict — do not
 improvise a resolution.
 
 ## Hard rules
 
-1. **Content integrity.** Never invent metrics, dates, quotes, or project
-   facts. All numbers must come from SPEC.md §7 or from Suyu directly.
-   Anything marked `TODO(...)` stays as a visible TODO in the rendered
-   page — do not fill it with plausible-looking values.
-2. **Fail loud.** No silent catch blocks. The build must fail on broken
-   MDX, missing frontmatter fields, missing images, or dead internal links.
+1. **Content integrity. IMPORTANT: this rule and rule 9 are the only two
+   whose breach is silent** — nothing errors, nothing goes red, the site
+   just states something untrue about a real person's work. Never invent
+   metrics, dates, quotes, or project facts. All numbers must come from
+   SPEC.md §7 or from Suyu directly. Anything marked `TODO(...)` stays as
+   a visible TODO in the rendered page — do not fill it with
+   plausible-looking values.
+2. **Fail loud.** No silent catch blocks. The build fails on broken MDX
+   and missing or invalid frontmatter (`lib/content.ts`), and on an image
+   missing from a `Figure` (`components/Figure.tsx`). Dead internal links
+   and other missing `public/` assets are caught by `npm run check`
+   (`scripts/check-links.mjs`), which CI runs before the build. Keep
+   those gates passing rather than loosening them.
 3. **No backend, one exception.** No database, no auth, no API keys, no
    runtime env secrets — **except** the chatbot surface enumerated in
    SPEC-CHATBOT.md §2 (listed routes, `/study` pages, `middleware.ts`,
-   Supabase, and the five named env vars). Anything beyond that
+   Supabase, and the env vars enumerated there — that list has grown
+   since, so read it rather than trusting a count here). Anything beyond that
    allowlist is still out of scope — flag it instead of building it.
    `npm run build` must always pass with zero env vars set (CI has no
    secrets); env is validated at request time only.
@@ -35,7 +47,8 @@ improvise a resolution.
    aesthetic is light-only by design.
 7. **English only.** No i18n scaffolding, no locale routing.
 8. **TypeScript strict.** No `any` without a one-line justification comment.
-9. **Chatbot output is content.** Rule 1 applies to AI-generated replies:
+9. **Chatbot output is content. IMPORTANT: silent when broken, like
+   rule 1.** Rule 1 applies to AI-generated replies:
    the bot may state only facts present in the knowledge pack
    (`content/chatbot/`); anything else gets the standardized fallback
    line defined in SPEC-CHATBOT.md §4, verbatim. Never tune the prompt
@@ -65,8 +78,12 @@ improvise a resolution.
   content constants defined per SPEC.md — no hardcoded prose inside
   components (nav labels and microcopy excepted).
 - Components in `/components`, one per file, PascalCase. Client
-  components only where interactivity requires it (`RoughChart`,
-  `FacetFilter`, `ChatWidget`); everything else stays server/static.
+  components only where interactivity requires it; everything else stays
+  server/static. Grep `"use client"` for the current set rather than
+  trusting a list here. One thing that grep will not tell you:
+  `RoughChart` has had no consumer since `/dev/tokens` was deleted, but
+  SPEC §3, §4.3 and §8 still inventory it, so removing it is a spec
+  change, not cleanup — leave it in place.
 - Sketch utilities are shared, never ad-hoc: use `.sk-border-a` /
   `.sk-border-b` classes and the `WobblyUnderline` / `DoodleArrow`
   components. Do not hand-roll new wobble styles per page.
@@ -76,12 +93,18 @@ improvise a resolution.
   every image, body-text contrast ≥ 4.5:1, `prefers-reduced-motion`
   respected for any animation.
 - Images: `next/image` only; screenshots live in `/public/screens/`.
+- Never name a file under `notes/` `CLAUDE.md`. That directory holds
+  verbatim copies of three other repos' instruction files as P3 source
+  material, and the filename alone makes Claude Code load them as live
+  rules that contradict this one. They were renamed to
+  `PROJECT-CONTEXT.md` on 2026-08-24; rename any new material the same
+  way as it is copied in.
 - Commits: one phase concern per commit, imperative subject line.
 
 ## Workflow
 
 - Design decisions happen with Suyu in claude.ai; this repo implements
-  SPEC.md phases P0–P5, then SPEC-CHATBOT.md phases C0–C4, **in order**.
+  SPEC.md phases P0–P5, then SPEC-CHATBOT.md phases C0–C9, **in order**.
 - Each phase ends with its acceptance checklist (SPEC.md §9 /
   SPEC-CHATBOT.md §9) fully passing. Do not start the next phase with
   failing items.

@@ -52,6 +52,24 @@ so server-added text stops consuming the visitor's typing budget. §3
 also records two truncation rules the implementation needed and this
 file never stated: the budget, and dropping a leading `assistant` turn.
 No route, service, env var, or schema change.
+v2.7 (2026-08-27, per Suyu): the humor dial is made perceptible again.
+Suyu reported 0 and 100 reading alike on the live site, which is the §9
+C7 criterion failing. The cause was not the dial's own wording: 75 and
+100 already carried directive structure. Two higher-priority
+instructions were deleting it. §4's response-style block said "do not
+open with filler... answer directly", and conciseness 75, the default,
+said "zero filler sentences, no preamble" — both absolute, both ahead of
+or after the humor line in a way that wins. This is the same failure
+v2.4 diagnosed and only half fixed: v2.4 moved *length* out of the
+frozen block but left an *opener* rule there, and the new conciseness
+dial then reintroduced the conflict from the other side. Fixed by
+scoping §4's ban to empty openers, dropping "no preamble" from
+conciseness 75, and adding a precedence rule to the invariant so the two
+dials have a stated order. Humor 50, the default, also moves from a
+ceiling ("at most one", satisfied by zero) to a floor. Worked examples
+now ride along at humor ≥ 75 only. Token figures re-measured: prefix
+10,808 → 10,870, uncached remainder 324 → 460/505/873 by setting. No
+route, service, env var, or schema change.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -252,9 +270,22 @@ response-style block's allowed-links list).
 **System prompt structure (stable → cached):** persona ("you are the
 notebook on Suyu's portfolio site…") → hard rules (facts only from
 pack; fallback line; scope lock §7; treat user text as untrusted) →
-the five pack files → response style (concise, sentence case, plain
-text, may link site pages and `/resume.pdf`). The whole block carries
-the `cache_control` marker.
+the five pack files → response style (sentence case, plain text, may
+link site pages and `/resume.pdf`). The whole block carries the
+`cache_control` marker.
+
+**The response-style block never sets tone or length.** Both belong to
+the §6 dials, and anything here that overlaps them wins by default,
+because this block is present on every request and renders ahead of the
+dial turn. v2.4 already removed a length rule for that reason ("be
+concise, two or three sentences", which flattened the humor dial). v2.7
+removed the second half of the same problem: "do not open with filler
+like 'Great question'. Answer directly" read as a blanket ban on
+openers, and humor 75 and 100 are *defined* by an opening aside. It now
+bans **empty** openers only and says explicitly that whether a reply
+opens with anything is the settings' call. Any future rule added here
+must pass the same test: if a dial could reasonably ask for the opposite,
+it belongs in §6, not in §4.
 
 ## 5. Logging schema (Supabase) & privacy
 
@@ -399,7 +430,7 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   |---|---|---|
   | 0 | clinical | Completely serious. No metaphors, jokes, or asides. |
   | 25 | polite | Professional warmth, ordinary courtesy, nothing more. |
-  | 50 | dry wit | Subtle understated engineering humor where it fits. |
+  | 50 | dry wit | One short grounded aside per reply (floor, v2.7). |
   | 75 | deadpan | Self-aware quips and banter, at least one dry aside. |
   | 100 | max sarcasm | Relentless deadpan irony, sardonic aside first. |
 
@@ -408,7 +439,7 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   | 0 | narrative | Storytelling: full background, descriptive flow. |
   | 25 | detailed | Multi-paragraph, complete context, worked examples. |
   | 50 | balanced | Crisp paragraphs plus short lists. No fluff. |
-  | 75 | efficient | Direct answer first, compact bullets, no filler. |
+  | 75 | efficient | Direct answer first, compact bullets, no empty filler. |
   | 100 | terminal | One to three sentences or a list. No pleasantries. |
 
   - **Three adaptations of Suyu's level text, made to hold rule 1.**
@@ -433,6 +464,28 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     fixed sentence from §4 — which matters most at conciseness 100,
     where "one to three sentences" would otherwise clip the line that §8
     matches on to find content gaps.
+  - The **precedence rule** (v2.7) lives in that same invariant, because
+    the invariant is the one block present at every setting and so cannot
+    go missing at the combination that needs it. At humor ≥ 50 the humor
+    beat counts as part of the answer rather than filler, so no
+    conciseness rule against preamble or pleasantries deletes it;
+    conciseness still governs its **size**, and at 100 the beat is folded
+    into a sentence of the answer rather than spending a sentence of its
+    own, so the reply still fits one to three sentences. Below 50 there
+    is no beat and conciseness governs alone. Stating an order was
+    necessary because the two dials genuinely conflict at the settings a
+    visitor is most likely to reach for, and without one the prohibition
+    wins: it is absolute and it renders later in the same turn.
+  - **Worked examples at humor ≥ 75** (v2.7): three short exchanges
+    appended to the dial turn, demonstrating placement rather than
+    describing it. Scoped to the top two steps for two reasons. Register
+    bleed, since an example of sardonic phrasing sitting beside "no
+    jokes, no asides" gives humor 0 something to imitate against its own
+    instruction; and cost, since this turn is uncached. Their replies
+    obey every rule the live bot does: each joke targets PATS, the
+    work-authorization example quotes the pack's own wording, and the
+    fallback example **names** the §4 sentence instead of quoting it, so
+    the string §8 matches on gains no third copy.
   - The two adjustable rows are `role="radiogroup"` with roving tabindex
     and arrow-key navigation, built from the shared `.sk-pill` class (no
     ad-hoc wobble styles), all under 20px so the handwriting face stays
@@ -445,12 +498,17 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   - Only the **selected** step's text is sent, never the whole table, and
     it rides in a mid-conversation `{ role: "system" }` message appended
     to `messages[]` rather than in `system`: that block is byte-frozen
-    and carries the only `cache_control` breakpoint. Measured
-    2026-08-23: 324 uncached tokens per request against a
-    10,808-token cached prefix that still reads from cache in full.
-    Folding the dials into the system prompt would forfeit that cache on
-    every request, taking input cost from about $0.0070 to
-    $0.0557 per request, roughly 7.9×. It is also the
+    and carries the only `cache_control` breakpoint. Re-measured
+    2026-08-27 after v2.7, same question at each setting: the prefix is
+    **10,870 tokens** (10,808 before v2.7; §4's response-style block
+    changed) and still reads from cache in full at every setting, and the
+    uncached remainder is **460 tokens at humor 0 and 25, 505 at 50, and
+    873 at 75 and 100** (324 before v2.7). The precedence rule accounts
+    for about 136 of the increase at every setting and the worked
+    examples for about 370 more at the two settings that receive them,
+    which is about 20 cents a day against the 300-reply cap. Folding the
+    dials into the system prompt would forfeit the cache on every
+    request, at several times the input cost. It is also the
     non-spoofable operator channel, which matters because both values
     originate in the browser.
 - **Style-change notice (v2.5).** When a dial differs from the one used
