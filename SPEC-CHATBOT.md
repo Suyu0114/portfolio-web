@@ -541,9 +541,36 @@ keepalive      (id smallint primary key check (id = 1),  -- v2.10: exactly one r
   `last_ping` stale never reached Postgres. The RPC is `security invoker`
   with execute revoked from `public`, `anon` and `authenticated` and
   granted only to `service_role`, so the publishable key cannot drive
-  writes into it. Supabase publishes no activity threshold, so whether
-  one call a day is *enough* is unverified by anyone outside Supabase;
-  the check is that no pause warning arrives.
+  writes into it.
+- **What the keep-alive is verified to do, and what it is not (v2.10).**
+  Confirmed 2026-09-11 against the live project. The table holds its one
+  row. The publishable key gets `42501 permission denied` on both the
+  function and the table, which is a denial rather than the `404` that
+  would only mean the function was never found, so the revokes are doing
+  the work and not merely appearing to. The first dispatched run left
+  `ping_count` at 2 with `last_ping` equal to the run's own timestamp,
+  which is the check that separates a job that reached Postgres from one
+  that only exited zero. The log shows `***` for both env values and
+  prints nothing but the returned timestamp.
+
+  None of that answers the question the feature exists for. Supabase
+  documents "a few requests per day" as usually sufficient and publishes
+  no threshold, so whether one call a day is *enough* cannot be verified
+  by anyone outside Supabase. The only available evidence is negative: no
+  pause warning arriving. If one does, raise the frequency before
+  changing anything else.
+
+  Of the three risks this shipped with, two are smaller than they looked
+  and one is not. GitHub's rule that disables scheduled workflows after
+  60 days of repository inactivity applies to **public** repositories;
+  this one is private, so it does not apply. Private repositories instead
+  draw on the account's included Actions minutes, roughly 30 a month here
+  because each job bills at a one-minute minimum. That is negligible
+  against the Free plan's 2,000 but it is not zero, and an account that
+  exhausts them loses the keep-alive without being told. The risk that
+  stands: GitHub delays and occasionally drops scheduled runs, and at one
+  run per day a dropped run is a two-day gap rather than an eight-hour
+  one.
 - Schema ships as checked-in SQL files (`supabase/schema.sql`, and
   `supabase/keepalive.sql` since v2.10) applied manually via the Supabase
   SQL editor — no migration tooling dependency for two files.
