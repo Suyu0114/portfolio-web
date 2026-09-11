@@ -345,8 +345,8 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 - One-liner: "A grounded LLM widget on this site: hand-written notes, a
   fixed refusal line, and a spend fuse. Claude Opus 5 · Next.js ·
   Supabase."
-- Stack: Next.js, TypeScript, Anthropic SDK, Claude Opus 5, Supabase
-  Postgres, zod.
+- Stack: Next.js, TypeScript, Anthropic SDK, Claude Opus 5, Gemini
+  3.5 Flash Lite (fallback, v2.8), Supabase Postgres, zod.
 - **Factual source: `SPEC-CHATBOT.md`, and nothing else.** Every
   technical claim must be traceable to that file. Do not supplement from
   general knowledge about LLM applications.
@@ -358,7 +358,10 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
   alternative, why" form — official Anthropic SDK over the Vercel AI
   SDK; relational Postgres over a document store; gap detection via the
   standardized fallback line rather than per-message classification;
-  Supabase-backed rate limiting rather than a second service. Two more
+  Supabase-backed rate limiting rather than a second service. D5 (v2.8)
+  adds a fifth: a second provider as a rescue rather than a second SDK
+  abstraction, with Opus 5 always tried first and the transcript naming
+  the model that answered whenever it was not. Two more
   complete the set: **accuracy over fluency** (the fallback line is
   fixed verbatim and the system prompt forbids supplementing,
   estimating, or embellishing beyond the pack — CLAUDE.md rule 1

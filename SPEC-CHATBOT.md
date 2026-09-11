@@ -70,6 +70,65 @@ ceiling ("at most one", satisfied by zero) to a floor. Worked examples
 now ride along at humor ≥ 75 only. Token figures re-measured: prefix
 10,808 → 10,870, uncached remainder 324 → 460/505/873 by setting. No
 route, service, env var, or schema change.
+v2.8 (2026-09-09, per Suyu): a fallback provider. Claude Opus 5 stays the
+primary voice; when the Anthropic call fails *before* the reply starts
+streaming, the same request is retried against the Gemini API
+(`gemini-3.5-flash-lite`) and the visitor is told which model answered
+and why (§6). Prompted by a live outage: the Anthropic credit balance
+reached zero, the API returned HTTP 400 `invalid_request_error`, and the
+route forwarded that status verbatim, so every visitor saw "the notebook
+hit a snag. Try again in a minute." — a sentence that cannot come true
+until the balance is topped up. This is the **second** amendment to
+widen the §2 allowlist: one env var (`GEMINI_API_KEY`, optional at
+runtime) and one external service (the Gemini API). It also stops the
+route forwarding upstream status codes and messages (§3, §7), which
+fixes a second wrong-copy bug of the same family: an Anthropic 429 was
+rendering as "the notebook is resting, back tomorrow", asserting Suyu's
+daily cap was spent when the real cause was a short upstream throttle.
+Measured before the change, so the tradeoff is on the record: the
+chatbot's entire logged spend since launch was 16 assistant replies and
+roughly $0.19. This amendment buys resilience, not savings. C10 testing
+then found the thing the phase existed to look for: the fallback model
+paraphrased the frozen §4 sentence, which would have deleted those
+replies from §8's gap list rather than degrading it. Fixed by
+canonicalizing the stored copy (§4), not by re-tuning the prompt.
+v2.9 (2026-09-09, per Suyu): a development-only provider override,
+`CHAT_FORCE_PROVIDER` (§2, §3). Testing the fallback previously meant
+handing Anthropic a deliberately invalid key, which works but is a poor
+thing to have to explain. The override names the provider directly.
+It widens the §2 env var allowlist by one and is the first entry there
+that is **ignored in production**: the route reads it only when
+`NODE_ENV` is not production, so a stray value in Vercel cannot demote
+the live site. Suyu considered a visitor-facing model row in the §6
+settings strip and chose against it, so v2.8's "primary is never
+bypassed" stands for every real visitor and this amendment does not
+reverse it. Verified three ways on 2026-09-09: `gemini` answers from
+`gemini-3.5-flash-lite` under its own notice; a misspelled value
+("gemni") warns and is ignored, with Claude answering; and a production
+build started with `CHAT_FORCE_PROVIDER=gemini` answered from
+`claude-opus-5` with no notice, which is the guard that matters.
+v2.10 (2026-09-11, per Suyu): a keep-alive for the database. Nothing
+about the chat itself changes; this amendment exists because the backend
+keeps going away. Supabase pauses a Free-plan project when its user
+database sees too little activity over a week, and `suyu-protfolio` was
+paused twice on that rule — 2026-08-15 and 2026-09-07 — each time taking
+PATS offline until Suyu restored it by hand from the dashboard. The
+warning email arrives roughly a day before the pause, so it is not
+something that can be reacted to. Fixed by a daily GitHub Actions job
+calling a new RPC, `keepalive_ping()`, which updates the single row of a
+new `keepalive` table (§5). A write rather than a read, because a write
+is unambiguously activity and leaves `last_ping` / `ping_count` behind as
+evidence that a run reported successful actually reached Postgres,
+whereas a read that RLS blocks returns zero rows and may or may not
+count. This widens the §2 allowlist again, and for the first time
+outside the runtime: no new route, service, or env var, but the first
+workflow permitted to hold repository secrets. That forced §2's CI
+constraint to be scoped to the build workflow it was always about.
+Frequency is one run per day, chosen by Suyu against a recommendation of
+every eight hours. Supabase documents "a few requests per day" as
+usually sufficient but publishes no threshold, so the margin is untested
+either way, and at one run per day a dropped scheduled run leaves a
+two-day gap rather than an eight-hour one.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -127,7 +186,8 @@ remains forbidden; the rest of the site stays static.
 **Allowed external services (exhaustive):** Anthropic API (server-side
 only), Supabase Postgres (server-side only, service key; the anon key is
 never used and no table is publicly readable), Resend (v2.3, server-side
-only, outbound only, one hardcoded recipient — see §7).
+only, outbound only, one hardcoded recipient — see §7), Gemini API
+(v2.8, server-side only, fallback replies only — see §3).
 
 **Allowed runtime env vars (exhaustive):**
 
@@ -142,16 +202,47 @@ only, outbound only, one hardcoded recipient — see §7).
   exactly as it does today, and the alert path logs a warning and skips.
   It is therefore never read by `requireChatEnv`, so a missing alerting
   key can never 500 a visitor's conversation.
+- `CHAT_FORCE_PROVIDER` (v2.9 — development only, §3). Optional, and
+  unlike every other var here it is **read only when `NODE_ENV` is not
+  `production`**, so setting it on a deploy does nothing. Accepts
+  `anthropic` or `gemini`; any other value is ignored with a loud warning
+  rather than silently treated as one of them.
+- `GEMINI_API_KEY` (v2.8 — fallback replies, §3). **Optional at
+  runtime**, on the same terms as `RESEND_API_KEY` and for the same
+  reason: it is never read by `requireChatEnv`, so when it is absent the
+  primary path is byte-for-byte what it is today and only the fallback
+  is unavailable. A fallback that could 500 the conversation it exists
+  to rescue would be worse than no fallback.
 
-**CI constraint.** The GitHub Actions workflow has no secrets and must
-stay that way: `npm run build` must succeed with **zero** env vars set.
-Env vars are read and validated at request time only; a missing var
-returns an explicit 500 with a clear message (fail loud). Pages
-prerender exactly as today.
+**Allowed scheduled job (exhaustive, v2.10):**
+`.github/workflows/supabase-keepalive.yml` — one `POST` per day to
+`/rest/v1/rpc/keepalive_ping`, which updates the single row of
+`public.keepalive` (§5). It exists because Supabase pauses an inactive
+Free-plan project, which happened twice and took the chatbot backend down
+with it. This is the **only** workflow permitted to hold repository
+secrets, and it holds two: `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY`, the same values the runtime already uses,
+adding no new credential to the project. Because the service key bypasses
+RLS, two properties of that workflow are part of this allowance rather
+than incidental: it must not check out the repository, and `permissions`
+must stay `{}`. The runtime env var allowlist above is untouched — a
+GitHub Actions secret is not a runtime env var, and no code reads these.
+
+**CI constraint.** The **build** workflow (`.github/workflows/ci.yml`)
+has no secrets and must stay that way: `npm run build` must succeed with
+**zero** env vars set. Env vars are read and validated at request time
+only; a missing var returns an explicit 500 with a clear message (fail
+loud). Pages prerender exactly as today.
+
+Through v2.9 this read "The GitHub Actions workflow", written when there
+was only one. The keep-alive workflow does hold secrets, so the rule is
+now scoped to the workflow it was always about. It binds `ci.yml` exactly
+as strictly as before: a secret available there is what would let a build
+quietly start depending on one, which is the failure this prevents.
 
 **Still out of scope:** user accounts, comments, forms, any third-party
 analytics of chat content, any additional API route or env var not
-listed above.
+listed above, and any further workflow holding secrets.
 
 ## 3. Architecture & tech stack
 
@@ -159,6 +250,7 @@ listed above.
 |---|---|---|
 | LLM SDK | `@anthropic-ai/sdk` (official TypeScript SDK) | See decision D1 below |
 | Model | `claude-opus-5` ($5 / $25 per MTok) | Highest answer quality; at portfolio traffic the monthly cost is single-digit USD with caching |
+| Fallback model (v2.8) | `gemini-3.5-flash-lite` via `@google/genai` | Used **only** when the Anthropic call fails before the reply starts streaming (see "Provider fallback" below). Never used while Anthropic is healthy, so it changes nothing about the normal answer. Model id confirmed Stable 2026-09-09; its free-tier quota is not publicly documented and must be read in AI Studio. |
 | Request params | `max_tokens: 2048`, `output_config: { effort: "low" }` | Opus 5 thinking is on by default (adaptive); `low` effort keeps chat latency snappy. **Was `1024` through v2.3**; doubled in v2.4 because the conciseness dial's long settings were being truncated at 1024, and the daily cap was cut 500 → 300 to pay for it (§6, §7). |
 | Prompt caching | `cache_control: {type: "ephemeral"}` on the system prompt (knowledge pack) | Opus 5 minimum cacheable prefix is 512 tokens; the pack is ~6–10k tokens, so it caches reliably. The system prompt is byte-frozen at runtime — dynamic context (current page) goes in the user turn, never into `system`. |
 | Transport | Route handler returns a chunked plain-text stream of deltas (`client.messages.stream()` → `ReadableStream`); widget renders progressively via `fetch` + reader | SSE upgrade only if structured events become necessary — not v1 |
@@ -182,6 +274,48 @@ visitor's current turn is never a trim candidate.
 on refusal, stream the standardized fallback line instead. Never index
 `content[0]` unconditionally.
 
+**Provider fallback (v2.8).** The route pulls the first stream event
+before it commits a status, which is exactly the point where a failure
+is still recoverable. If that pull throws, the failure is classified
+(§7) and, when `GEMINI_API_KEY` is set, the identical request is retried
+against the fallback model. Rules:
+
+- **Primary is never bypassed.** Anthropic is always tried first. There
+  is no "cheaper by default" mode; the fallback is a rescue, not a
+  router. The one exception is `CHAT_FORCE_PROVIDER` (v2.9), which exists
+  so the fallback can be exercised without sabotaging a key, and which
+  the route ignores entirely outside development. When it names `gemini`,
+  Gemini becomes the primary **and there is no fallback back to Claude**:
+  a run that silently reverted to the model you were trying to test would
+  be worse than no override at all. A forced reply carries its own notice
+  string, because the two real ones name causes that would be untrue.
+- **Once the body is streaming, there is no fallback.** The status is
+  already committed and the visitor has already read tokens, so a
+  mid-stream failure still aborts the stream (fail loud). Restarting the
+  answer from another model halfway through would rewrite text the
+  visitor watched appear.
+- **The visitor is told.** A reply that did not come from Claude Opus 5
+  carries a transcript notice naming the model that answered and the
+  reason (§6). Silence here would be a rule 9 breach by omission: the
+  site's own case study says Opus 5 wrote these answers.
+- **Rule 9 is not relaxed for the fallback.** The fallback receives the
+  same system prompt, the same knowledge pack, and the same personality
+  dials, and must produce the standardized §4 line byte-identically. The
+  §9 C10 checklist re-runs the C1, C6 and C8 criteria against it, since
+  instruction-following does not transfer between models by assumption.
+- **The dials move.** Anthropic carries them as a mid-conversation
+  `system` turn to protect the cached prefix. Gemini has no cached
+  prefix here to protect, so they are concatenated into
+  `systemInstruction`. That is a prompt-shape change, which is why C10
+  re-measures rather than assumes.
+- **`generateContentStream`, not the Interactions API.** Google's
+  Interactions API keeps conversation state on its servers via
+  `previous_interaction_id`. This chat is stateless by design (above)
+  and §5 says the transcript lives in Supabase; handing history to a
+  third party to hold would be a storage decision, not a transport one.
+  `contents` carries the same replayed window, with `assistant` mapped
+  to Gemini's `model` role.
+
 **Key decisions (case-study style — the choice, the alternative, why):**
 
 - **D1 — official Anthropic SDK, not Vercel AI SDK.** The AI SDK's
@@ -202,6 +336,16 @@ on refusal, stream the standardized fallback line instead. Never index
 - **D4 — Supabase-backed rate limiting, not an extra service.** One
   storage dependency instead of adding Upstash/Vercel KV. At this
   traffic, an indexed count query is plenty. Rejected: `@upstash/ratelimit`.
+- **D5 (v2.8) — a second provider as a rescue, not a second SDK
+  abstraction.** D1 rejected the Vercel AI SDK partly to keep the API
+  surface visible; adding a provider is not a reason to reverse that, so
+  each provider keeps its own adapter behind one small internal type and
+  no wrapper library is introduced. Rejected: `ai` + `@ai-sdk/google`,
+  for the same reasons as D1. Also rejected: making Gemini the primary
+  to cut cost. The measurement that prompted this amendment showed the
+  chatbot had spent roughly $0.19 in its whole life across 16 replies,
+  so there is no cost to cut here, and demoting Opus 5 would trade the
+  answer quality this feature exists to demonstrate for nothing.
 
 ## 4. Knowledge pack (`content/chatbot/*.md` — committed)
 
@@ -235,6 +379,34 @@ embellishing beyond the pack.
 The system prompt instructs the bot to use this exact sentence whenever
 the answer isn't in the pack. The admin analyzer (§8) matches on it to
 surface content gaps.
+
+**Canonicalization (v2.8).** The instruction alone is not enough once a
+second model is in play. Measured on the fallback provider 2026-09-09:
+Gemini 3.5 Flash Lite returned "That **is** not in my notes — ..." at the
+default dials and "That is not in my notes **-** ..." at conciseness 100,
+reproducing the line exactly only at humor 100. The prompt already states
+the rule and already carries an explicit exception to its own em-dash ban
+for it, so this is instruction-following failing to transfer between
+models, not a prompt that needs more adjectives. Per CLAUDE.md rule 9 the
+answer is not to tune the prompt until the symptom goes away.
+
+So the *logged* copy of a reply is canonicalized before it is stored: a
+near miss of the fixed sentence, differing only in the contraction or the
+dash, is rewritten to the exact string, and the server warns whenever
+that fires so the drift stays visible. This matters more than it looks.
+§8 finds gaps with an exact match, so a paraphrase does not degrade the
+gap list, it **vanishes** from it, which is the silent-failure class
+rules 1 and 9 exist to prevent. The server already writes this constant
+itself when a provider refuses (§3), so guaranteeing the invariant
+server-side is the established pattern rather than a new one.
+
+Two limits, both deliberate. The pattern requires the whole sentence and
+allows only those two variations, because anything looser could rewrite
+an ordinary answer into a content-gap report and invent a gap the model
+never flagged. And it applies to the stored copy only: the reply has
+already streamed by then, and the difference a visitor sees is a
+contraction and a dash in a fixed sentence that still says exactly what
+it should.
 
 **The assistant's name (v2.4).** The notebook is called **PATS**, for
 Portfolio Assistant & Talent Scout. It replaces STET (v2.3), which punned
@@ -314,6 +486,10 @@ chat_insights  (id bigint generated always as identity primary key,
                 period_end timestamptz,
                 summary_md text,
                 model text)
+
+keepalive      (id smallint primary key check (id = 1),  -- v2.10: exactly one row, ever
+                last_ping timestamptz,
+                ping_count bigint)
 ```
 
 - RLS enabled with **no** public policies; all access via service key
@@ -355,9 +531,22 @@ chat_insights  (id bigint generated always as identity primary key,
   written only after the send succeeds. A flagged-but-not-emailed session
   is therefore visible *and* distinguishable, instead of silently looking
   delivered. Fail loud applies to the admin view too.
-- Schema ships as a checked-in SQL file (`supabase/schema.sql`)
-  applied manually via the Supabase SQL editor — no migration tooling
-  dependency for one file.
+- **Keep-alive (v2.10).** `keepalive` is not chat data and nothing reads
+  it at runtime. It exists so the daily workflow in §2 has something
+  unambiguous to write: Supabase pauses a Free-plan project whose user
+  database is too quiet, and this one was paused on 2026-08-15 and
+  2026-09-07. `check (id = 1)` is what keeps the table from growing —
+  a second row has nowhere to go however often the job runs. The two
+  counters are the audit trail: a run that reports success but leaves
+  `last_ping` stale never reached Postgres. The RPC is `security invoker`
+  with execute revoked from `public`, `anon` and `authenticated` and
+  granted only to `service_role`, so the publishable key cannot drive
+  writes into it. Supabase publishes no activity threshold, so whether
+  one call a day is *enough* is unverified by anyone outside Supabase;
+  the check is that no pause warning arrives.
+- Schema ships as checked-in SQL files (`supabase/schema.sql`, and
+  `supabase/keepalive.sql` since v2.10) applied manually via the Supabase
+  SQL editor — no migration tooling dependency for two files.
 
 ## 6. Chat widget UI (`components/ChatWidget.tsx` — client)
 
@@ -557,6 +746,28 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   API/config error → "the notebook hit a snag — try again in a minute";
   rate/daily limit → "the notebook is resting — back tomorrow. Email
   works too: suyu0229@gmail.com". No silent retry loops.
+  v2.8 adds a third, for when the balance is spent and no reply could be
+  produced at all → "the notebook is out of credit. Suyu will top it up
+  as soon as he can. Email works: suyu0229@gmail.com". Three states, not
+  two, because the first string promises that waiting a minute fixes it,
+  and for an exhausted balance that promise is simply false. It says
+  nothing about a second provider, deliberately: this string is also
+  what a deploy with no `GEMINI_API_KEY` shows, where there is no second
+  notebook to be out. Which string appears is chosen from a `code` field
+  in the error body, never from the HTTP status alone: 503 already means
+  two unrelated things on this route.
+- **Provider notice (v2.8).** When a reply comes from the fallback model,
+  the transcript carries a marker saying so, using the same `notice`
+  turn kind the dial markers use (below), so it renders as a boundary
+  rather than as something someone said, and is filtered out of the
+  replayed history before it can reach either model. Two strings, chosen
+  by the classified reason, because naming the wrong cause is a rule 1
+  breach in its own right:
+  "PATS is out of Claude credit, so this reply comes from Gemini." and
+  "Claude is unavailable, so this reply comes from Gemini."
+  The reason travels on a response header, not in the streamed body,
+  which keeps it out of the logged reply and therefore out of §8's gap
+  count.
 - **A11y.** Visible focus states; focus moves into the panel on open
   and returns to the button on both hide and end; Esc minimizes, and is
   bound only while the panel is visible so a minimized panel never
@@ -605,6 +816,41 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
 - **Server-side truncation.** Regardless of what the client sends, the
   API call uses at most the last 20 messages, subject to the budget and
   the opening-turn rule in §3.
+- **Upstream failure classification (v2.8).** The route never forwards a
+  provider's status code or message. Two reasons, and either alone would
+  be enough. A 400 from Anthropic means *this server* sent something the
+  API disliked, so repeating it to the browser blames the visitor for a
+  request they cannot fix, and it collides with the route's own two real
+  400s (bad JSON, failed zod). And the SDK builds its `Error.message`
+  from the whole upstream body when that body has no top-level
+  `message`, which Anthropic's envelope does not, so echoing it publishes
+  the raw provider response the moment the client reads the body. The
+  route logs the full cause and returns a curated message plus a `code`,
+  exactly as `/api/admin/analyze` already does.
+
+  | Upstream condition | Detection | Returned | Fallback tried |
+  |---|---|---|---|
+  | Credit exhausted | `billing_error`, or a 400 naming the credit balance | 503 `upstream_credit` | yes |
+  | Key rejected | 401 / 403 | 500 `upstream_auth` | yes |
+  | Throttled / overloaded | 429, 529, `overloaded_error` | 503 `upstream_busy` | yes |
+  | Provider 5xx | status ≥ 500 | 502 `upstream_error` | yes |
+  | Connection / timeout | no status | 504 `upstream_error` | yes |
+  | Anything else | default | 502 `upstream_error` | yes |
+
+  The credit test checks both the typed `billing_error` and the message,
+  because the live API returns `invalid_request_error` with the balance
+  stated only in prose (probed 2026-09-09). It must also decline to
+  match when the outgoing conversation itself contains the credit
+  wording, or a visitor could type that phrase and make PATS announce
+  that Suyu is out of money: a rule 1 breach anyone could trigger on
+  demand. A missed match degrades to `upstream_error`, which is vaguer
+  and still true. That is the only direction it is allowed to fail in.
+
+  Note what this fixes beyond the outage: an upstream 429 used to be
+  forwarded as the route's own 429 and rendered as "the notebook is
+  resting, back tomorrow", which told the visitor Suyu's daily cap was
+  spent when a short provider throttle was the real cause. After this
+  change the route's 429 means the site's own fuse and nothing else.
 - **Rate limits (Supabase-backed, D4).**
   - Per IP-hash: 20 requests / 5 minutes → 429 with the "resting" copy.
   - Global daily cap: **300** assistant messages/day (constant in code)
@@ -802,6 +1048,45 @@ trimmed disclosure line, and the PATS greeting on the empty state.
 - `npm run build` passes with zero env vars; no new colors or fonts; the
   marker does not break at 360px.
 
+**C10 — provider fallback (v2.8).**
+Upstream failure classification, the Gemini adapter behind a shared
+chunk type, the provider notice, the third error state, and the
+knowledge-pack and case-study corrections that keep the site's own
+description of its stack true.
+✓ when:
+- with `GEMINI_API_KEY` unset, every primary-path behaviour is unchanged
+  and `npm run build` still passes with zero env vars;
+- with the Anthropic balance at zero, a question streams a Gemini reply
+  under the notice "PATS is out of Claude credit, so this reply comes
+  from Gemini.", and `/study` records that assistant row with the Gemini
+  model id, not `claude-opus-5`;
+- with `ANTHROPIC_API_KEY` set to a garbage value, the same fallback
+  runs under the "Claude is unavailable" notice, proving the notice
+  names the cause rather than assuming the last one seen;
+- with Anthropic broken and `GEMINI_API_KEY` unset, the visitor gets the
+  out-of-credit copy for a spent balance and the generic note for every
+  other cause, and the server log names the cause either way;
+- **no notice reaches either model**: the posted `history` still contains
+  only `user`/`assistant` entries, and a fallback reply logged in
+  `chat_messages` contains no notice text;
+- **rule 9 holds on the fallback path**, re-running the criteria that
+  C1, C6 and C8 applied to Opus 5: the §4 line is byte-identical **in the
+  stored row**, which is what §8 reads, at the default dials and at humor
+  100 and conciseness 100; humor 0/50/100 differ in register and agree on
+  every fact; a reply that hits the output cap says so rather than ending
+  mid-sentence. Byte-identity is asserted against `chat_messages`, not
+  against the streamed text, because canonicalization (§4) is what makes
+  it hold and it runs at log time;
+- **the canonicalizer cannot invent a gap**: an ordinary reply that
+  mentions the notes, or that contains a *different* claim, is left
+  untouched and does not gain the §4 line;
+- with Anthropic healthy, no notice appears and
+  `usage.cache_read_input_tokens > 0` on a second consecutive request,
+  proving the adapter split did not disturb the cached prefix;
+- `/study` insights still lists a seeded fallback-line exchange as a gap,
+  proving §8's count was not polluted;
+- no new colors or fonts; zero em dashes in the new visitor copy.
+
 **v2.1 backlog (not now):** weekly cron digest (Vercel Cron), Turnstile,
 SSE structured events. (Email notification left this list in v2.3.)
 
@@ -816,6 +1101,12 @@ SSE structured events. (Email notification left this list in v2.3.)
 - ⛔ C4: `ADMIN_PASSWORD` (long random string).
 - C7: `RESEND_API_KEY` (resend.com free tier). Not a blocker for the
   build or for C5/C6 — without it the alert path warns and skips.
+- C10: `GEMINI_API_KEY` (aistudio.google.com). Not a blocker for the
+  build — without it the fallback is simply unavailable and the visitor
+  gets the both-down copy. Suyu should also read the free-tier quota for
+  `gemini-3.5-flash-lite` in AI Studio and record it here: it is not
+  documented publicly, and free quota was the stated reason for choosing
+  this model over a larger one.
 - C1: interests/personality raw material (bullet points suffice; Claude
   drafts `interests.md`, Suyu approves before commit).
 - C1: confirm the suggested-chip list (§6) and the fallback line
@@ -876,3 +1167,61 @@ SSE structured events. (Email notification left this list in v2.3.)
    `from:onboarding@resend.dev` and **confirmed receipt 2026-08-23**, so
    the path is verified end to end: detector to Resend to inbox. The
    `/study`-badge-only fallback stays unused.
+
+8. **(v2.8) The Gemini API surface and the model id.** The fallback
+   adapter must not be written against a recalled SDK shape. Confirm the
+   package, the streaming call, how stateless multi-turn history is
+   expressed, the output-token field, and the finish-reason values that
+   have to map onto the §4 fallback line and the truncation note. Also
+   confirm `gemini-3.5-flash-lite` is still served and what its free-tier
+   quota actually is, since free quota is the reason it was chosen.
+
+   **RESOLVED 2026-09-09 — read from the published docs and from the
+   installed type definitions, not assumed.** Package `@google/genai`
+   v2.21.0, client `new GoogleGenAI({ apiKey })`, env var
+   `GEMINI_API_KEY`. The call is
+   `ai.models.generateContentStream({ model, contents, config })`,
+   returning `Promise<AsyncGenerator<GenerateContentResponse>>`. History
+   is stateless: `contents` is a `Content[]` of `{ role, parts: [{ text }] }`
+   where `role` is `"user"` or `"model"`, so the existing replayed window
+   maps across with `assistant` renamed. `config` carries
+   `systemInstruction`, `maxOutputTokens` and `abortSignal`, which covers
+   the system prompt, the 2048 output cap, and the existing cancel path.
+   Each chunk exposes `.text`, `.candidates?.[0]?.finishReason` and
+   `.usageMetadata` (`promptTokenCount`, `candidatesTokenCount`), so §5
+   token logging survives. `FinishReason` is a real enum:
+   `SAFETY`, `PROHIBITED_CONTENT`, `BLOCKLIST`, `SPII` and `RECITATION`
+   map to the §4 fallback line, matching §3's existing refusal rule;
+   `MAX_TOKENS` maps to the truncation note; `STOP` is a normal end. The
+   leftovers (`LANGUAGE`, `OTHER`, `FINISH_REASON_UNSPECIFIED`) map to
+   the truncation note, **not** to the fallback line. An unexplained stop
+   is still not a licence to present partial text as a finished answer,
+   but the §4 line is the string §8 counts to find content gaps, and a
+   provider-side stop is not a gap in the notes. Sending it there would
+   file an infrastructure event as a missing-content report, which is the
+   same reasoning that gave truncation its own note in v2.4.
+
+   Two findings that changed the design rather than confirming it. First,
+   Google now documents an Interactions API (`ai.interactions.create`)
+   and calls `generateContent` legacy, but its multi-turn model is
+   server-side state via `previous_interaction_id`. That is rejected here
+   on §3 and §5 grounds, not on style: this chat is stateless by design
+   and its transcript lives in Supabase, so handing history to a third
+   party to retain would be a storage decision this amendment does not
+   make. `generateContentStream` remains documented and takes the
+   stateless `contents` array. Second, `gemini-3.5-flash-lite` is
+   confirmed **Stable**, but its free-tier quota is **not** documented
+   publicly; Google directs you to AI Studio. Recorded as an open input
+   in §10 rather than assumed.
+
+9. **(v2.8) Where the spend actually went.** Before treating a second
+   provider as a cost measure, measure the current one.
+
+   **RESOLVED 2026-09-09 — queried, not assumed.** Across the whole life
+   of the feature, `chat_messages` holds 16 assistant replies totalling
+   9,815 input and 5,698 output tokens, and `chat_insights` holds zero
+   analyzer runs. At Opus 5 rates that is roughly **$0.19**. The $20 that
+   emptied the Anthropic balance was therefore not spent by this chatbot,
+   and moving it to Gemini saves nothing measurable. The fallback is kept
+   for resilience, which the outage proved is a real need, and D5 records
+   the rejection of the cost argument so it is not re-litigated later.

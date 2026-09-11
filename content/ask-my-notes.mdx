@@ -12,6 +12,7 @@ stack:
   - "TypeScript"
   - "Anthropic SDK"
   - "Claude Opus 5"
+  - "Gemini (fallback)"
   - "Supabase Postgres"
   - "zod"
 featured: true
@@ -189,8 +190,9 @@ interesting work is ongoing rather than finished.
 
 ## Stack & links
 
-`Claude Opus 5` (streaming, prompt caching, refusal handling) · `Next.js`
-App Router · `TypeScript` · `Supabase Postgres` (RLS enabled, no public
-policies) · `zod`
+`Claude Opus 5` (streaming, prompt caching, refusal handling) ·
+`Gemini 3.5 Flash Lite` (fallback when the primary call fails before the
+reply starts) · `Next.js` App Router · `TypeScript` · `Supabase Postgres`
+(RLS enabled, no public policies) · `zod`
 
 - Try it: the button in the bottom-right corner of this page.
