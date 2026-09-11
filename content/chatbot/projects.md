@@ -138,6 +138,16 @@ streaming and caching are visible rather than hidden; rate limiting as two
 indexed Postgres queries rather than a second service; and raw IP addresses
 are never stored, only an HMAC used for rate limiting.
 
+Claude Opus 5 writes the answers. If the Anthropic call fails before the
+reply starts streaming, the same request is retried against Gemini
+3.5 Flash Lite and the transcript says so, naming the model that answered
+and why. Both providers get the same notes and the same refusal line. The
+fallback is a rescue rather than a cost measure: the chatbot had spent
+about 19 cents in its whole life when it was added, so there was nothing
+to save. What prompted it was the Anthropic balance reaching zero, which
+turned every reply into an error note telling visitors to try again in a
+minute, which was not going to work.
+
 If asked what went wrong: the rate limiter first shipped fail-*open*.
 PostgREST answers a count against a missing table with no error and a null
 count, so `count ?? 0` read as "no requests yet" and let everything through.
@@ -145,4 +155,5 @@ The spend limit was silently disabled in exactly the situation it exists for.
 It surfaced only because the acceptance tests ran before the schema was
 applied. A missing count is now an error.
 
-Built with Claude Opus 5, Next.js, TypeScript, and Supabase Postgres.
+Built with Claude Opus 5 (Gemini 3.5 Flash Lite as fallback), Next.js,
+TypeScript, and Supabase Postgres.

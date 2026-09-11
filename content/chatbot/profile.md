@@ -108,7 +108,8 @@ Bachelor of Business Administration.
   manufacturing operations.
 - **AI integration:** Claude API (@anthropic-ai/sdk), streaming responses,
   prompt caching, knowledge-pack guardrails, conversation logging and rate
-  limiting.
+  limiting, plus a Gemini fallback provider behind a shared adapter so an
+  outage on one vendor does not take the assistant down.
 - **Data and BI:** Python (pandas, statsmodels), ETL and data integration,
   GitHub Actions scheduling, Power BI, Tableau, dashboard design.
 - **DevOps and tools:** Git, GitHub Actions, Vercel, Supabase, Linux

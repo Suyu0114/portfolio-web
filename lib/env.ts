@@ -3,7 +3,9 @@ import { z } from "zod";
 /**
  * Runtime env for the chatbot surface — SPEC-CHATBOT §2.
  *
- * These six vars are the *exhaustive* allowlist. Nothing here is read at
+ * These eight vars are the *exhaustive* allowlist: six through v2.7, plus
+ * `GEMINI_API_KEY` (v2.8) and `CHAT_FORCE_PROVIDER` (v2.9, development only).
+ * Nothing here is read at
  * module scope: `npm run build` must pass with zero env vars set (CI has no
  * secrets), so every read happens inside a function called at request time.
  * A missing var throws `MissingEnvError`, which the route handler turns into
@@ -49,6 +51,29 @@ const notifyEnvSchema = z.object({
   RESEND_API_KEY: nonEmpty,
 });
 
+/**
+ * §2 (v2.8) — the fallback provider. Optional on the same terms as
+ * `RESEND_API_KEY`, and for a sharper version of the same reason: this key
+ * exists to rescue a conversation the primary provider could not serve, so a
+ * fallback that could itself 500 that conversation would be worse than having
+ * no fallback at all. Never read by `requireChatEnv`.
+ */
+const fallbackEnvSchema = z.object({
+  GEMINI_API_KEY: nonEmpty,
+});
+
+/**
+ * §2/§3 (v2.9) — the development-only provider override.
+ *
+ * Not part of the runtime contract in any meaningful sense: the reader below
+ * refuses to look at it outside development, so a value left in a Vercel
+ * project cannot demote the live site to the fallback model. That guard lives
+ * here rather than at the call site so there is exactly one place to check.
+ */
+const forcedProviderSchema = z.enum(["anthropic", "gemini"]);
+
+export type ForcedProvider = z.infer<typeof forcedProviderSchema>;
+
 const adminEnvSchema = z.object({
   ADMIN_PASSWORD: nonEmpty,
   ADMIN_COOKIE_SECRET: nonEmpty,
@@ -62,6 +87,7 @@ const supabaseEnvSchema = chatEnvSchema.pick({
 
 export type ChatEnv = z.infer<typeof chatEnvSchema>;
 export type NotifyEnv = z.infer<typeof notifyEnvSchema>;
+export type FallbackEnv = z.infer<typeof fallbackEnvSchema>;
 export type AdminEnv = z.infer<typeof adminEnvSchema>;
 export type SupabaseEnv = z.infer<typeof supabaseEnvSchema>;
 
@@ -98,6 +124,43 @@ export function readNotifyEnv(): NotifyEnv | null {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
   });
   return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Env for the fallback provider (§3, v2.8). Null when unset, which the route
+ * reads as "there is no fallback" and reports honestly, rather than as an
+ * error. Same shape as `readNotifyEnv` above so the two optional keys behave
+ * identically.
+ */
+export function readFallbackEnv(): FallbackEnv | null {
+  const parsed = fallbackEnvSchema.safeParse({
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  });
+  return parsed.success ? parsed.data : null;
+}
+
+/**
+ * The forced provider (§3, v2.9), or null when there is none to honour.
+ *
+ * Returns null in production unconditionally, before the value is even parsed.
+ * A misspelled value warns loudly and is ignored rather than falling through
+ * to a default, because silently answering from the other model is precisely
+ * the confusion this override exists to remove.
+ */
+export function readForcedProvider(): ForcedProvider | null {
+  if (process.env.NODE_ENV === "production") return null;
+
+  const raw = process.env.CHAT_FORCE_PROVIDER;
+  if (raw === undefined || raw.trim() === "") return null;
+
+  const parsed = forcedProviderSchema.safeParse(raw.trim());
+  if (!parsed.success) {
+    console.warn(
+      `[env] CHAT_FORCE_PROVIDER is "${raw}", which is not "anthropic" or "gemini". Ignoring it.`,
+    );
+    return null;
+  }
+  return parsed.data;
 }
 
 /** Env needed to read or write the chat tables (the `/study` pages, §8). */

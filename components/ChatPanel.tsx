@@ -12,6 +12,13 @@ import {
   type HumorLevel,
 } from "@/lib/chatPersonality";
 import {
+  FALLBACK_REASON_HEADER,
+  isFallbackReason,
+  readChatErrorCode,
+  type ChatErrorCode,
+  type FallbackReason,
+} from "@/lib/chatErrors";
+import {
   getSessionId,
   isChatTurn,
   readConciseness,
@@ -112,7 +119,46 @@ const COPY = {
   errorGeneric: "the notebook hit a snag. Try again in a minute.",
   errorResting:
     "the notebook is resting, back tomorrow. Email works too: suyu0229@gmail.com",
+  /**
+   * §6 (v2.8) — the third state. The generic note above promises that waiting
+   * a minute fixes it, and for a spent balance that is simply false, which is
+   * the whole reason this string exists. It says nothing about a second
+   * provider on purpose: it is also what a deploy with no `GEMINI_API_KEY`
+   * shows, where there is no second notebook to be out.
+   */
+  errorOutOfCredit:
+    "the notebook is out of credit. Suyu will top it up as soon as he can. Email works: suyu0229@gmail.com",
 } as const;
+
+/**
+ * §6 (v2.8) — what the transcript says when a reply did not come from Opus 5.
+ *
+ * Two strings rather than one because the notice names the cause, and naming
+ * the wrong cause is a rule 1 breach of its own: "out of credit" must never
+ * appear for what was really a throttle. The route classifies and sends the
+ * reason; the panel only renders it.
+ */
+const FALLBACK_NOTICE: Record<FallbackReason, string> = {
+  credit: "PATS is out of Claude credit, so this reply comes from Gemini.",
+  unavailable: "Claude is unavailable, so this reply comes from Gemini.",
+  // v2.9, development only: the server never sends this in production.
+  forced: "Model override is on, so this reply comes from Gemini.",
+};
+
+/**
+ * §6 — visitor copy per failure code, exhaustive by type so a new code cannot
+ * ship without someone deciding what it says. `message` from the route is
+ * never rendered: it is developer-facing and can carry upstream text.
+ */
+const ERROR_COPY: Record<ChatErrorCode, string> = {
+  bad_request: COPY.errorGeneric,
+  server_error: COPY.errorGeneric,
+  rate_limited: COPY.errorResting,
+  upstream_credit: COPY.errorOutOfCredit,
+  upstream_busy: COPY.errorGeneric,
+  upstream_auth: COPY.errorGeneric,
+  upstream_error: COPY.errorGeneric,
+};
 
 /** Suggested chips — SPEC-CHATBOT §6, confirmed by Suyu 2026-08-02. */
 const CHIPS = [
@@ -386,14 +432,38 @@ export default function ChatPanel({
           }),
         });
 
-        if (res.status === 429) {
-          setError(COPY.errorResting);
+        if (!res.ok) {
+          // The body is this route's JSON contract, but is not guaranteed to
+          // be one: a platform-level 502 arrives as an HTML page and the panel
+          // still has to say something. Not a silent catch (rule 2) — the
+          // route already logged the cause, the unclassified case is logged
+          // here, and the visitor always gets a visible note. The worst this
+          // can do is pick the less specific of two true messages.
+          const body: unknown = await res.json().catch(() => null);
+          const code = readChatErrorCode(body);
+          if (code === null) {
+            console.error(`[chat] unclassified failure (HTTP ${res.status})`);
+          }
+          // 429 now means this site's own fuse and nothing else, since an
+          // upstream throttle is remapped to 503 (§7), so the status stays
+          // trustworthy even when the body is not.
+          setError(
+            code !== null
+              ? ERROR_COPY[code]
+              : res.status === 429
+                ? COPY.errorResting
+                : COPY.errorGeneric,
+          );
           return;
         }
-        if (!res.ok || res.body === null) {
+        if (res.body === null) {
           setError(COPY.errorGeneric);
           return;
         }
+
+        // §6 — present only when the reply came from the fallback provider.
+        const rawReason = res.headers.get(FALLBACK_REASON_HEADER);
+        const fallbackReason = isFallbackReason(rawReason) ? rawReason : null;
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -406,7 +476,21 @@ export default function ChatPanel({
           acc += decoder.decode(value, { stream: true });
           if (!started) {
             started = true;
-            setTurns((t) => [...t, { role: "assistant", content: acc }]);
+            // The notice goes in above the reply it explains, using the same
+            // `notice` kind the dial markers use, so it reads as a boundary
+            // and is filtered out of `history` before the next request.
+            setTurns((t) => [
+              ...t,
+              ...(fallbackReason !== null
+                ? [
+                    {
+                      role: "notice" as const,
+                      content: FALLBACK_NOTICE[fallbackReason],
+                    },
+                  ]
+                : []),
+              { role: "assistant", content: acc },
+            ]);
           } else {
             setTurns((t) => {
               const next = [...t];
