@@ -31,11 +31,16 @@ improvise a resolution.
 3. **No backend, one exception.** No database, no auth, no API keys, no
    runtime env secrets — **except** the chatbot surface enumerated in
    SPEC-CHATBOT.md §2 (listed routes, `/study` pages, `middleware.ts`,
-   Supabase, and the env vars enumerated there — that list has grown
-   since, so read it rather than trusting a count here). Anything beyond that
-   allowlist is still out of scope — flag it instead of building it.
-   `npm run build` must always pass with zero env vars set (CI has no
-   secrets); env is validated at request time only.
+   Supabase, the keep-alive workflow, and the env vars enumerated there —
+   that list has grown since, so read it rather than trusting a count
+   here). Anything beyond that allowlist is still out of scope — flag it
+   instead of building it.
+   `npm run build` must always pass with zero env vars set; env is
+   validated at request time only. The **build** workflow
+   (`.github/workflows/ci.yml`) holds no secrets and must not gain any.
+   `.github/workflows/supabase-keepalive.yml` is the sole exception in
+   the repo and holds two (v2.10); a third secret-holding workflow is a
+   spec change, not a code change.
 4. **Design tokens are frozen.** Only the colors and fonts in SPEC.md §4
    may appear. A new color or font is a spec change, not a code change.
 5. **Handwriting font is display-only.** The handwriting face (Caveat)

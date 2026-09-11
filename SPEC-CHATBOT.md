@@ -107,6 +107,28 @@ reverse it. Verified three ways on 2026-09-09: `gemini` answers from
 ("gemni") warns and is ignored, with Claude answering; and a production
 build started with `CHAT_FORCE_PROVIDER=gemini` answered from
 `claude-opus-5` with no notice, which is the guard that matters.
+v2.10 (2026-09-11, per Suyu): a keep-alive for the database. Nothing
+about the chat itself changes; this amendment exists because the backend
+keeps going away. Supabase pauses a Free-plan project when its user
+database sees too little activity over a week, and `suyu-protfolio` was
+paused twice on that rule — 2026-08-15 and 2026-09-07 — each time taking
+PATS offline until Suyu restored it by hand from the dashboard. The
+warning email arrives roughly a day before the pause, so it is not
+something that can be reacted to. Fixed by a daily GitHub Actions job
+calling a new RPC, `keepalive_ping()`, which updates the single row of a
+new `keepalive` table (§5). A write rather than a read, because a write
+is unambiguously activity and leaves `last_ping` / `ping_count` behind as
+evidence that a run reported successful actually reached Postgres,
+whereas a read that RLS blocks returns zero rows and may or may not
+count. This widens the §2 allowlist again, and for the first time
+outside the runtime: no new route, service, or env var, but the first
+workflow permitted to hold repository secrets. That forced §2's CI
+constraint to be scoped to the build workflow it was always about.
+Frequency is one run per day, chosen by Suyu against a recommendation of
+every eight hours. Supabase documents "a few requests per day" as
+usually sufficient but publishes no threshold, so the margin is untested
+either way, and at one run per day a dropped scheduled run leaves a
+two-day gap rather than an eight-hour one.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -192,15 +214,35 @@ only, outbound only, one hardcoded recipient — see §7), Gemini API
   is unavailable. A fallback that could 500 the conversation it exists
   to rescue would be worse than no fallback.
 
-**CI constraint.** The GitHub Actions workflow has no secrets and must
-stay that way: `npm run build` must succeed with **zero** env vars set.
-Env vars are read and validated at request time only; a missing var
-returns an explicit 500 with a clear message (fail loud). Pages
-prerender exactly as today.
+**Allowed scheduled job (exhaustive, v2.10):**
+`.github/workflows/supabase-keepalive.yml` — one `POST` per day to
+`/rest/v1/rpc/keepalive_ping`, which updates the single row of
+`public.keepalive` (§5). It exists because Supabase pauses an inactive
+Free-plan project, which happened twice and took the chatbot backend down
+with it. This is the **only** workflow permitted to hold repository
+secrets, and it holds two: `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY`, the same values the runtime already uses,
+adding no new credential to the project. Because the service key bypasses
+RLS, two properties of that workflow are part of this allowance rather
+than incidental: it must not check out the repository, and `permissions`
+must stay `{}`. The runtime env var allowlist above is untouched — a
+GitHub Actions secret is not a runtime env var, and no code reads these.
+
+**CI constraint.** The **build** workflow (`.github/workflows/ci.yml`)
+has no secrets and must stay that way: `npm run build` must succeed with
+**zero** env vars set. Env vars are read and validated at request time
+only; a missing var returns an explicit 500 with a clear message (fail
+loud). Pages prerender exactly as today.
+
+Through v2.9 this read "The GitHub Actions workflow", written when there
+was only one. The keep-alive workflow does hold secrets, so the rule is
+now scoped to the workflow it was always about. It binds `ci.yml` exactly
+as strictly as before: a secret available there is what would let a build
+quietly start depending on one, which is the failure this prevents.
 
 **Still out of scope:** user accounts, comments, forms, any third-party
 analytics of chat content, any additional API route or env var not
-listed above.
+listed above, and any further workflow holding secrets.
 
 ## 3. Architecture & tech stack
 
@@ -444,6 +486,10 @@ chat_insights  (id bigint generated always as identity primary key,
                 period_end timestamptz,
                 summary_md text,
                 model text)
+
+keepalive      (id smallint primary key check (id = 1),  -- v2.10: exactly one row, ever
+                last_ping timestamptz,
+                ping_count bigint)
 ```
 
 - RLS enabled with **no** public policies; all access via service key
@@ -485,9 +531,22 @@ chat_insights  (id bigint generated always as identity primary key,
   written only after the send succeeds. A flagged-but-not-emailed session
   is therefore visible *and* distinguishable, instead of silently looking
   delivered. Fail loud applies to the admin view too.
-- Schema ships as a checked-in SQL file (`supabase/schema.sql`)
-  applied manually via the Supabase SQL editor — no migration tooling
-  dependency for one file.
+- **Keep-alive (v2.10).** `keepalive` is not chat data and nothing reads
+  it at runtime. It exists so the daily workflow in §2 has something
+  unambiguous to write: Supabase pauses a Free-plan project whose user
+  database is too quiet, and this one was paused on 2026-08-15 and
+  2026-09-07. `check (id = 1)` is what keeps the table from growing —
+  a second row has nowhere to go however often the job runs. The two
+  counters are the audit trail: a run that reports success but leaves
+  `last_ping` stale never reached Postgres. The RPC is `security invoker`
+  with execute revoked from `public`, `anon` and `authenticated` and
+  granted only to `service_role`, so the publishable key cannot drive
+  writes into it. Supabase publishes no activity threshold, so whether
+  one call a day is *enough* is unverified by anyone outside Supabase;
+  the check is that no pause warning arrives.
+- Schema ships as checked-in SQL files (`supabase/schema.sql`, and
+  `supabase/keepalive.sql` since v2.10) applied manually via the Supabase
+  SQL editor — no migration tooling dependency for two files.
 
 ## 6. Chat widget UI (`components/ChatWidget.tsx` — client)
 
