@@ -35,7 +35,10 @@ jobs:
           # so a permission or schema-cache error is diagnosable from the log.
           # Both auth headers are sent: the project uses a new-format secret key
           # (sb_secret_...), and PostgREST rejects those with 401 unless the
-          # `apikey` header is present — Bearer alone is not enough.
+          # `apikey` header is present. The Authorization header on its own
+          # is not. (Phrased to avoid "Bearer" followed by a word: Actions
+          # masks that shape as *** even inside a comment, which garbled the
+          # previous wording in the run log.)
           curl --fail-with-body --silent --show-error \
             --retry 3 --retry-all-errors --retry-delay 20 \
             --max-time 30 \
