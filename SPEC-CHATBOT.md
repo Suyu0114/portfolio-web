@@ -129,6 +129,36 @@ every eight hours. Supabase documents "a few requests per day" as
 usually sufficient but publishes no threshold, so the margin is untested
 either way, and at one run per day a dropped scheduled run leaves a
 two-day gap rather than an eight-hour one.
+v2.11 (2026-09-13, per Suyu): the conciseness dial gets a ceiling. Suyu
+reported that conciseness 50 answered a broad question at a length that
+read as broken, and that 75, the default, was no shorter. The cause is
+the dial's own wording, and it is the same shape of defect v2.4 found in
+humor: only some of the five steps carried a quantity. 0 and 25 were
+given a floor in v2.4 (stop when the notes run out rather than pad) and
+100 has always carried a ceiling (one to three sentences), but 50 ("crisp
+paragraphs plus short lists") and 75 ("compact bullets") carried neither,
+and an adjective with no quantity is satisfied by any length at all. Two
+further forces pushed the same way. §4's response-style block still held
+a third instruction a dial can ask the opposite of — "prefer the specific
+detail from the notes over a general summary" — present on every request
+and rendering ahead of the dial turn, which is exactly the failure §4's
+own test was written to catch and which v2.4 and v2.7 each removed one
+instance of. And nothing anywhere said what to do when the notes hold
+more than the setting's length allows: the long end was told to stop
+rather than pad, the short end had no matching instruction and so worked
+through everything it found. Fixed by giving 50 and 75 explicit word
+targets (§6), scoping §4's specificity rule so it stops implying length,
+and adding an overflow rule at conciseness ≥ 50 that gives the shape of
+the answer and points at the page holding the rest. §6's invariant is
+narrowed in the same pass: "never change which facts you state" was
+already false at 100, where one to three sentences cannot state them all,
+so it now protects what it was written to protect, which is that no fact
+is invented, none is restated more vaguely than the notes have it, and
+the §4 sentence is never touched. §9's C7 length criterion gains
+conciseness 75, which was never on it despite being the default. No
+route, service, env var, or schema change, and the §2 allowlist is
+untouched. Token and reply-length figures in §6 and §7 are re-measured,
+since both the cached prefix and the uncached dial turn change.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -459,6 +489,21 @@ opens with anything is the settings' call. Any future rule added here
 must pass the same test: if a dial could reasonably ask for the opposite,
 it belongs in §6, not in §4.
 
+v2.11 is the third instance, and the test caught nothing on its own for
+two versions: the rule was here through v2.4 and v2.7, and both passes
+walked past it. "Prefer the specific detail from the notes over a general
+summary. A recruiter asking what Suyu built wants the actual systems, not
+adjectives" never mentions length, which is how it survived two audits
+*for* length rules. It sets one anyway. Asked something broad, a model
+reads "every specific detail, never a summary" as a floor on how much to
+cover, and conciseness 75 and 100 ask for precisely the summary it
+forbids. The specificity half is worth keeping, so it is scoped rather
+than deleted, in the shape v2.7 used on the opener ban: use the specific
+fact rather than an adjective, and leave how much of a topic a reply
+covers to the settings. The lesson for future audits of this block is
+that a rule sets length whenever it sets *how much*, whether or not it
+says so in words.
+
 ## 5. Logging schema (Supabase) & privacy
 
 ```sql
@@ -654,8 +699,8 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   |---|---|---|
   | 0 | narrative | Storytelling: full background, descriptive flow. |
   | 25 | detailed | Multi-paragraph, complete context, worked examples. |
-  | 50 | balanced | Crisp paragraphs plus short lists. No fluff. |
-  | 75 | efficient | Direct answer first, compact bullets, no empty filler. |
+  | 50 | balanced | Two short paragraphs, or a lead plus six bullets. 150-200 words (v2.11). |
+  | 75 | efficient | One-sentence answer plus at most four one-line bullets. 80-110 words (v2.11). |
   | 100 | terminal | One to three sentences or a list. No pleasantries. |
 
   - **Three adaptations of Suyu's level text, made to hold rule 1.**
@@ -675,11 +720,19 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     would reach the visitor literally. Bullets stay (plain hyphens),
     bold is dropped.
   - The **invariant block** is a constant appended at every setting:
-    tone and length only, never which facts are stated, never a detail
-    absent from the notes, and never a softened, shortened, or omitted
+    tone, length, and how much of a topic one reply covers, never a
+    detail absent from the notes, never a fact restated more vaguely
+    than the notes have it, and never a softened, shortened, or omitted
     fixed sentence from §4 — which matters most at conciseness 100,
     where "one to three sentences" would otherwise clip the line that §8
-    matches on to find content gaps.
+    matches on to find content gaps. Through v2.10 the first clause read
+    "never change which facts you state", which the dial contradicts by
+    construction: 100 cannot state everything 0 states. Left as written
+    it taught the model to disbelieve the clause that follows it, which
+    is the one doing real work. The vagueness ban is its replacement and
+    is the guard that actually matters under a word budget, since the
+    cheap way to shorten "cut the planning cycle from three days to
+    under ten minutes" is to write "sped it up".
   - The **precedence rule** (v2.7) lives in that same invariant, because
     the invariant is the one block present at every setting and so cannot
     go missing at the combination that needs it. At humor ≥ 50 the humor
@@ -692,6 +745,19 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     necessary because the two dials genuinely conflict at the settings a
     visitor is most likely to reach for, and without one the prohibition
     wins: it is absolute and it renders later in the same turn.
+  - **The overflow rule at conciseness ≥ 50** (v2.11). A word target
+    alone does not say what to drop. Asked what Suyu's responsibilities
+    were, the notes offer two companies and seven systems, and a model
+    told only to be brief either works through all of them anyway, which
+    is what was reported, or compresses each into an adjective, which
+    rule 1 forbids. So the rule names the third option: give the
+    highest-level shape and point at the page that holds the rest, which
+    is the persona's own proactive behaviour (§4) applied to length.
+    Scoped to 50 and above because 0 and 25 have budget enough for what
+    the notes hold, and this turn is uncached, so a rule that rides at
+    every setting is billed at every setting. It ends by forbidding the
+    §4 fallback sentence for anything the notes do cover: routing is not
+    a content gap, and §8 counts that sentence to find gaps.
   - **Worked examples at humor ≥ 75** (v2.7): three short exchanges
     appended to the dial turn, demonstrating placement rather than
     describing it. Scoped to the top two steps for two reasons. Register
@@ -715,16 +781,32 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
     it rides in a mid-conversation `{ role: "system" }` message appended
     to `messages[]` rather than in `system`: that block is byte-frozen
     and carries the only `cache_control` breakpoint. Re-measured
-    2026-08-27 after v2.7, same question at each setting: the prefix is
-    **10,870 tokens** (10,808 before v2.7; §4's response-style block
-    changed) and still reads from cache in full at every setting, and the
-    uncached remainder is **460 tokens at humor 0 and 25, 505 at 50, and
-    873 at 75 and 100** (324 before v2.7). The precedence rule accounts
-    for about 136 of the increase at every setting and the worked
-    examples for about 370 more at the two settings that receive them,
-    which is about 20 cents a day against the 300-reply cap. Folding the
-    dials into the system prompt would forfeit the cache on every
-    request, at several times the input cost. It is also the
+    2026-09-13 after v2.11, same question at each setting, on
+    `claude-opus-5`: the prefix is **11,161 tokens** and still reads from
+    cache in full at every setting, including on the first request of a
+    run against a prefix cached earlier. It was 11,133 immediately before
+    v2.11, which §4's scoped specificity rule moved; the 10,870 recorded
+    at v2.7 had already gone stale on its own, because the pack itself
+    has grown since.
+
+    The uncached remainder now varies with **both** dials, since v2.11's
+    overflow rule rides only at conciseness ≥ 50. At humor 0 it is
+    **573 tokens at conciseness 0, 534 at 25, 716 at 50, 708 at 75, and
+    681 at 100**; holding conciseness at 75 it is **708 at humor 0, 753
+    at 50, and 1,121 at 100**, the last carrying the worked examples.
+    Before v2.11 the same grid read 536 / 497 / 471 / 466 / 460 and
+    466 / 511 / 879, so the overflow rule costs roughly 220 tokens where
+    it applies and the narrowed invariant about 40 everywhere.
+
+    **v2.11 pays for itself at the input/output ratio in §3.** At the
+    default pair (humor 50, conciseness 75) the uncached input rose 511 →
+    753 while the output fell 569 → 283, and at $5 and $25 per MTok that
+    is 242 × $5 against 286 × $25, about 0.6 cents cheaper per reply, or
+    roughly $1.80 a day against the 300-reply cap. A dial that stops
+    over-answering is the rare change that improves the answer and the
+    bill at once. Folding the dials into the system prompt would still
+    forfeit the cache on every request, at several times the input
+    cost. It is also the
     non-spoofable operator channel, which matters because both values
     originate in the browser.
 - **Style-change notice (v2.5).** When a dial differs from the one used
@@ -823,7 +905,12 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   covered both through v2.5, which made every second turn a 400 as soon
   as a reply ran long — measured on prod 2026-08-27 at 1,486 chars on
   conciseness 75 and 4,527 on conciseness 0, so only conciseness 100
-  survived a second turn. For the same reason the page-context prefix
+  survived a second turn. Those two figures are the v2.6 rationale and
+  stand as history; v2.11 re-measured the same question at 784 chars on
+  conciseness 75 and 4,337 on conciseness 0. Both limits stay where they
+  are: shorter replies only widen the margin, and the 10,000-char entry
+  limit is sized against the 2,048-token output cap rather than against
+  any one setting's typical length. For the same reason the page-context prefix
   (§6) is composed server-side from its own field rather than prepended
   to `message` by the panel: charging server-added text to the visitor's
   budget made a question over roughly 945 chars on a case-study page a
@@ -1038,9 +1125,15 @@ conciseness dial, active-step labels, the re-cut cost envelope, and the
 - humor 0, 50 and 100 are visibly different in register and identical in
   every fact stated, across a fixed question set; humor 100 aims every
   joke at PATS itself and introduces no fact-shaped claim about Suyu;
-- conciseness 0, 50 and 100 differ visibly in length; conciseness 0 adds
+- conciseness 0, 50, 75 and 100 differ visibly in length on one broad
+  question, and 75 lands near its §6 target (v2.11: 75 is the default
+  and was absent from this criterion through v2.10, which is how it came
+  to read as long as 50 without failing anything); conciseness 0 adds
   nothing absent from the notes and stops rather than padding when the
-  notes on a topic run out;
+  notes on a topic run out; at 75 a question whose notes overrun the
+  budget is answered in shape and routed to the page holding the rest,
+  rather than worked through in full, compressed into adjectives, or
+  given the §4 fallback sentence;
 - the fallback line is byte-identical at conciseness 100;
 - a reply that hits `max_tokens` says so rather than ending mid-sentence;
 - all three rows are keyboard-only operable and each shows its active

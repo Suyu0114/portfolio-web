@@ -11,6 +11,16 @@
  * variable, so a visitor can reach for it and find it welded (§6, CLAUDE.md
  * rules 1 and 9).
  *
+ * v2.11 did the same to conciseness, for a reason that rhymes: 50 and 75
+ * described a length ("crisp paragraphs", "compact bullets") without ever
+ * quantifying one, so "efficient" and "balanced" answered a broad question at
+ * the same length, and both at a length Suyu read as broken. An adjective with
+ * no number attached is satisfied by anything. Two rules follow from it, and
+ * they are the ones to hold onto when editing this table: every step states a
+ * quantity, and every step that can run out of room says what to drop, because
+ * a budget without a discard rule is an invitation to compress facts into
+ * adjectives, which is rule 1 arriving by the back door.
+ *
  * v2.4 rebuilt humor because v2.3's version could not be felt. That version
  * issued one hedged permission ("above 0 you may use light dry wit in at most
  * one sentence") identically to 25, 50, 75 and 100, so nothing told the model
@@ -122,12 +132,19 @@ const HUMOR_BEHAVIOUR: Record<HumorLevel, string> = {
  * line in the same turn, the prohibition won. "No empty filler" is the rule
  * that was actually wanted; the invariant below says which openers are not
  * empty.
+ *
+ * The word counts on 50 and 75 are v2.11. They are the numbers Suyu chose, so
+ * moving them is a spec change (SPEC-CHATBOT §6), not a tuning knob to reach
+ * for when a reply reads long. The targets are deliberately ranges rather than
+ * hard caps: a hard cap is the instruction most likely to be obeyed by cutting
+ * a qualifier off a fact, and the notes are full of qualifiers that carry the
+ * meaning ("roughly 1,000 raw material SKUs", "two-to-three person teams").
  */
 const CONCISENESS_BEHAVIOUR: Record<ConcisenessLevel, string> = {
   0: "Comprehensive narrative. Rich, conversational storytelling: full background, extensive explanation, and descriptive flow. Expand only by telling more of what the notes actually contain. When the notes on a topic are exhausted, stop, even if that leaves the answer short. Never manufacture background, transitions, or examples in order to reach a length.",
   25: "Contextual and detailed. Multi-paragraph answers with complete context, smooth transitions, and worked examples, all drawn from the notes. The same limit applies: length comes from the notes' own detail, never from invention.",
-  50: "Balanced. Crisp paragraphs combined with short bullet lists where they help. Enough technical context to be useful, and no fluff.",
-  75: "High efficiency. Lead with the direct answer, then compact bullets. No empty filler sentences and no summary at the end.",
+  50: "Balanced. At most two short paragraphs, or a lead sentence plus up to six bullets. Around 150 to 200 words. Crisp paragraphs, enough technical context to be useful, and no fluff.",
+  75: "High efficiency. Lead with the direct answer in one sentence, then at most four bullets of one line each. Around 80 to 110 words. No empty filler sentences and no summary at the end.",
   100: "Maximum compression. One to three sentences, or a compact list. Strip every conversational pleasantry.",
 };
 
@@ -136,6 +153,48 @@ const HUMOR_BEAT_FLOOR: HumorLevel = 50;
 
 /** The step at and above which the worked examples ride along. */
 const HUMOR_EXAMPLE_FLOOR: HumorLevel = 75;
+
+/**
+ * The step at and above which the notes routinely outrun the length budget
+ * (v2.11), and so the step at and above which the reply needs somewhere to put
+ * what does not fit.
+ *
+ * Scoped rather than constant for the same two reasons the humor examples are.
+ * At 0 and 25 the budget already fits what the notes hold, so the rule would be
+ * answering a question that cannot come up; and this turn is uncached, so a
+ * line that rides at every setting is billed at every setting.
+ */
+const CONCISENESS_ROUTING_FLOOR: ConcisenessLevel = 50;
+
+/**
+ * What to do when the notes hold more than the setting's length allows.
+ *
+ * A word target on its own is only half an instruction. It says how much to
+ * write and nothing about what to leave out, and the two cheap ways to obey it
+ * are both wrong: work through every item anyway (the behaviour v2.11 was
+ * written to fix), or keep every item and shrink each one into an adjective,
+ * which turns a measured fact into a vague one and is a rule 1 breach that
+ * nothing would flag. Naming the third option is the whole point of this
+ * string: say the shape, then point at the page that holds the detail. That is
+ * not a new behaviour, it is the persona's own "offer routes, not facts"
+ * applied to length.
+ *
+ * Two guards ride at the end. The first is rule 9: a visitor who gets routed
+ * has not found a gap in the notes, and §8 counts the fixed sentence to find
+ * gaps, so a reply that reached for that sentence while routing would file a
+ * topic the pack covers in full as missing content.
+ *
+ * The second was added after measuring. At humor 100 the first run closed with
+ * "the numbers behind each are on /about and /resume.pdf", and /about holds no
+ * such numbers. Nothing about Suyu was invented, so rules 1 and 9 were not
+ * breached, but a route the notes do not support is a claim about the site
+ * offered with the same confidence as a fact, and it is the specific way this
+ * rule can go wrong: it asks for a page, so the model finds one. The fix is to
+ * say where a route may come from, which is the same place every other fact
+ * comes from.
+ */
+const LENGTH_OVERFLOW_RULE =
+  "A broad question does not license a longer answer. When the notes hold more than this length allows, give the highest-level shape of the answer and point at the page that covers the rest, rather than working through every item. Leaving a detail on a page is not the same as leaving it out: never replace an omitted detail with a vaguer claim, keep every number and qualifier exactly as the notes write it, and never use the fixed sentence in rule 2 for a topic the notes do cover. Only name a page the notes themselves tie to that topic. If none is named there, end after the shape rather than guessing at a destination.";
 
 /**
  * Worked examples for the top of the dial, sent only at 75 and 100 (v2.7).
@@ -194,13 +253,19 @@ const HUMOR_EXAMPLES = [
  * `cache_control` breakpoint. Folding it into the system prompt would forfeit
  * that cache on every request, at several times the input cost.
  *
- * Re-measured 2026-08-27 after v2.7, same question at each setting: the prefix
- * is 10,870 tokens and still reads from cache in full at every setting, and the
- * uncached remainder is 460 tokens at humor 0 and 25, 505 at 50, and 873 at 75
- * and 100. It was 324 before v2.7. The precedence rule accounts for about 136
- * of that at every setting, and the worked examples for about 370 more at the
- * two settings that receive them. Against the 300-reply daily cap that is
- * roughly 20 cents a day, which is what a dial that can be felt costs.
+ * Re-measured 2026-09-13 after v2.11, same question at each setting: the
+ * prefix is 11,161 tokens and still reads from cache in full at every setting.
+ * The uncached remainder now moves with both dials, because the overflow rule
+ * rides only at conciseness >= 50. At humor 0 it is 573 tokens at conciseness
+ * 0, 534 at 25, 716 at 50, 708 at 75 and 681 at 100; holding conciseness at 75
+ * it is 708 at humor 0, 753 at 50 and 1,121 at 100, the last carrying the
+ * worked examples.
+ *
+ * This is the first of these turns to get cheaper by growing. At the default
+ * pair the uncached input rose 511 to 753 while the reply fell 569 output
+ * tokens to 283, and output is billed at five times input, so the net is about
+ * 0.6 cents saved per reply. Worth remembering before trimming this turn to
+ * save money: the expensive tokens are the ones the model writes.
  *
  * It is also the reason the values can be trusted at all: they come from the
  * browser, and the system role is the one channel a visitor's message cannot
@@ -222,8 +287,22 @@ export function personalityInstruction({
     "",
     // The invariant block. Constant at every setting, which is what stops
     // conciseness 100 from clipping the fixed sentence §8 matches on.
-    "These settings change tone and length only. They never change which facts you state, never add a detail that is not in the notes, and never soften, shorten, or omit the fixed sentence in rule 2, which is quoted in full at every setting. Write lists as plain hyphens: there is no markdown rendering, so asterisks and hashes would reach the visitor literally.",
+    //
+    // v2.11 narrowed the opening clause. It used to promise the settings
+    // "never change which facts you state", which the dial contradicts by
+    // construction: 100 cannot state everything 0 states. A clause the model
+    // can see is false is worse than no clause, because it discredits the one
+    // after it, and that one is the load-bearing half. What replaced it is the
+    // guard that actually bites under a word budget, since the cheap way to
+    // shorten "cut the planning cycle from three days to under ten minutes" is
+    // to write "sped it up".
+    "These settings change tone, length, and how much of a topic one reply covers. They never add a detail that is not in the notes, never restate a fact more vaguely than the notes write it, never drop a number or a qualifier to save room, and never soften, shorten, or omit the fixed sentence in rule 2, which is quoted in full at every setting. Write lists as plain hyphens: there is no markdown rendering, so asterisks and hashes would reach the visitor literally.",
     "",
+    // The overflow rule (v2.11), at the settings whose budget the notes can
+    // outrun. It sits after the invariant because it is the invariant's
+    // consequence: once a reply cannot say everything, it needs a stated way
+    // to not say it.
+    ...(conciseness >= CONCISENESS_ROUTING_FLOOR ? [LENGTH_OVERFLOW_RULE, ""] : []),
     // The precedence rule (v2.7). The two dials read as contradictory at the
     // combinations that matter most: humor asks for an opening aside, and
     // conciseness bans preamble and pleasantries. Without a stated priority the
