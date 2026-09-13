@@ -1,5 +1,9 @@
 import crypto from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  type PostgrestError,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 import type { ConcisenessLevel, HumorLevel } from "@/lib/chatPersonality";
 import type { SupabaseEnv } from "@/lib/env";
 
@@ -35,6 +39,93 @@ export function createChatClient(env: SupabaseEnv): SupabaseClient {
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+}
+
+/**
+ * Reads one field off a PostgREST error, tolerating its absence.
+ *
+ * The declared type promises four strings and the library does not always
+ * deliver them: when a response arrives with a body it cannot parse — an empty
+ * 503 from the edge in front of Supabase, for one — it builds the error from
+ * `message` alone and leaves `code`, `details` and `hint` undefined. Trusting
+ * the type there threw a TypeError inside `supabaseError` itself, which turned
+ * a diagnosable outage into an unrelated crash: exactly backwards for a helper
+ * whose whole job is saying what went wrong.
+ */
+function errorField(
+  error: PostgrestError,
+  key: "message" | "code" | "details" | "hint",
+): string {
+  const value: string | undefined = error[key];
+  return typeof value === "string" ? value : "";
+}
+
+/**
+ * One Error shape for every Supabase failure below — fail loud with something
+ * worth reading (CLAUDE.md rule 2).
+ *
+ * These wrappers used to interpolate `error.message` and drop the rest, which
+ * cost a live diagnosis on 2026-09-13: a visitor-facing 503 reached the Vercel
+ * log as `Rate-limit check failed:` with nothing after the colon. Everything
+ * that identifies such a failure sits outside `message`, and `message` is
+ * empty in precisely the case that took the chat down.
+ *
+ * `status` is the field that matters most: postgrest-js reports 0 when the
+ * request never got an HTTP response at all, so it separates "could not reach
+ * Supabase" from "Supabase answered, badly" — the difference between a socket
+ * to retry and a project to go look at. `code` and `hint` are Postgres's own,
+ * and the hint is usually the actionable half when the cause is a real query
+ * error.
+ */
+function supabaseError(
+  prefix: string,
+  result: { error: PostgrestError | null; status: number; statusText: string },
+): Error {
+  const { error } = result;
+  const message = error === null ? "" : errorField(error, "message");
+  const code = error === null ? "" : errorField(error, "code");
+  const hint = error === null ? "" : errorField(error, "hint");
+  const details = error === null ? "" : errorField(error, "details");
+
+  const fields: readonly (string | null)[] = [
+    `status=${result.status}`,
+    result.statusText === "" ? null : `statusText=${result.statusText}`,
+    error === null
+      ? "no error body"
+      : message === ""
+        ? "no message reported"
+        : message,
+    code === "" ? null : `code=${code}`,
+    hint === "" ? null : `hint=${hint}`,
+    ...condenseDetails(message, details),
+  ];
+  const detail = fields.filter(
+    (field): field is string => field !== null && field !== "",
+  );
+  return new Error(`${prefix}: ${detail.join(" | ")}`, { cause: error });
+}
+
+/**
+ * The half of postgrest-js's `details` worth putting in a log line.
+ *
+ * That field holds Postgres's own detail text when the failure is a query
+ * error, and for a network failure the `Caused by:` chain followed by a stack.
+ * Frames are dropped rather than truncated away, so the line naming the socket
+ * or DNS reason survives however long the trace above it runs; the frames are
+ * still on `cause` for whoever wants them. Lines already contained in
+ * something kept are dropped as well — the chain restates its own cause, and
+ * both restate `message` — because a log line saying the same thing three
+ * times is the failure this helper exists to fix.
+ */
+function condenseDetails(message: string, details: string): string[] {
+  const kept: string[] = [];
+  for (const line of details.split("\n").map((raw) => raw.trim())) {
+    if (line === "" || line.startsWith("at ")) continue;
+    if (message !== "" && message.includes(line)) continue;
+    if (kept.some((already) => already.includes(line))) continue;
+    kept.push(line);
+  }
+  return kept;
 }
 
 /**
@@ -79,7 +170,7 @@ export async function checkRateLimits(
     .gte("created_at", windowStart);
 
   if (perIp.error) {
-    throw new Error(`Rate-limit check failed: ${perIp.error.message}`);
+    throw supabaseError("Rate-limit check failed", perIp);
   }
   // A missing count is not zero. PostgREST answers a HEAD count with no error
   // and a null count in some failure modes (a missing table, for one), and
@@ -102,7 +193,7 @@ export async function checkRateLimits(
     .gte("created_at", dayStart.toISOString());
 
   if (daily.error) {
-    throw new Error(`Daily-cap check failed: ${daily.error.message}`);
+    throw supabaseError("Daily-cap check failed", daily);
   }
   if (daily.count === null) {
     throw new Error("Daily-cap check returned no count");
@@ -128,7 +219,7 @@ export async function ensureSession(
     ipHash: string;
   },
 ): Promise<void> {
-  const { error } = await db.from("chat_sessions").upsert(
+  const result = await db.from("chat_sessions").upsert(
     {
       id: session.id,
       entry_path: session.entryPath,
@@ -137,7 +228,7 @@ export async function ensureSession(
     },
     { onConflict: "id", ignoreDuplicates: true },
   );
-  if (error) throw new Error(`Session upsert failed: ${error.message}`);
+  if (result.error) throw supabaseError("Session upsert failed", result);
 }
 
 /**
@@ -164,15 +255,15 @@ export async function claimSessionAlert(
   sessionId: string,
   kind: string,
 ): Promise<boolean> {
-  const { data, error } = await db
+  const result = await db
     .from("chat_sessions")
     .update({ signal_kind: kind })
     .eq("id", sessionId)
     .is("alerted_at", null)
     .select("id");
 
-  if (error) throw new Error(`Alert claim failed: ${error.message}`);
-  return (data ?? []).length > 0;
+  if (result.error) throw supabaseError("Alert claim failed", result);
+  return (result.data ?? []).length > 0;
 }
 
 /**
@@ -185,14 +276,16 @@ export async function countAlertsToday(db: SupabaseClient): Promise<number> {
   const dayStart = new Date();
   dayStart.setUTCHours(0, 0, 0, 0);
 
-  const { count, error } = await db
+  const result = await db
     .from("chat_sessions")
     .select("id", { count: "exact", head: true })
     .gte("alerted_at", dayStart.toISOString());
 
-  if (error) throw new Error(`Alert-cap check failed: ${error.message}`);
-  if (count === null) throw new Error("Alert-cap check returned no count");
-  return count;
+  if (result.error) throw supabaseError("Alert-cap check failed", result);
+  if (result.count === null) {
+    throw new Error("Alert-cap check returned no count");
+  }
+  return result.count;
 }
 
 /**
@@ -203,12 +296,14 @@ export async function markAlertSent(
   db: SupabaseClient,
   sessionId: string,
 ): Promise<void> {
-  const { error } = await db
+  const result = await db
     .from("chat_sessions")
     .update({ alerted_at: new Date().toISOString() })
     .eq("id", sessionId);
 
-  if (error) throw new Error(`Alert timestamp update failed: ${error.message}`);
+  if (result.error) {
+    throw supabaseError("Alert timestamp update failed", result);
+  }
 }
 
 export async function logMessage(
@@ -225,7 +320,7 @@ export async function logMessage(
     conciseness?: ConcisenessLevel;
   },
 ): Promise<void> {
-  const { error } = await db.from("chat_messages").insert({
+  const result = await db.from("chat_messages").insert({
     session_id: message.sessionId,
     role: message.role,
     content: message.content,
@@ -235,5 +330,5 @@ export async function logMessage(
     humor: message.humor ?? null,
     conciseness: message.conciseness ?? null,
   });
-  if (error) throw new Error(`Message insert failed: ${error.message}`);
+  if (result.error) throw supabaseError("Message insert failed", result);
 }
