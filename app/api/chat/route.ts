@@ -1,4 +1,5 @@
 import { APIError } from "@anthropic-ai/sdk";
+import { after } from "next/server";
 import { z } from "zod";
 import {
   canonicalizeFallbackLine,
@@ -473,6 +474,32 @@ export async function POST(request: Request): Promise<Response> {
   const answeringModel = provider.id;
   const encoder = new TextEncoder();
 
+  /**
+   * §5 — keeps the invocation alive until the assistant turn is written.
+   *
+   * That write is the one piece of work here that runs after the response has
+   * been fully flushed (below, past `controller.close()`), and on a serverless
+   * host the platform is entitled to freeze or reclaim the instance the moment
+   * a response ends. Pending I/O then dies mid-flight as "TypeError: fetch
+   * failed", which is how two replies went unlogged on 2026-09-13 while the
+   * visitors sat reading them. Nothing was wrong with the database: the writes
+   * that run *before* the response, the session upsert and the visitor's turn,
+   * have never failed.
+   *
+   * `after()` is the supported way to say the invocation is not finished yet.
+   * It changes none of §5's ordering — the reply still reaches the visitor
+   * before anything is written, and a logging failure still cannot un-send it
+   * — and only stops the runtime pulling the floor out from under the write.
+   *
+   * A promise rather than a callback, because the work is already scheduled
+   * inside the stream below; this just holds the door open until it settles.
+   */
+  let markLogged: () => void = () => {};
+  const logged = new Promise<void>((resolve) => {
+    markLogged = resolve;
+  });
+  after(logged);
+
   const body$ = new ReadableStream<Uint8Array>({
     async start(controller) {
       let stopReason: StopReason | null = null;
@@ -559,6 +586,12 @@ export async function POST(request: Request): Promise<Response> {
         // through would rewrite text they watched appear.
         console.error("[api/chat] stream failed:", error);
         controller.error(error);
+      } finally {
+        // However this ended — a clean close, a mid-stream abort, a visitor
+        // closing the tab — there is no more work to wait for. Resolving here
+        // rather than after the logging block is what stops `after()` holding
+        // an instance open for a promise nothing would ever settle.
+        markLogged();
       }
     },
     async cancel() {
