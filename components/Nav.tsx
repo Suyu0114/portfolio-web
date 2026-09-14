@@ -1,13 +1,5 @@
 import Link from "next/link";
-
-// Nav labels are microcopy (CLAUDE.md conventions exception).
-// resume is a static PDF, opened in a new tab so visitors keep the site.
-const NAV_LINKS = [
-  { href: "/", label: "home", newTab: false },
-  { href: "/projects", label: "projects", newTab: false },
-  { href: "/about", label: "about", newTab: false },
-  { href: "/resume.pdf", label: "resume", newTab: true },
-] as const;
+import NavLinks from "@/components/NavLinks";
 
 export default function Nav() {
   return (
@@ -15,25 +7,10 @@ export default function Nav() {
       <Link href="/" className="font-display text-4xl font-bold text-ink">
         Suyu.
       </Link>
-      <nav aria-label="Primary" className="flex gap-5 text-sm text-muted sm:gap-7">
-        {NAV_LINKS.map((l) =>
-          l.newTab ? (
-            <a
-              key={l.href}
-              href={l.href}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-ink"
-            >
-              {l.label}
-            </a>
-          ) : (
-            <Link key={l.href} href={l.href} className="hover:text-ink">
-              {l.label}
-            </Link>
-          ),
-        )}
-      </nav>
+      {/* The links mark the current section, which needs the pathname, so
+          they live in a client component (SPEC §5, v1.6). The wordmark
+          stays server-rendered. */}
+      <NavLinks />
     </header>
   );
 }

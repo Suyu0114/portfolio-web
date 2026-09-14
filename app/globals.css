@@ -56,6 +56,32 @@ h4 {
   outline-offset: 2px;
 }
 
+/* Selected text stays on the paper palette — SPEC §4.1 (v1.6). */
+::selection {
+  background-color: var(--color-rule);
+  color: var(--color-ink);
+}
+
+/*
+ * Skip link — SPEC §5 (v1.6). Pinned top-left above the chat widget
+ * (z-50) and moved off-screen until focused. Written here rather than as
+ * sr-only / focus:not-sr-only utilities: those also set position and
+ * padding, and whether they beat the px-* / py-* on the same element comes
+ * down to utility sort order, which isn't worth depending on. There is no
+ * transition, so there is no motion to reduce.
+ */
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 60;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
 /* Respect reduced-motion (CLAUDE.md a11y baseline): drop transitions and
    any hover/scroll motion for users who ask for it. */
 @media (prefers-reduced-motion: reduce) {
