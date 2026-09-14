@@ -2,6 +2,7 @@ import Link from "next/link";
 import CalibrationDoodle from "@/components/CalibrationDoodle";
 import ContactStrip from "@/components/ContactStrip";
 import DoodleArrow from "@/components/DoodleArrow";
+import Photo from "@/components/Photo";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getAllProjects } from "@/lib/content";
@@ -21,7 +22,22 @@ export default function Home() {
           <h1 className="font-display text-5xl font-bold sm:text-6xl">
             <WobblyUnderline draw>{HERO.headline}</WobblyUnderline>
           </h1>
-          <p className="mt-7 max-w-prose">{HERO.intro}</p>
+          {/* Portrait beside the intro (SPEC §6.1, v1.6 P7): under the
+              headline on mobile, floated left from sm up. flow-root keeps
+              the float inside this block, so the sub-line starts below it. */}
+          <div className="mt-7 flow-root">
+            <Photo
+              image={HERO.portrait.image}
+              alt={HERO.portrait.alt}
+              sizes="92px"
+              rotate="cw"
+              border="b"
+              compact
+              load="eager"
+              className="mb-4 w-28 sm:float-left sm:mr-5 sm:mb-1"
+            />
+            <p className="max-w-prose">{HERO.intro}</p>
+          </div>
           <p className="mt-5 inline-block -rotate-1 font-display text-xl font-medium text-accent-2">
             {HERO.subline}
           </p>
