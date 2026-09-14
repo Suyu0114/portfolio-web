@@ -326,17 +326,20 @@ are server-rendered, with no client JS.
   floats right on desktop and is centered above the bio on mobile.
 - Interests, in blocks of one paragraph plus optional photos. Personality
   lives here, stated plainly and confidently.
-  1. MLB/Blue Jays, with a photo from a Blue Jays game. Wording unchanged
+  1. MLB/Blue Jays, with two photos at Rogers Centre. Wording unchanged
      from v1.5.
   2. BaZi (八字) as a genuine long-term interest and the origin of the
      pre-registered study. No photo. Wording unchanged from v1.5.
-  3. Powerlifting (new), with two competition photos. Facts:
+  3. Powerlifting (new), with two competition photos: the 230 kg deadlift,
+     and the warm-up area with the other lifters' faces covered. Facts:
      `SPEC_v1.6_amendment.md` §6.1.
-  4. Outdoors (new), with a hiking photo and a freediving photo. Facts:
-     `SPEC_v1.6_amendment.md` §6.1.
+  4. Outdoors (new), with two hiking photos and two freediving photos, in
+     two rows. Facts: `SPEC_v1.6_amendment.md` §6.1.
 
-  Approved copy for blocks 3 and 4: `SPEC_v1.6_amendment.md` §10. Photo
-  files, processing and privacy: `SPEC_v1.6_amendment.md` §11.
+  Photos sit two to a row at every width, and each row's photos are cropped
+  to one shape. Approved copy for blocks 3 and 4: `SPEC_v1.6_amendment.md`
+  §10. Photo files, processing and privacy: `SPEC_v1.6_amendment.md` §11,
+  with the choices made during P7 in §16.
 - Contact block (same links as footer).
 
 ### 6.5 SEO / meta (P4)
