@@ -474,3 +474,52 @@ recorded here so the plan doesn't live only outside the repo.
 - **About copy.** `ABOUT.interests` becomes
   `{ body, photos }[]`. The two existing `body` strings are kept
   byte-identical.
+
+---
+
+## 16. P7 implementation notes
+
+Date: 2026-09-14
+Status: **approved** by Suyu, photo by photo, during P7. Where this section
+conflicts with §§7–11, this section wins; everything else there still
+stands.
+
+- **Which photos.** Suyu supplied two of each life photo: 01 preferred, 02
+  used where there was room. The approved layout:
+  - **Blue Jays:** both photos, in one row.
+  - **Powerlifting:** the 230 kg deadlift still, plus Suyu's own edit of a
+    warm-up-area photo with the other lifters' faces covered by emoji. The
+    unedited warm-up photo is not used, because two other lifters were
+    identifiable subjects (§11 privacy).
+  - **Outdoors:** all four, in two rows (hiking, then freediving). §10's
+    "a hiking photo and a freediving photo" becomes two of each.
+- **Crops.** Each was shown to Suyu first.
+  - **Portrait:** head and shoulders, 640×640 out of the 1200×1200
+    original, so the face still reads at the hero's 112px.
+  - **Freediving 01:** 3:4 (900×1200 out of 1600×1200), to sit level with
+    the hiking photos.
+  - **Warm-up edit:** 4:3 (843×632 out of 843×1124), to sit level with the
+    deadlift still. The standing lifter's covered head falls outside it.
+- **Files.** Numbered names replace §11's table: `portrait.jpg`,
+  `bluejays-game-1.jpg`, `bluejays-game-2.jpg`, `powerlifting-1.jpg`,
+  `powerlifting-2.jpg`, `hiking-1.jpg`, `hiking-2.jpg`, `freediving-1.jpg`
+  and `freediving-2.jpg`. The originals Suyu supplied are kept in
+  `notes/photos-originals/` (gitignored) and never committed.
+- **Words.** Suyu approved every caption and alt text. The wording lives in
+  `lib/siteContent.ts`. Captions state only what the photo shows or what
+  the knowledge pack records (Rogers Centre, the Springer jersey, the
+  230 kg deadlift).
+- **Frame padding.** `Photo` uses p-3, like `Figure`. With less padding,
+  the sketch radius (up to 255px on one axis) crosses the photo's corners
+  once a frame is wider than about 270px. Frames narrower than about 200px
+  (the two portraits) pass `compact` for p-2, because the browser scales
+  the radius down with the box.
+- **`sizes` describes the photo, not the frame** (the frame minus padding
+  and border). Sized to the frame, next/image picked the next width up on
+  mobile, and those bytes started loading before the /about bio painted. In
+  the first P7 run that moved Lighthouse's simulated LCP from 2.7 s to
+  3.2 s and performance from 96 to 94.
+- **No `preload`.** On both `/` and `/about` the LCP element is still text,
+  so the portraits load eagerly without it (§9).
+- **Pairs stay two-up at every width.** On a 360px screen each frame is
+  about 146px wide, and captions wrap to two or three lines.
