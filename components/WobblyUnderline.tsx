@@ -1,10 +1,17 @@
 // Inline SVG quadratic-wiggle underline — SPEC.md §4.3. The SVG
 // stretches to the width of whatever it wraps (preserveAspectRatio
 // none), so the wobble adapts to any heading length.
+//
+// `draw` (v1.6) makes the path draw itself once on load: the site's one
+// motion moment (SPEC §2), passed by page h1s only. pathLength={1} lets the
+// dash animation in globals.css (.wobbly-draw) cover the path whatever its
+// rendered length.
 export default function WobblyUnderline({
   children,
+  draw = false,
 }: {
   children: React.ReactNode;
+  draw?: boolean;
 }) {
   return (
     <span className="relative inline-block">
@@ -21,6 +28,8 @@ export default function WobblyUnderline({
           stroke="var(--color-accent)"
           strokeWidth="2.5"
           strokeLinecap="round"
+          pathLength={1}
+          className={draw ? "wobbly-draw" : undefined}
         />
       </svg>
     </span>

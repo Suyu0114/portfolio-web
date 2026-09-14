@@ -65,8 +65,18 @@ export default function RootLayout({
           inject attributes on <body> before hydration; this ignores those
           attribute-only diffs on this element without masking real ones. */}
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
+        {/* Skip link, SPEC §5 (v1.6): the first focusable element on every
+            page, off-screen until focused (.skip-link in globals.css). */}
+        <a href="#main" className="skip-link sk-pill bg-card px-3 py-1 text-sm text-ink">
+          skip to content
+        </a>
         <Nav />
-        {children}
+        {/* The skip target wraps every route here, 404 and /study included,
+            so no page has to carry the id. Deliberately no tabIndex: that
+            would ring the whole page in the focus outline. */}
+        <div id="main" className="flex flex-1 flex-col">
+          {children}
+        </div>
         <Footer />
         <ChatWidget projectTitles={projectTitles} />
       </body>

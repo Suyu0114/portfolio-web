@@ -19,7 +19,7 @@ export default function Home() {
       <section className="grid items-center gap-10 py-14 sm:py-20 md:grid-cols-[3fr_2fr]">
         <div>
           <h1 className="font-display text-5xl font-bold sm:text-6xl">
-            <WobblyUnderline>{HERO.headline}</WobblyUnderline>
+            <WobblyUnderline draw>{HERO.headline}</WobblyUnderline>
           </h1>
           <p className="mt-7 max-w-prose">{HERO.intro}</p>
           <p className="mt-5 inline-block -rotate-1 font-display text-xl font-medium text-accent-2">

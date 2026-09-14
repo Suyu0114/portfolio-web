@@ -26,7 +26,15 @@ requires a knowledge-pack sync in SPEC-CHATBOT.md §4 (see
 C0-C4) is confirmed deployed and live as of 2026-08-07. Source of
 truth for the change: `SPEC_v1.5_amendment.md`, whose §11 records seven
 deviations agreed with Suyu on 2026-08-08 during implementation.
-Status: approved; all §10 inputs supplied (last updated 2026-08-08).
+v1.6 (2026-09-14, per Suyu): UX polish and personal photos, nothing
+flashy. Adds orientation aids (a case-study contents line and next-note
+footer, a nav current-page state, a skip link), a whole-card click
+target with a micro hover tilt, the single sanctioned motion moment (h1
+underline draw-on), and personal photos on the home hero and /about.
+Corrects the powerlifting fact in the chatbot knowledge pack. Amends §2,
+§3, §4.1, §4.3, §5, §6.1, §6.3, §6.4, §8, and §9 (adds P6, P7). Source
+of truth for the change: `SPEC_v1.6_amendment.md`.
+Status: approved; all §10 inputs supplied (last updated 2026-09-14).
 
 ---
 
@@ -70,8 +78,15 @@ BI / research) so each recruiter type self-navigates to their keywords.
 - No backend of any kind (DB, auth, API routes with secrets) — amended
   v1.4: the chatbot surface enumerated in SPEC-CHATBOT.md §2 is the
   single exception.
-- No animation system beyond micro hover states and at most one
-  scroll-reveal moment (P4, optional, reduced-motion-safe).
+- No animation system beyond micro hover states and exactly one motion
+  moment: the page h1's `WobblyUnderline` draws itself once on load
+  (v1.6, §4.3). That moment uses up the old optional P4 scroll-reveal
+  allowance.
+- The moment, and any motion in a hover state (such as the `SketchCard`
+  tilt), runs only under `prefers-reduced-motion: no-preference`.
+  Everyone else sees the static end state immediately.
+- No page transitions, parallax, custom cursors, typing effects, or
+  smooth scrolling.
 - Analytics: Vercel Analytics only, optional, added at P5 if desired.
 
 ## 3. Tech stack
@@ -83,7 +98,7 @@ BI / research) so each recruiter type self-navigates to their keywords.
 | Content | MDX in `/content` via `@next/mdx` or `next-mdx-remote` | Do **not** use contentlayer — assumed unmaintained, verify at P0 (§11) |
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
 | Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). |
-| Images | `next/image`, screenshots in `/public/screens/` | |
+| Images | `next/image`; screenshots in `/public/screens/` (PNG, via `Figure`); personal photos in `/public/photos/` (JPEG, via `Photo`, statically imported) | Photos: EXIF stripped, long edge ≤ 1600px, ≤ 500 KB each; originals never committed |
 | Deploy | Vercel, custom domain (TODO §10) | No runtime env vars (amended v1.4: SPEC-CHATBOT.md §2 lists the only allowed ones) |
 
 ## 4. Design system — "field notes"
@@ -115,6 +130,17 @@ never pair the cream ground with an elegant serif display face. If a
 screen starts looking like "cream + serif + terracotta", it has drifted;
 fix by removing color, not adding it.
 
+**Text selection (v1.6).** `::selection` uses `--rule` as background and
+`--ink` as text, so selected text stays on the paper palette instead of
+the browser's default blue. No new token.
+
+**Photos (v1.6).** Personal photos are content, not palette.
+- They stay in full color and don't count toward the ≤ ~10% accent
+  budget.
+- Their frame is line work only: `.sk-border-a` / `.sk-border-b` on
+  `--card` with small padding, tilted ≤ 1deg.
+- No shadow, tape, sticker or texture (CLAUDE.md rule 4 and conventions).
+
 ### 4.2 Typography
 
 - Display (handwriting): headings h1–h2, hand notes, chart labels.
@@ -131,12 +157,26 @@ fix by removing color, not adding it.
   border-radius pairs (e.g. `255px 15px 225px 15px / 15px 225px 15px
   255px` and its mirror) so adjacent cards don't repeat the same wobble.
 - `WobblyUnderline`: inline SVG quadratic-wiggle path, `--accent`,
-  stroke-linecap round; width adapts to heading.
+  stroke-linecap round; width adapts to what it wraps.
+  - Optional `draw`: the path draws on once (about 0.6s) when motion is
+    allowed (§2).
+  - Only page h1s pass `draw`. The nav's current-page underline (§5)
+    never does.
 - `DoodleArrow`: small hand-drawn arrow SVG used next to section heads.
 - `TagPill`: 1.5px border, small asymmetric radius, optional ±1deg
   rotation, 12px text.
+- `SketchCard`: the whole card is the click target.
+  - It is still one link, stretched over the card, and keeps its
+    distinct accessible name (`read case study: {title}`).
+  - On hover the card tilts 0.5deg: variant a clockwise, variant b
+    counter-clockwise.
+  - Tilt only under `motion-safe`. No shadow, no lift, no color change.
 - `Figure`: screenshot wrapped in a sketch border with a handwritten
   caption line beneath.
+- `Photo` (P7): a statically imported photo in a sketch border.
+  - Optional handwritten caption (Caveat, ≥ 20px) and optional ±1deg tilt.
+  - Dimensions come from the import, so there is no layout shift.
+  - Separate from `Figure`, which stays the PNG screenshot frame.
 - `RoughChart`: client component; renders rough.js SVG after mount;
   must render a plain-SVG fallback (or nothing + reserved space) during
   SSR so layout never shifts.
@@ -152,7 +192,20 @@ fix by removing color, not adding it.
 | `/resume.pdf` | Static file in `/public` (TODO §10) |
 | 404 | Hand-drawn empty state ("this page isn't in the notebook") |
 
-Nav: `Suyu.` (handwriting) | projects · about · resume.
+Nav: `Suyu.` (handwriting) | home · projects · about · resume.
+
+- The current section is marked in `--ink`, with a `WobblyUnderline`
+  (no `draw`) and `aria-current="page"`.
+- `/projects/[slug]` counts as projects. `resume` (a PDF in a new tab) is
+  never marked.
+- Marking needs the pathname, so the links live in a small client
+  component, `NavLinks`.
+
+A `skip to content` link is the first focusable element on every page.
+It is visually hidden until focused and jumps past the nav. (v1.6. The
+`home` link has been in the code since `1c3a580`, 2026-08-22; this line
+records it rather than adding it.)
+
 Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
 ("drawn with rough.js").
 
@@ -168,6 +221,11 @@ Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
    (solid `--accent` "model" line vs dashed `--accent-2` "market" line,
    caption "calibration, hand-checked"). This SVG is decorative and
    static — not rough.js, not data-bound.
+   **Portrait (v1.6, P7).** A small `Photo` portrait (about 112px wide)
+   sits beside the intro paragraph; on mobile it stacks under the
+   headline. It has alt text and no caption. The calibration doodle is
+   unchanged. The portrait loads eagerly, and gets `preload` only if
+   Lighthouse reports it as the page's LCP element.
 2. **Featured notes.** Section head + DoodleArrow. Three `SketchCard`s
    in order: the assistant on this site (`ask-my-notes`), BlueJaysFanWeb,
    World Cup platform (§7, order updated v1.5; the pre-registered study
@@ -224,6 +282,20 @@ cutting verified content to stay under the old cap). Screenshots always
 inside `Figure` sketch frames. At most 1–2 rough.js data charts per
 case study; screenshots carry the rest — this is a deliberate scope cap.
 
+**Page chrome (v1.6).** Two orientation aids around the MDX body. Both
+are server-rendered, with no client JS.
+
+1. **Contents line**, under the header: one line of links built from the
+   body's `##` headings.
+   - Each MDX h2 gets a slug id.
+   - The build fails if a heading isn't plain text, or if two slugs
+     collide.
+   - Links carry a resting underline. No smooth scrolling (§2).
+2. **Footer row**, after the article:
+   - `← all projects` links to `/projects`.
+   - `next note: {title} →` links to the next project by `order`.
+   - From the last project it wraps back to the first.
+
 ### 6.4 /about
 
 - Short bio, in this order (v1.5 — lead with the experience, not the
@@ -250,9 +322,21 @@ case study; screenshots carry the rest — this is a deliberate scope cap.
   behind it (CLAUDE.md rule 9, `content/chatbot/`, and the standardized
   fallback line in SPEC-CHATBOT.md §4). This differentiates; keep it
   concrete, not buzzwordy.
-- Interests: MLB/Blue Jays; BaZi (八字) as a genuine long-term interest
-  and the origin of the pre-registered study — personality lives here,
-  stated plainly and confidently.
+- Portrait (v1.6, P7): the same photo as the hero, beside the bio. It
+  floats right on desktop and is centered above the bio on mobile.
+- Interests, in blocks of one paragraph plus optional photos. Personality
+  lives here, stated plainly and confidently.
+  1. MLB/Blue Jays, with a photo from a Blue Jays game. Wording unchanged
+     from v1.5.
+  2. BaZi (八字) as a genuine long-term interest and the origin of the
+     pre-registered study. No photo. Wording unchanged from v1.5.
+  3. Powerlifting (new), with two competition photos. Facts:
+     `SPEC_v1.6_amendment.md` §6.1.
+  4. Outdoors (new), with a hiking photo and a freediving photo. Facts:
+     `SPEC_v1.6_amendment.md` §6.1.
+
+  Approved copy for blocks 3 and 4: `SPEC_v1.6_amendment.md` §10. Photo
+  files, processing and privacy: `SPEC_v1.6_amendment.md` §11.
 - Contact block (same links as footer).
 
 ### 6.5 SEO / meta (P4)
@@ -387,10 +471,12 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 
 ## 8. Component inventory
 
-`Nav`, `Footer`, `SketchCard`, `TagPill`, `WobblyUnderline`,
-`DoodleArrow`, `Figure`, `RoughChart` (client), `FacetFilter` (client),
-`ContactStrip`, MDX component map (headings with optional underline,
-`Figure`, code blocks in mono on `--card`).
+`Nav`, `NavLinks` (client, v1.6), `Footer`, `SketchCard`, `TagPill`,
+`WobblyUnderline`, `DoodleArrow`, `Figure`, `Photo` (v1.6),
+`CaseStudyContents` (v1.6), `NextNote` (v1.6), `RoughChart` (client),
+`FacetFilter` (client), `ContactStrip`, MDX component map (headings with
+optional underline and h2 slug ids, `Figure`, code blocks in mono on
+`--card`).
 
 ## 9. Phases & acceptance
 
@@ -433,6 +519,52 @@ Vercel + domain, `/resume.pdf`, final link check, favicon (hand-drawn
 "S." mark).
 ✓ when: production URL live, all external links valid, resume
 downloads.
+
+**P6 — UX polish (v1.6).**
+Work:
+- Case-study contents line and next-note footer.
+- Nav current-page state and skip link.
+- On-palette `::selection`.
+- Whole-card click target with hover tilt.
+- h1 underline draw-on.
+- Knowledge-pack correction.
+
+✓ when:
+- **Build gates:** lint, typecheck, `npm run check` and build all pass
+  with zero env vars.
+- **Skip link:** on a fresh load, the first Tab focuses a visible skip
+  link, which jumps past the nav.
+- **Nav:** marks the right section (with `aria-current`) on `/`,
+  `/projects`, a case study and `/about`.
+- **Case study:** every contents link lands on its h2; next note cycles
+  through every case study and wraps.
+- **Cards:** clicking anywhere on a card opens its case study.
+- **Reduced motion emulated:** no tilt, and the underline is static.
+- **Mobile:** no horizontal scroll at 360px, and the nav doesn't break.
+- **Performance:** Lighthouse ≥ 95 ×3 on `/` (production build), and no
+  CLS.
+- **Content:** the corrected knowledge pack contains no em dash.
+
+**P7 — photos (v1.6).**
+Work:
+- The `Photo` component.
+- Photos processed into `/public/photos/`.
+- Hero portrait.
+- /about portrait and interest blocks.
+
+✓ when:
+- **Build gates:** the P6 build gates all still pass.
+- **Photo files:** none has EXIF, XMP or IPTC metadata, and each is
+  ≤ 500 KB.
+- **Accessibility:** every photo has alt text; every caption is Caveat
+  ≥ 20px with no em dash.
+- **Layout:** the hero's height is unchanged at 1366×768 (compared
+  against a before-screenshot), and there is no horizontal scroll at
+  360px.
+- **Performance:** Lighthouse ≥ 95 ×3 on `/` (production build), and no
+  CLS on `/` or `/about`.
+- **Content:** every fact in the new copy traces to
+  `SPEC_v1.6_amendment.md` §6.1 or to the knowledge pack.
 
 ## 10. Inputs Suyu must supply (blockers marked ⛔)
 

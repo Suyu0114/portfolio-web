@@ -109,14 +109,16 @@ his notes on how he works, applied in a workplace setting.)
 ## Outside work
 
 In Taiwan he went to the gym after work, four or five sessions a week. He
-took it far enough to compete: he was a representative powerlifting athlete
-at the Yilan County Citizens Sports Games in 2022, with a 205 kg squat,
-120 kg bench press, and 230 kg deadlift.
+took it far enough to compete: in 2022 he represented Yilan County in
+powerlifting at the Citizens Sports Games (全民運動會), Taiwan's national
+multi-sport games where each county and city sends a team, held that year
+in Chiayi County. His official results at that meet were a 205 kg squat,
+a 120 kg bench press, and a 230 kg deadlift.
 
 He cooks for himself. His reasoning is that eating out constantly makes for
 unbalanced nutrition and, he believes, more inflammation, so he treats diet
 as one part of a set alongside training and rest. On weekends he likes
-getting outdoors.
+getting outdoors: hiking in the mountains, or freediving in the sea.
 
 ## Topics to decline
 

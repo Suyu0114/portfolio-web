@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import CaseStudyContents from "@/components/CaseStudyContents";
+import NextNote from "@/components/NextNote";
 import TagPill from "@/components/TagPill";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getAllProjects, getProjectBySlug } from "@/lib/content";
+import { getH2Headings } from "@/lib/headings";
 import { mdxComponents } from "@/lib/mdxComponents";
 import { SITE_URL } from "@/lib/site";
 
@@ -32,12 +35,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function CaseStudyPage({ params }: Params) {
   const { slug } = await params;
   const { frontmatter: fm, body } = getProjectBySlug(slug);
+  const headings = getH2Headings(body);
+
+  // Next note by frontmatter order, wrapping from the last back to the
+  // first (SPEC §6.3, v1.6). getAllProjects() is already sorted by order.
+  const projects = getAllProjects();
+  const index = projects.findIndex((p) => p.frontmatter.slug === fm.slug);
+  if (index === -1) {
+    throw new Error(`CaseStudyPage: "${fm.slug}" is missing from getAllProjects()`);
+  }
+  const next = projects[(index + 1) % projects.length].frontmatter;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
       <header>
         <h1 className="font-display text-4xl font-bold sm:text-5xl">
-          <WobblyUnderline>{fm.title}</WobblyUnderline>
+          <WobblyUnderline draw>{fm.title}</WobblyUnderline>
         </h1>
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs text-muted">{fm.year}</span>
@@ -65,11 +78,14 @@ export default async function CaseStudyPage({ params }: Params) {
             )}
           </p>
         )}
+        <CaseStudyContents headings={headings} />
       </header>
 
       <article className="mt-4">
         <MDXRemote source={body} components={mdxComponents} />
       </article>
+
+      <NextNote next={{ slug: next.slug, title: next.title }} />
     </main>
   );
 }
