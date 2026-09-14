@@ -50,7 +50,7 @@ export default async function CaseStudyPage({ params }: Params) {
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
       <header>
         <h1 className="font-display text-4xl font-bold sm:text-5xl">
-          <WobblyUnderline>{fm.title}</WobblyUnderline>
+          <WobblyUnderline draw>{fm.title}</WobblyUnderline>
         </h1>
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs text-muted">{fm.year}</span>

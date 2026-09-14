@@ -96,6 +96,26 @@ h4 {
 }
 
 /*
+ * The one motion moment — SPEC §2 (v1.6): an h1's WobblyUnderline draws
+ * itself once on load. Declared only for users who haven't asked for
+ * reduced motion, so the rule above never has to collapse it and nobody
+ * waits out the delay for a line that should simply be there.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .wobbly-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: wobbly-draw 0.6s ease-out 0.1s both;
+  }
+}
+
+@keyframes wobbly-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
  * Sketch utilities — SPEC.md §4.3.
  * Shared, never ad-hoc; asymmetric radius pairs are mirrored so
  * adjacent cards don't repeat the same wobble.
