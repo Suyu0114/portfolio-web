@@ -6,6 +6,7 @@ import StudyArch from "@/components/StudyArch";
 import StudyNulls from "@/components/StudyNulls";
 import WorldCupArch from "@/components/WorldCupArch";
 import WorldCupCalibration from "@/components/WorldCupCalibration";
+import { slugify } from "@/lib/headings";
 
 /**
  * MDX component map — SPEC §8: handwriting h2 headings, code blocks in
@@ -13,9 +14,20 @@ import WorldCupCalibration from "@/components/WorldCupCalibration";
  * per-project architecture flows, and rough.js data charts).
  */
 export const mdxComponents: MDXComponents = {
-  h2: (props) => (
-    <h2 className="mt-10 font-display text-2xl font-medium" {...props} />
-  ),
+  // Each h2 carries the id the contents line links to (SPEC §6.3, v1.6),
+  // from the same slugify as getH2Headings. Fail loud: a heading with
+  // inline markup has no plain text to derive the id from, and rendering
+  // it without one would leave its contents link dead.
+  h2: ({ children, ...props }) => {
+    if (typeof children !== "string") {
+      throw new Error("MDX h2 headings must be plain text so they can carry a contents id");
+    }
+    return (
+      <h2 id={slugify(children)} className="mt-10 font-display text-2xl font-medium" {...props}>
+        {children}
+      </h2>
+    );
+  },
   h3: (props) => (
     <h3 className="mt-6 text-[15px] font-semibold text-ink" {...props} />
   ),
