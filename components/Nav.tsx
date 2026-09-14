@@ -3,7 +3,9 @@ import NavLinks from "@/components/NavLinks";
 
 export default function Nav() {
   return (
-    <header className="mx-auto flex w-full max-w-5xl items-baseline justify-between px-6 py-6">
+    // gap-4 keeps the wordmark and the links apart when a narrow screen
+    // leaves no free space to justify (SPEC §9 P6: the nav holds at 360px).
+    <header className="mx-auto flex w-full max-w-5xl items-baseline justify-between gap-4 px-6 py-6">
       <Link href="/" className="font-display text-4xl font-bold text-ink">
         Suyu.
       </Link>

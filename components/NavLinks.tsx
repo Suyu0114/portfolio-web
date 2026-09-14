@@ -27,7 +27,9 @@ export default function NavLinks() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Primary" className="flex gap-5 text-sm text-muted sm:gap-7">
+    // gap-3 below sm: at 360px the wordmark plus four links with gap-5
+    // overran the header's content box and touched the wordmark.
+    <nav aria-label="Primary" className="flex gap-3 text-sm text-muted sm:gap-7">
       {NAV_LINKS.map((l) => {
         if (l.newTab) {
           return (
