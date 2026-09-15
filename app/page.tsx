@@ -2,6 +2,7 @@ import Link from "next/link";
 import CalibrationDoodle from "@/components/CalibrationDoodle";
 import ContactStrip from "@/components/ContactStrip";
 import DoodleArrow from "@/components/DoodleArrow";
+import OpenChatButton from "@/components/OpenChatButton";
 import Photo from "@/components/Photo";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
@@ -42,6 +43,7 @@ export default function Home() {
           <p className="mt-5 inline-block -rotate-1 font-display text-xl font-medium text-accent-2">
             {HERO.subline}
           </p>
+          <OpenChatButton label={HERO.chatCta} className="mt-6" />
         </div>
         <CalibrationDoodle />
       </section>

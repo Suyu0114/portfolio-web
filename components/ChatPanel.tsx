@@ -294,12 +294,18 @@ function HonestyDial() {
 
 export default function ChatPanel({
   open,
+  focusRequest,
   onHide,
   onEnd,
   projectTitle,
 }: {
   /** False while minimized: the panel stays mounted but display: none (§6). */
   open: boolean;
+  /**
+   * Changes on every open request, including one from a trigger pressed while
+   * the panel is already open, where `open` itself does not change.
+   */
+  focusRequest: number;
   onHide: () => void;
   onEnd: () => void;
   /** Title of the case study being read, when on /projects/[slug] (§6). */
@@ -351,12 +357,13 @@ export default function ChatPanel({
   // Minimizing deliberately does not abort — the panel stays mounted.
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  // §6 a11y — focus moves into the panel on open; ChatWidget returns it to the
-  // entry button when the panel is hidden or ended.
+  // §6 a11y — focus moves into the panel on every open request; ChatWidget
+  // returns it to whichever control opened the panel when it is hidden or
+  // ended. `focusRequest` is what makes a request while already open count.
   useEffect(() => {
     if (!open) return;
     inputRef.current?.focus();
-  }, [open]);
+  }, [open, focusRequest]);
 
   // §6 a11y — Esc minimizes. Bound to the document, not the panel: the panel is
   // non-modal and does not trap focus, so a visitor who has tabbed back out to

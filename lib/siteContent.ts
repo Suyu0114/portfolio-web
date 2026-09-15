@@ -34,6 +34,9 @@ export const HERO = {
   intro:
     "Hello, I'm Suyu. For six years, I've built the backbone of business operations: planning, approvals, assets, and sales. I create complete, efficient solutions, and lately, I'm integrating AI to make them even smarter.",
   subline: "Toronto · full-stack · ERP & business systems · AI integration",
+  // Opens the site-wide chat widget from the hero (OpenChatButton). The corner
+  // button keeps its own SPEC-CHATBOT §6 label; this is a second way in.
+  chatCta: "chat with PATS",
   doodleCaption: "calibration, hand-checked",
   // Beside the intro (SPEC §6.1, v1.6 P7): alt text, no caption.
   portrait: {
