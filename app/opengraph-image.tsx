@@ -52,7 +52,10 @@ export default function OpengraphImage() {
             }}
           />
           <div style={{ display: "flex", fontSize: 34, color: INK_SOFT, marginTop: 40, maxWidth: 940 }}>
-            Six years building the systems businesses actually run on: planning, approvals, assets, sales. End to end, and lately with AI features on top.
+            {/* A string expression, not JSX text, so the apostrophes stay the
+                positioning statement's own characters (SPEC §6.5 sync rule)
+                instead of HTML entities. */}
+            {"For six years, I've built the backbone of business operations: planning, approvals, assets, and sales. I create complete, efficient solutions, and lately, I'm integrating AI to make them even smarter."}
           </div>
         </div>
 
