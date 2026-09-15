@@ -20,4 +20,4 @@ export const SITE_NAME = "Suyu — field notes";
 // sync rule: this and the OG strings derive from the positioning
 // statement, shortened here rather than reworded).
 export const SITE_DESCRIPTION =
-  "Suyu, a Toronto full-stack engineer. Six years building the systems businesses actually run on: planning, approvals, assets, sales, now with AI on top.";
+  "Suyu, a Toronto full-stack engineer. Six years building the backbone of business operations: planning, approvals, assets, and sales, now integrating AI.";

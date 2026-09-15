@@ -34,6 +34,15 @@ underline draw-on), and personal photos on the home hero and /about.
 Corrects the powerlifting fact in the chatbot knowledge pack. Amends §2,
 §3, §4.1, §4.3, §5, §6.1, §6.3, §6.4, §8, and §9 (adds P6, P7). Source
 of truth for the change: `SPEC_v1.6_amendment.md`.
+v1.7 (2026-09-14, per Suyu): new positioning statement wording and a
+larger home portrait on desktop. Suyu wrote the new statement (§1), and
+its copies follow under the §6.5 sync rule: the site description, the
+/about description, and the OG image's body text. The home portrait grows
+from 112px to 176px wide from sm up and stays 112px on mobile (§6.1). At
+1366×768 the longer intro and the larger portrait make the hero 51px
+taller, and the first featured card still starts inside the viewport.
+Amends §1, §6.1, and the §6.5 copies. The hero chat button draft
+previously numbered v1.7 becomes v1.8.
 Status: approved; all §10 inputs supplied (last updated 2026-09-14).
 
 ---
@@ -46,11 +55,13 @@ ERP, CRM, and business-systems depth, plus AI feature integration. Data
 Engineering and BI remain a secondary track, carried by project facet
 tags rather than by hero copy.
 
-**Positioning statement (hero copy, final wording chosen 2026-08-07):**
+**Positioning statement (hero copy; wording written by Suyu, v1.7,
+2026-09-14, replacing the 2026-08-07 wording):**
 
-> I'm Suyu. Six years building the systems businesses actually run on:
-> planning, approvals, assets, sales. End to end, and lately with AI
-> features on top.
+> Hello, I'm Suyu. For six years, I've built the backbone of business
+> operations: planning, approvals, assets, and sales. I create complete,
+> efficient solutions, and lately, I'm integrating AI to make them even
+> smarter.
 
 The absence of "Senior" is deliberate. Suyu's title at Seasonic was
 Senior Software Engineer and the resume states that factually, but the
@@ -221,11 +232,11 @@ Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
    (solid `--accent` "model" line vs dashed `--accent-2` "market" line,
    caption "calibration, hand-checked"). This SVG is decorative and
    static — not rough.js, not data-bound.
-   **Portrait (v1.6, P7).** A small `Photo` portrait (about 112px wide)
-   sits beside the intro paragraph; on mobile it stacks under the
-   headline. It has alt text and no caption. The calibration doodle is
-   unchanged. The portrait loads eagerly, and gets `preload` only if
-   Lighthouse reports it as the page's LCP element.
+   **Portrait (v1.6, P7; resized v1.7).** A `Photo` portrait sits beside
+   the intro paragraph, 176px wide from sm up; on mobile it is 112px wide
+   and stacks under the headline. It has alt text and no caption. The
+   calibration doodle is unchanged. The portrait loads eagerly, and gets
+   `preload` only if Lighthouse reports it as the page's LCP element.
 2. **Featured notes.** Section head + DoodleArrow. Three `SketchCard`s
    in order: the assistant on this site (`ask-my-notes`), BlueJaysFanWeb,
    World Cup platform (§7, order updated v1.5; the pre-registered study

@@ -22,19 +22,20 @@ export default function Home() {
           <h1 className="font-display text-5xl font-bold sm:text-6xl">
             <WobblyUnderline draw>{HERO.headline}</WobblyUnderline>
           </h1>
-          {/* Portrait beside the intro (SPEC §6.1, v1.6 P7): under the
-              headline on mobile, floated left from sm up. flow-root keeps
-              the float inside this block, so the sub-line starts below it. */}
+          {/* Portrait beside the intro (SPEC §6.1): 112px under the headline
+              on mobile, 176px floated left from sm up (v1.7). flow-root
+              keeps the float inside this block, so the sub-line starts
+              below it. sizes is the photo inside the compact frame. */}
           <div className="mt-7 flow-root">
             <Photo
               image={HERO.portrait.image}
               alt={HERO.portrait.alt}
-              sizes="92px"
+              sizes="(min-width: 640px) 156px, 92px"
               rotate="cw"
               border="b"
               compact
               load="eager"
-              className="mb-4 w-28 sm:float-left sm:mr-5 sm:mb-1"
+              className="mb-4 w-28 sm:float-left sm:mr-5 sm:mb-1 sm:w-44"
             />
             <p className="max-w-prose">{HERO.intro}</p>
           </div>

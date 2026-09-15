@@ -27,10 +27,12 @@ type InterestBlock = { body: string; photos: readonly SitePhoto[] };
 
 export const HERO = {
   headline: "field notes",
-  // Positioning statement (SPEC §1); wording finalized at v1.5. The
-  // absence of "Senior" is deliberate — see SPEC §1.
+  // Positioning statement (SPEC §1); wording chosen by Suyu at v1.7. The
+  // absence of "Senior" is deliberate — see SPEC §1. Its copies in
+  // lib/site.ts, app/opengraph-image.tsx and the /about description follow
+  // any change here (SPEC §6.5 sync rule).
   intro:
-    "I'm Suyu. Six years building the systems businesses actually run on: planning, approvals, assets, sales. End to end, and lately with AI features on top.",
+    "Hello, I'm Suyu. For six years, I've built the backbone of business operations: planning, approvals, assets, and sales. I create complete, efficient solutions, and lately, I'm integrating AI to make them even smarter.",
   subline: "Toronto · full-stack · ERP & business systems · AI integration",
   doodleCaption: "calibration, hand-checked",
   // Beside the intro (SPEC §6.1, v1.6 P7): alt text, no caption.

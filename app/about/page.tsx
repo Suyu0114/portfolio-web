@@ -6,7 +6,7 @@ import { ABOUT, CONTACT } from "@/lib/siteContent";
 export const metadata: Metadata = {
   title: "about",
   description:
-    "Suyu — Toronto-based full-stack engineer: six years of ERP, CRM, and business systems, now with AI features on top.",
+    "Suyu — Toronto-based full-stack engineer: six years of ERP, CRM, and business systems, now integrating AI.",
 };
 
 // `sizes` below is the photo's own width, not its frame's: the frame adds
