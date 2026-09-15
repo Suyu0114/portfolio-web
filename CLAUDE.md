@@ -4,14 +4,16 @@ Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
 Static Next.js site, English-only, no backend — except the narrowly
 scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` (site, currently v1.7) and `SPEC-CHATBOT.md` (chatbot,
-currently v2.7) are the source of truth for scope, IA, design tokens,
+`SPEC.md` (site, currently v1.8) and `SPEC-CHATBOT.md` (chatbot,
+currently v2.12) are the source of truth for scope, IA, design tokens,
 and content. `SPEC_v1.5_amendment.md` is the source of truth for the
 v1.5 repositioning specifically; its outcome is already folded into
 SPEC.md's v1.5 version block, so read it only for the rationale or for
 the seven implementation deviations in its §11. `SPEC_v1.6_amendment.md`
 plays the same role for v1.6 (UX polish, then personal photos), and its
-§15 records the agreed implementation choices. If implementation
+§15 records the agreed implementation choices. `SPEC_v1.8_amendment.md`
+does the same for v1.8 (hero actions and the note-card hover), and its
+§11 records the choices made while building them. If implementation
 conflicts with any of these, STOP and flag the conflict — do not
 improvise a resolution.
 
@@ -96,6 +98,9 @@ improvise a resolution.
   components. Do not hand-roll new wobble styles per page.
 - Rotation accents stay within ±1.5deg. No gradients, no drop shadows,
   no texture images — the hand-drawn feel comes from line work only.
+  One exception, since v1.8: the note card's corner curl on hover
+  (SPEC.md §4.3) uses a gradient and a soft shadow, mixed only from the
+  frozen tokens.
 - Accessibility baseline: visible focus states everywhere, alt text on
   every image, body-text contrast ≥ 4.5:1, `prefers-reduced-motion`
   respected for any animation.
@@ -114,7 +119,7 @@ improvise a resolution.
 
 - Design decisions happen with Suyu in claude.ai; this repo implements
   SPEC.md phases P0–P5, then SPEC-CHATBOT.md phases C0–C9, **in order**,
-  then SPEC.md phases P6–P7 (v1.6).
+  then SPEC.md phases P6–P7 (v1.6) and P8 (v1.8).
 - Each phase ends with its acceptance checklist (SPEC.md §9 /
   SPEC-CHATBOT.md §9) fully passing. Do not start the next phase with
   failing items.

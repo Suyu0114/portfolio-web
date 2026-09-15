@@ -159,6 +159,21 @@ conciseness 75, which was never on it despite being the default. No
 route, service, env var, or schema change, and the §2 allowlist is
 untouched. Token and reply-length figures in §6 and §7 are re-measured,
 since both the cached prefix and the uncached dial turn change.
+v2.12 (2026-09-14, per Suyu): a second way into the widget. The home
+hero's `chat with PATS` button (SPEC.md v1.8) opens the same panel as the
+corner button, so there is still one panel, one thread and one session.
+Three things in §6 change to allow it. The trigger ships no client JS: it
+is server-rendered HTML carrying `data-open-chat`, and `ChatWidget` opens
+the panel from one click listener on the document, so the trigger adds
+nothing to §1 criterion 4's first-load JS and the case study's "Only the
+entry button ships in the first-load bundle" stays true. Focus now
+returns to whichever control opened the panel, without scrolling, and
+falls back to the corner button once a client-side navigation has
+unmounted that control; §6 said "the button" when there was only one.
+And a trigger pressed while the panel is already open moves focus back
+into the input instead of doing nothing. The §2 allowlist is untouched:
+no route, service, env var, schema, or workflow change. Acceptance is
+SPEC.md §9 P8. Source of truth: `SPEC_v1.8_amendment.md`.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -638,6 +653,39 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   20px and the size cannot be reduced (rule 5), the longer string is a
   layout constraint: verify it neither wraps nor overflows at 360px
   viewport width, trimming horizontal padding rather than type size.
+- **In-page triggers (v2.12).** A second way in, placed in the page
+  flow rather than fixed in the corner. There is one: the
+  `chat with PATS` button in the home hero (SPEC.md §6.1),
+  `components/OpenChatButton.tsx`.
+  - **Same widget.** It opens the panel through the same path as the
+    corner button, so it never mounts a second panel, thread or
+    session.
+  - **No client JS of its own.** Any element carrying `data-open-chat`
+    opens the panel: `ChatWidget` registers one `click` listener on the
+    document and matches the target with `closest()`. The trigger stays
+    a server component, so it adds nothing to §1 criterion 4's
+    first-load JS. Keyboard activation needs nothing extra, because
+    Enter and Space on a `<button>` dispatch `click`. The selector is
+    exported from the same file as the markup, so the two cannot drift
+    apart.
+  - **Focus comes back to it, without scrolling** (see A11y). Hiding is
+    the action that costs nothing (*Minimize vs end*, below); a visitor
+    who kept reading further down while chatting would otherwise be
+    pulled back up to the hero.
+  - **Pressed while the panel is open**, it moves focus back into the
+    input. The panel refocuses on every open request, not only when it
+    becomes visible.
+  - **Its label is static.** The corner button switches to "back to my
+    AI notes - PATS" when a thread is waiting; a server component cannot
+    read `sessionStorage`, so the trigger does not.
+  - **`aria-haspopup="dialog"`, no `aria-expanded`.** The popup
+    semantics match the corner button, but a server component cannot
+    know whether the panel is open, so `aria-expanded` could only ever
+    say "false". Its accessible name is its visible label (WCAG 2.5.3).
+  - Its look is SPEC.md's to define (§4.1, §6.1). Like the corner
+    button, it is filled with `--accent` under a `--card` label and
+    carries the speech-bubble mark, which now lives in
+    `components/SpeechBubble.tsx`.
 - **Panel.** `--card` background, `.sk-border-a` frame, JetBrains Mono
   body text. User vs bot messages distinguished by **border treatment**
   (e.g. `.sk-border-a` vs `.sk-border-b` + alignment), not by new
@@ -877,9 +925,11 @@ lazy-loaded so it adds no meaningful first-load JS and no CLS.
   The reason travels on a response header, not in the streamed body,
   which keeps it out of the logged reply and therefore out of §8's gap
   count.
-- **A11y.** Visible focus states; focus moves into the panel on open
-  and returns to the button on both hide and end; Esc minimizes, and is
-  bound only while the panel is visible so a minimized panel never
+- **A11y.** Visible focus states; focus moves into the panel on every
+  open request, and on both hide and end returns to the control that
+  opened it: an in-page trigger if it is still in the document, focused
+  without scrolling, otherwise the corner button (v2.12); Esc minimizes,
+  and is bound only while the panel is visible so a minimized panel never
   swallows it; both dismiss controls carry an `aria-label` containing
   their visible word (WCAG 2.5.3); `aria-live="polite"`
   on the message region; disclosure line ≥ 4.5:1 contrast (`--muted` on

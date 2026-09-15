@@ -10,6 +10,8 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import { OPEN_CHAT_SELECTOR } from "@/components/OpenChatButton";
+import SpeechBubble from "@/components/SpeechBubble";
 import {
   clearChat,
   hasStoredTurns,
@@ -24,6 +26,11 @@ import {
  * streaming logic are imported on first open, so the widget adds no meaningful
  * first-load JS. Both button and panel are `position: fixed`, so neither can
  * contribute to CLS.
+ *
+ * The corner button is not the only way in. Anything matching
+ * `OPEN_CHAT_SELECTOR` (the home hero's `OpenChatButton`) opens the same panel
+ * through one click listener on the document, which is what lets those
+ * triggers stay server-rendered and keeps the first-load claim above true.
  *
  * Hiding and ending are separate actions (§6). Hiding keeps the panel mounted
  * behind `display: none`, so the thread, the draft, and an in-flight reply all
@@ -49,24 +56,6 @@ const COPY = {
   resume: "back to my AI notes - PATS",
 } as const;
 
-/** Hand-drawn speech bubble — ink line work only, no fill, no shadow (§6). */
-function SpeechBubble() {
-  return (
-    <svg
-      viewBox="0 0 32 26"
-      aria-hidden="true"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3.4 5.2C3 3.6 4.2 2.2 6 2.1c6.6-.5 13.3-.4 20 .1 1.7.1 2.8 1.3 2.7 2.9-.2 3.9-.3 7.7-.1 11.6.1 1.6-1.1 2.9-2.8 3-4 .3-8 .3-12 .2l-6.2 4.4c-.5.4-1.2 0-1.1-.7l.5-3.9c-1.2-.1-2.4-.5-3.2-1.4-.5-.6-.6-1.4-.6-2.2.1-3.6.4-7.2.2-10.9Z" />
-    </svg>
-  );
-}
-
 export default function ChatWidget({
   projectTitles,
 }: {
@@ -79,24 +68,42 @@ export default function ChatWidget({
   const [mounted, setMounted] = useState(false);
   // Bumping this remounts the panel, which is how ending a chat resets it.
   const [threadKey, setThreadKey] = useState(0);
+  // Bumped by every open request. The panel moves focus to its input when this
+  // changes, so a hero trigger pressed while the panel is already open still
+  // puts the visitor in the chat instead of appearing to do nothing.
+  const [focusRequest, setFocusRequest] = useState(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  // The in-page trigger that opened the panel, or null for the corner button.
+  const openerRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
   const match = /^\/projects\/([^/]+)$/.exec(pathname ?? "");
   const projectTitle = match ? (projectTitles[match[1]] ?? null) : null;
 
-  // §6 a11y — focus returns to the entry button when the panel is dismissed.
+  // §6 a11y — focus returns to the control that opened the panel when the
+  // panel is dismissed.
   //
-  // The button is unmounted while the panel is open, so it cannot be focused
-  // in the handler itself — the ref is still null at that point. Flag the
-  // intent instead and focus once the button has re-rendered. The flag starts
-  // false so this never steals focus on first mount.
+  // The corner button is unmounted while the panel is open, so it cannot be
+  // focused in the handler itself — the ref is still null at that point. Flag
+  // the intent instead and focus once the button has re-rendered. The flag
+  // starts false so this never steals focus on first mount.
   const restoreFocus = useRef(false);
 
   useEffect(() => {
     if (!open && restoreFocus.current) {
       restoreFocus.current = false;
-      buttonRef.current?.focus();
+      const opener = openerRef.current;
+      openerRef.current = null;
+      // An in-page trigger only gets focus back while it is still in the
+      // document: a client-side navigation since opening will have unmounted
+      // it, and the corner button is always there. preventScroll because
+      // hiding costs nothing (§6), so a visitor who kept reading while they
+      // chatted is not pulled back up to the hero.
+      if (opener?.isConnected) {
+        opener.focus({ preventScroll: true });
+      } else {
+        buttonRef.current?.focus();
+      }
     }
   }, [open]);
 
@@ -110,6 +117,27 @@ export default function ChatWidget({
     hasStoredTurns,
     () => false,
   );
+
+  const openPanel = useCallback((opener: HTMLElement | null) => {
+    openerRef.current = opener;
+    setMounted(true);
+    setOpen(true);
+    setFocusRequest((request) => request + 1);
+  }, []);
+
+  // Triggers rendered outside this component. One delegated listener instead
+  // of a handler per trigger is what keeps them plain server-rendered HTML.
+  // Enter and Space on a button dispatch click as well, so keyboard use
+  // arrives here too.
+  useEffect(() => {
+    function onClick(event: MouseEvent) {
+      if (!(event.target instanceof Element)) return;
+      const trigger = event.target.closest<HTMLElement>(OPEN_CHAT_SELECTOR);
+      if (trigger !== null) openPanel(trigger);
+    }
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [openPanel]);
 
   const hide = useCallback(() => {
     restoreFocus.current = true;
@@ -131,6 +159,7 @@ export default function ChatWidget({
         <ChatPanel
           key={threadKey}
           open={open}
+          focusRequest={focusRequest}
           onHide={hide}
           onEnd={end}
           projectTitle={projectTitle}
@@ -140,10 +169,7 @@ export default function ChatWidget({
         <button
           ref={buttonRef}
           type="button"
-          onClick={() => {
-            setMounted(true);
-            setOpen(true);
-          }}
+          onClick={() => openPanel(null)}
           // No aria-label: the visible Caveat text is the accessible name. An
           // aria-label that did not contain it would break WCAG 2.5.3 Label in
           // Name, so voice-control users could not say what they can see.

@@ -43,7 +43,20 @@ from 112px to 176px wide from sm up and stays 112px on mobile (§6.1). At
 taller, and the first featured card still starts inside the viewport.
 Amends §1, §6.1, and the §6.5 copies. The hero chat button draft
 previously numbered v1.7 becomes v1.8.
-Status: approved; all §10 inputs supplied (last updated 2026-09-14).
+v1.8 (2026-09-15, per Suyu): hero actions and a note-card hover. Under the
+sub-line, three filled hand-drawn buttons: `chat with PATS`, in `--accent`,
+opens the site-wide chat widget, and `about` and `interests`, in
+`--accent-2`, link to /about and to its interests section. The note cards
+tilt more slowly on hover, and their blank bottom-right corner curls up
+like a sticky note being peeled. The curl is the site's only gradient and
+shadow, an exception to CLAUDE.md's line-work-only convention that Suyu
+chose over an ink-only fold. Suyu asked for each change directly, and each
+was built before this entry was written; the choices made while building
+them are in `SPEC_v1.8_amendment.md` §11. Amends §2, §4.1, §4.3, §6.1,
+§6.4, §8, and §9 (adds P8). The widget side is SPEC-CHATBOT.md v2.12. No
+new route, service, env var, color token, or font. Source of truth for the
+change: `SPEC_v1.8_amendment.md`.
+Status: approved; all §10 inputs supplied (last updated 2026-09-15).
 
 ---
 
@@ -94,8 +107,9 @@ BI / research) so each recruiter type self-navigates to their keywords.
   (v1.6, §4.3). That moment uses up the old optional P4 scroll-reveal
   allowance.
 - The moment, and any motion in a hover state (such as the `SketchCard`
-  tilt), runs only under `prefers-reduced-motion: no-preference`.
-  Everyone else sees the static end state immediately.
+  tilt and corner curl), runs only under
+  `prefers-reduced-motion: no-preference`. Everyone else sees the static
+  end state immediately.
 - No page transitions, parallax, custom cursors, typing effects, or
   smooth scrolling.
 - Analytics: Vercel Analytics only, optional, added at P5 if desired.
@@ -152,6 +166,17 @@ the browser's default blue. No new token.
   `--card` with small padding, tilted ≤ 1deg.
 - No shadow, tape, sticker or texture (CLAUDE.md rule 4 and conventions).
 
+**Hero buttons (v1.8).** The home hero's three actions (§6.1) are filled
+buttons: `chat with PATS` in `--accent`, like the chat widget's corner
+button (SPEC-CHATBOT.md §6), and `about` and `interests` in `--accent-2`.
+- Labels are `--card`, the near-white the corner button already uses:
+  4.79:1 on `--accent` and 4.82:1 on `--accent-2`. 20px Caveat is
+  normal-size text under WCAG, so it needs 4.5:1.
+- On hover the fill turns `--ink` (14.71:1), since `--card` on `--rule`
+  would be only 1.52:1.
+- The chat button's solid `--accent` counts toward the accent budget
+  above, and P8 measures it. No new token.
+
 ### 4.2 Typography
 
 - Display (handwriting): headings h1–h2, hand notes, chart labels.
@@ -179,9 +204,22 @@ the browser's default blue. No new token.
 - `SketchCard`: the whole card is the click target.
   - It is still one link, stretched over the card, and keeps its
     distinct accessible name (`read case study: {title}`).
-  - On hover the card tilts 0.5deg: variant a clockwise, variant b
-    counter-clockwise.
-  - Tilt only under `motion-safe`. No shadow, no lift, no color change.
+  - On hover the card tilts 0.5deg (variant a clockwise, variant b
+    counter-clockwise) over 400ms with an ease-out (v1.8; v1.6 shipped
+    Tailwind's 150ms default, which Suyu found too quick).
+  - On the same ease, its bottom-right corner curls up like a sticky note
+    being peeled (v1.8). Where the corner lifted, the page shows through,
+    shaded along the crease. The flap is the note's back: shaded with a
+    gradient, outlined in ink, and casting a soft shadow on the card. It is
+    about 48px, over the corner that holds no text.
+  - The curl is the site's only gradient and shadow (CLAUDE.md
+    conventions). Every color in it is one of the frozen tokens `--ink`,
+    `--rule`, `--card` and `--paper`, or a `color-mix()` of them, so
+    nothing outside §4.1 appears. The card itself gains no shadow, no lift
+    and no color change.
+  - Tilt and curl run only under `motion-safe`, and only on devices that
+    hover. The curl ignores pointer events, so the whole card stays the
+    click target.
 - `Figure`: screenshot wrapped in a sketch border with a handwritten
   caption line beneath.
 - `Photo` (P7): a statically imported photo in a sketch border.
@@ -237,6 +275,19 @@ Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
    and stacks under the headline. It has alt text and no caption. The
    calibration doodle is unchanged. The portrait loads eagerly, and gets
    `preload` only if Lighthouse reports it as the page's LCP element.
+   **Actions (v1.8, P8).** On their own line under the sub-line, three
+   hand-drawn buttons in this order: `chat with PATS`, which opens the
+   site-wide chat widget, the same panel as the corner button
+   (SPEC-CHATBOT.md §6); `about`, a link to `/about`; and `interests`, a
+   link to the interests section of `/about` (§6.4). They share one frame:
+   an `--ink` outline, alternating `.sk-border-b` and `.sk-border-a`, a
+   Caveat label at 20px in `--card`, and a ±1deg tilt that alternates too.
+   The chat button is filled with `--accent`, like the corner button, and
+   the two links with `--accent-2` (§4.1). Only the chat button carries an
+   icon, the widget's speech-bubble mark in the label's color, so the one
+   action that opens something instead of changing page is the one that
+   looks different. On hover each fills with `--ink`, and nothing moves. On
+   narrow screens the row wraps rather than shrinking its labels.
 2. **Featured notes.** Section head + DoodleArrow. Three `SketchCard`s
    in order: the assistant on this site (`ask-my-notes`), BlueJaysFanWeb,
    World Cup platform (§7, order updated v1.5; the pre-registered study
@@ -336,7 +387,9 @@ are server-rendered, with no client JS.
 - Portrait (v1.6, P7): the same photo as the hero, beside the bio. It
   floats right on desktop and is centered above the bio on mobile.
 - Interests, in blocks of one paragraph plus optional photos. Personality
-  lives here, stated plainly and confidently.
+  lives here, stated plainly and confidently. The interests section
+  carries `id="interests"` (v1.8), the target of the hero's `interests`
+  link. The jump is instant (§2: no smooth scrolling).
   1. MLB/Blue Jays, with two photos at Rogers Centre. Wording unchanged
      from v1.5.
   2. BaZi (八字) as a genuine long-term interest and the origin of the
@@ -487,7 +540,8 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 
 `Nav`, `NavLinks` (client, v1.6), `Footer`, `SketchCard`, `TagPill`,
 `WobblyUnderline`, `DoodleArrow`, `Figure`, `Photo` (v1.6),
-`CaseStudyContents` (v1.6), `NextNote` (v1.6), `RoughChart` (client),
+`CaseStudyContents` (v1.6), `NextNote` (v1.6), `SketchButtonLink` (v1.8),
+`OpenChatButton` (v1.8), `SpeechBubble` (v1.8), `RoughChart` (client),
 `FacetFilter` (client), `ContactStrip`, MDX component map (headings with
 optional underline and h2 slug ids, `Figure`, code blocks in mono on
 `--card`).
@@ -579,6 +633,52 @@ Work:
   CLS on `/` or `/about`.
 - **Content:** every fact in the new copy traces to
   `SPEC_v1.6_amendment.md` §6.1 or to the knowledge pack.
+
+**P8 — hero actions and note-card hover (v1.8).**
+Work:
+- The hero's action row: `OpenChatButton` and two `SketchButtonLink`s,
+  sharing one filled frame, with `SpeechBubble` shared with the corner
+  button.
+- `ChatWidget`: the document-level open listener, and focus return to
+  whichever control opened the panel. `ChatPanel`: refocus on every open
+  request.
+- The id on `/about`'s interests section.
+- `SketchCard`: the 400ms tilt and the corner curl.
+
+✓ when:
+- **Build gates:** lint, typecheck, `npm run check` and build all pass
+  with zero env vars.
+- **Placement:** the row sits on its own line under the sub-line,
+  left-aligned with it, in the order chat, about, interests; every label
+  is Caveat ≥ 20px.
+- **Colors:** the chat button is filled with `--accent` and the links
+  with `--accent-2`; labels and the speech bubble are `--card`; outlines
+  are `--ink`. Hovered, each fills with `--ink`. Label contrast is
+  ≥ 4.5:1 at rest and hovered.
+- **Links:** `about` opens `/about`; `interests` lands on the top of the
+  interests section; Tab reaches chat, then about, then interests.
+- **Opening:** a click, Enter and Space each open the panel with focus
+  in the input. Pressed while the panel is open, the chat button moves
+  focus back into the input, and there is still exactly one panel.
+- **Focus return:** hide and end chat both return focus to the chat
+  button without changing the scroll position. After a client-side
+  navigation away from `/`, they return it to the corner button. The
+  corner button's own open and return behaviour is unchanged.
+- **No client JS:** the production client chunks contain the
+  `[data-open-chat]` selector and none of the action row's markup.
+- **Cards:** at rest, no tilt and no curl; hovered, the mirrored 0.5deg
+  tilt and the full curl, both over 400ms; a click inside the curl still
+  opens the case study; the same holds on `/projects`.
+- **Reduced motion emulated:** hovering a card neither tilts nor curls.
+- **Fold:** at 1366×768 the first featured card still starts inside the
+  viewport.
+- **Accent budget:** accent orange covers at most ~10% of the first
+  screen at 1366×768 and at 360×740, photos excluded (§4.1).
+- **Mobile:** at 360px the row wraps, no label wraps, and nothing scrolls
+  horizontally.
+- **Performance:** Lighthouse ≥ 95 ×3 on `/` (production build; the
+  median of three runs after a warm-up), and no CLS.
+- **Console:** no errors or warnings while doing all of the above.
 
 ## 10. Inputs Suyu must supply (blockers marked ⛔)
 

@@ -2,11 +2,13 @@ import Link from "next/link";
 import CalibrationDoodle from "@/components/CalibrationDoodle";
 import ContactStrip from "@/components/ContactStrip";
 import DoodleArrow from "@/components/DoodleArrow";
+import OpenChatButton from "@/components/OpenChatButton";
 import Photo from "@/components/Photo";
+import SketchButtonLink from "@/components/SketchButtonLink";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getAllProjects } from "@/lib/content";
-import { HERO } from "@/lib/siteContent";
+import { ABOUT, HERO } from "@/lib/siteContent";
 
 export default function Home() {
   // getAllProjects() is already sorted by frontmatter order.
@@ -42,6 +44,19 @@ export default function Home() {
           <p className="mt-5 inline-block -rotate-1 font-display text-xl font-medium text-accent-2">
             {HERO.subline}
           </p>
+          {/* The hero's actions (SPEC §6.1, v1.8): a button that opens the
+              chat, then two links. On narrow screens they wrap onto a second
+              line rather than shrink, because Caveat stays at 20px. */}
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <OpenChatButton label={HERO.chatCta} />
+            <SketchButtonLink href="/about" label={HERO.aboutCta} rotate="cw" />
+            <SketchButtonLink
+              href={`/about#${ABOUT.interestsId}`}
+              label={HERO.interestsCta}
+              border="b"
+              rotate="ccw"
+            />
+          </div>
         </div>
         <CalibrationDoodle />
       </section>
