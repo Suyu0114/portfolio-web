@@ -56,6 +56,8 @@ export const CONTACT = {
   email: "suyu0229@gmail.com",
   github: "https://github.com/Suyu0114",
   linkedin: "https://www.linkedin.com/in/suyu-cheng",
+  // Added 2026-09-15, per Suyu (v1.9).
+  medium: "https://medium.com/@suyu0229",
 } as const;
 
 export const FOOTER = {

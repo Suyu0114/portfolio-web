@@ -56,6 +56,16 @@ them are in `SPEC_v1.8_amendment.md` §11. Amends §2, §4.1, §4.3, §6.1,
 §6.4, §8, and §9 (adds P8). The widget side is SPEC-CHATBOT.md v2.12. No
 new route, service, env var, color token, or font. Source of truth for the
 change: `SPEC_v1.8_amendment.md`.
+v1.9 (2026-09-15, per Suyu): a Medium link, and small hand-drawn icons on
+the contact links. Adds `medium: "https://medium.com/@suyu0229"` to
+`CONTACT` (§10), alongside email/GitHub/LinkedIn. Each of the four links
+in Footer, ContactStrip, and /about's contact block now carries a small
+stroke-only glyph (`ContactIcons`, `currentColor`, no fill) ahead of its
+label, decorative and `aria-hidden` since the label already names the
+platform — line work only, no new color token, per CLAUDE.md rule 4. The
+three call sites, previously identical duplicated markup, now share one
+`ContactLinks` component. Amends §5 (footer line), §6.1.3, §8, and §10. No
+new route, service, env var, color token, or font.
 Status: approved; all §10 inputs supplied (last updated 2026-09-15).
 
 ---
@@ -255,8 +265,8 @@ It is visually hidden until focused and jumps past the nav. (v1.6. The
 `home` link has been in the code since `1c3a580`, 2026-08-22; this line
 records it rather than adding it.)
 
-Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
-("drawn with rough.js").
+Footer: email · GitHub · LinkedIn · Medium (§10), each with a small
+hand-drawn icon (v1.9), + small hand note ("drawn with rough.js").
 
 ## 6. Page specs
 
@@ -296,8 +306,8 @@ Footer: email · GitHub · LinkedIn (TODO §10) + small hand note
    one-liner (13px), `read case
    study →` link in `--accent`. Below the grid: quiet text link
    `all projects →` to `/projects`.
-3. **Contact strip.** One line: availability + email + GitHub/LinkedIn
-   icons-as-text links. No form.
+3. **Contact strip.** One line: availability + email + GitHub/LinkedIn/
+   Medium icons-as-text links (v1.9). No form.
 
 ### 6.2 /projects
 
@@ -542,9 +552,9 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 `WobblyUnderline`, `DoodleArrow`, `Figure`, `Photo` (v1.6),
 `CaseStudyContents` (v1.6), `NextNote` (v1.6), `SketchButtonLink` (v1.8),
 `OpenChatButton` (v1.8), `SpeechBubble` (v1.8), `RoughChart` (client),
-`FacetFilter` (client), `ContactStrip`, MDX component map (headings with
-optional underline and h2 slug ids, `Figure`, code blocks in mono on
-`--card`).
+`FacetFilter` (client), `ContactStrip`, `ContactLinks` (v1.9),
+`ContactIcons` (v1.9), MDX component map (headings with optional
+underline and h2 slug ids, `Figure`, code blocks in mono on `--card`).
 
 ## 9. Phases & acceptance
 
@@ -685,6 +695,7 @@ Work:
 - ✅ Display name: "Suyu" (nav wordmark "Suyu.", metadata "— Suyu").
 - ✅ Contact (supplied 2026-07-08): suyu0229@gmail.com ·
   https://github.com/Suyu0114 · https://www.linkedin.com/in/suyu-cheng
+- ✅ Medium (supplied 2026-09-15, v1.9): https://medium.com/@suyu0229
 - ✅ Availability (updated 2026-08-08 for v1.5, supersedes the 2026-07-30
   wording): "Available now for full-time full-stack and software
   engineering roles — Toronto-based, open to relocation."

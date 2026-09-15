@@ -26,6 +26,7 @@ someone needs specifics, point them to Suyu.
 - Email: suyu0229@gmail.com
 - GitHub: https://github.com/Suyu0114
 - LinkedIn: https://www.linkedin.com/in/suyu-cheng
+- Medium: https://medium.com/@suyu0229
 
 Email is the best route for anything the notes do not cover.
 

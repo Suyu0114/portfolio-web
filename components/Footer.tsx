@@ -1,4 +1,5 @@
-import { CONTACT, FOOTER } from "@/lib/siteContent";
+import ContactLinks from "./ContactLinks";
+import { FOOTER } from "@/lib/siteContent";
 
 export default function Footer() {
   return (
@@ -9,27 +10,7 @@ export default function Footer() {
             is what satisfies axe link-in-text-block; the color stays --muted
             per SPEC §4.1 ("captions, nav links, meta"). */}
         <p className="text-sm text-muted">
-          <a href={`mailto:${CONTACT.email}`} className="underline hover:text-ink">
-            {CONTACT.email}
-          </a>
-          {" · "}
-          <a
-            href={CONTACT.github}
-            target="_blank"
-            rel="noreferrer"
-            className="underline hover:text-ink"
-          >
-            GitHub
-          </a>
-          {" · "}
-          <a
-            href={CONTACT.linkedin}
-            target="_blank"
-            rel="noreferrer"
-            className="underline hover:text-ink"
-          >
-            LinkedIn
-          </a>
+          <ContactLinks linkClassName="underline hover:text-ink" />
         </p>
         <p className="font-display text-xl text-muted">{FOOTER.handNote}</p>
       </div>

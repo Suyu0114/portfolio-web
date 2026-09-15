@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ContactLinks from "@/components/ContactLinks";
 import Photo from "@/components/Photo";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { ABOUT, CONTACT } from "@/lib/siteContent";
@@ -103,27 +104,7 @@ export default function AboutPage() {
           <span className="text-ink-soft">{CONTACT.availability}</span>
           {" · "}
           {/* Resting underline, matching ContactStrip — see the note there. */}
-          <a href={`mailto:${CONTACT.email}`} className="text-accent underline">
-            {CONTACT.email}
-          </a>
-          {" · "}
-          <a
-            href={CONTACT.github}
-            target="_blank"
-            rel="noreferrer"
-            className="text-accent underline"
-          >
-            GitHub
-          </a>
-          {" · "}
-          <a
-            href={CONTACT.linkedin}
-            target="_blank"
-            rel="noreferrer"
-            className="text-accent underline"
-          >
-            LinkedIn
-          </a>
+          <ContactLinks linkClassName="text-accent underline" />
         </p>
       </section>
     </main>
