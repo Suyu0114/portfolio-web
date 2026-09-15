@@ -38,10 +38,10 @@ export default function OpenChatButton({
       // Matches the corner button. No aria-expanded: a server component cannot
       // know whether the panel is open, so it could only ever say "false".
       aria-haspopup="dialog"
-      // Ink outline rather than the corner button's solid --accent: the hero
-      // already carries the underline and the doodle in accent, and SPEC.md
-      // §4.1 keeps accent to about a tenth of the screen.
-      className={sketchButtonClass(border, rotate, className)}
+      // Solid --accent like the corner button, so both ways into the chat look
+      // alike; the links beside it are --accent-2 (SPEC.md §6.1, v1.8). This
+      // fill counts toward §4.1's accent budget of about a tenth of the screen.
+      className={sketchButtonClass("accent", border, rotate, className)}
     >
       <SpeechBubble />
       <span className={SKETCH_BUTTON_LABEL}>{label}</span>
