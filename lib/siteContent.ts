@@ -34,9 +34,13 @@ export const HERO = {
   intro:
     "Hello, I'm Suyu. For six years, I've built the backbone of business operations: planning, approvals, assets, and sales. I create complete, efficient solutions, and lately, I'm integrating AI to make them even smarter.",
   subline: "Toronto · full-stack · ERP & business systems · AI integration",
-  // Opens the site-wide chat widget from the hero (OpenChatButton). The corner
-  // button keeps its own SPEC-CHATBOT §6 label; this is a second way in.
+  // The hero's three actions (SPEC §6.1, v1.8). The first opens the site-wide
+  // chat widget (OpenChatButton); the corner button keeps its own
+  // SPEC-CHATBOT §6 label, so this is a second way in. The other two link to
+  // /about and to its interests section.
   chatCta: "chat with PATS",
+  aboutCta: "about",
+  interestsCta: "interests",
   doodleCaption: "calibration, hand-checked",
   // Beside the intro (SPEC §6.1, v1.6 P7): alt text, no caption.
   portrait: {
@@ -132,6 +136,10 @@ const INTERESTS: readonly InterestBlock[] = [
  */
 export const ABOUT = {
   headline: "about",
+  // The interests section's id, which the hero's interests link jumps to
+  // (SPEC §6.1 and §6.4, v1.8). One constant rather than two literals:
+  // check-links drops the fragment, so nothing would catch them drifting.
+  interestsId: "interests",
   // Beside the bio (SPEC §6.4, v1.6 P7): the hero's photo, alt text only.
   portrait: {
     image: portrait,

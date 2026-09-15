@@ -63,8 +63,9 @@ export default function AboutPage() {
 
       {/* Interests as blocks of a paragraph plus a row of photos (SPEC §6.4,
           v1.6). A pair stays two-up at every width; a single photo is capped
-          so a low-resolution still isn't stretched across the column. */}
-      <section className="mt-12">
+          so a low-resolution still isn't stretched across the column. The id
+          is the target of the home hero's interests link (v1.8). */}
+      <section id={ABOUT.interestsId} className="mt-12">
         <h2 className="font-display text-2xl font-medium">interests</h2>
         <div className="mt-3 space-y-8">
           {ABOUT.interests.map((block) => (

@@ -1,4 +1,9 @@
 import SpeechBubble from "@/components/SpeechBubble";
+import {
+  SKETCH_BUTTON_LABEL,
+  sketchButtonClass,
+  type SketchRotate,
+} from "@/lib/sketchButton";
 
 /**
  * Selector for any control that opens the chat panel — SPEC-CHATBOT §6.
@@ -17,9 +22,13 @@ export const OPEN_CHAT_SELECTOR = "[data-open-chat]";
  */
 export default function OpenChatButton({
   label,
+  border = "b",
+  rotate = "ccw",
   className = "",
 }: {
   label: string;
+  border?: "a" | "b";
+  rotate?: SketchRotate;
   className?: string;
 }) {
   return (
@@ -32,13 +41,10 @@ export default function OpenChatButton({
       // Ink outline rather than the corner button's solid --accent: the hero
       // already carries the underline and the doodle in accent, and SPEC.md
       // §4.1 keeps accent to about a tenth of the screen.
-      className={`sk-border-b bg-card text-ink hover:bg-rule flex w-fit -rotate-1 items-center gap-1.5 px-3 py-1.5 ${className}`}
+      className={sketchButtonClass(border, rotate, className)}
     >
       <SpeechBubble />
-      {/* Caveat is display-only and never below 20px (CLAUDE.md rule 5). */}
-      <span className="font-display text-xl leading-none whitespace-nowrap">
-        {label}
-      </span>
+      <span className={SKETCH_BUTTON_LABEL}>{label}</span>
     </button>
   );
 }
