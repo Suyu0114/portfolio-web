@@ -700,14 +700,15 @@ Work:
   wording): "Available now for full-time full-stack and software
   engineering roles — Toronto-based, open to relocation."
 - ✅ **Work authorization — wording is exact.** Suyu is a Taiwanese
-  citizen. The three-year post-graduation work permit is **applied for,
-  not issued**; IRCC has granted interim work authorization; no employer
-  sponsorship is required. Public-facing and bot-facing copy says only:
+  citizen, authorized to work in Canada, and no employer sponsorship is
+  required. Public-facing and bot-facing copy says only:
   "authorized to work in Canada, no employer sponsorship required".
-  Never "three-year" / "3-yr", never an issued permit, never a permit
-  type, and never speculation about dates, renewals, or permanent
-  residency — point specifics to Suyu. (Confirmed 2026-08-08; see
-  `SPEC_v1.5_amendment.md` §11.3.)
+  Never a term of years such as "three-year" / "3-yr", never the
+  permit's status, never a permit type, and never speculation about
+  dates, renewals, or permanent residency — point specifics to Suyu.
+  (Confirmed 2026-08-08; see `SPEC_v1.5_amendment.md` §11.3. The status
+  detail behind this ruling is deliberately not recorded in this
+  repository, which is public.)
 - ✅ Domain: v1 uses the Vercel origin
   `https://suyu-portfolio.vercel.app` (SPEC §10 `*.vercel.app`
   fallback); custom domain is a future swap of `SITE_URL` in `lib/site.ts`.

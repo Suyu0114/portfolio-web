@@ -174,6 +174,18 @@ And a trigger pressed while the panel is already open moves focus back
 into the input instead of doing nothing. The §2 allowlist is untouched:
 no route, service, env var, schema, or workflow change. Acceptance is
 SPEC.md §9 P8. Source of truth: `SPEC_v1.8_amendment.md`.
+v2.13 (2026-09-19, per Suyu): pre-publication hardening, two items,
+prompted by the decision to make this repository public. Publishing the
+source publishes the admin surface's design, so §8 gains a login throttle
+and §5 gains the `admin_login_attempts` table behind it: five attempts per
+IP hash per fifteen minutes, failing closed the way §7's chat limits do.
+Until now `/api/admin/login` accepted unlimited guesses at a single
+password. Second, §5's disclosure line regains a storage clause,
+reversing the v2.5 removal at Suyu's request; his reasoning is that
+handling visitor data visibly is worth more to the employers he is
+targeting than the shorter line is. The §2 allowlist is otherwise
+untouched: no new route, service, env var, or workflow, and the new table
+is a schema addition rather than a new dependency.
 Status: deployed and live (confirmed by Suyu 2026-08-07). Implemented
 with Opus 5 in phases C0–C4 (§9), after SPEC.md P0–P5 (all complete).
 
@@ -550,14 +562,20 @@ chat_insights  (id bigint generated always as identity primary key,
 keepalive      (id smallint primary key check (id = 1),  -- v2.10: exactly one row, ever
                 last_ping timestamptz,
                 ping_count bigint)
+
+admin_login_attempts                          -- v2.13: backs the §8 login throttle
+               (id bigint generated always as identity primary key,
+                ip_hash text,                 -- HMAC-SHA256(ip, ADMIN_COOKIE_SECRET), as above
+                attempted_at timestamptz default now())
 ```
 
 - RLS enabled with **no** public policies; all access via service key
   from server code only.
 - **Privacy.** Raw IPs are never stored (hash only, for rate limiting).
   No intentional PII collection; visitors are not asked for name/email.
-  The widget shows a permanent line under the input. **v2.5:** *"Leave
-  your email and PATS will let him know."*
+  The widget shows a permanent line under the input. **v2.13:** *"Chats
+  are stored so Suyu can read them. Leave your email and PATS will let
+  him know."*
 
   It names the **trigger**, not a general promise to forward messages:
   leaving a handle is exactly what §7's detector matches, so a visitor
@@ -565,17 +583,25 @@ keepalive      (id smallint primary key check (id = 1),  -- v2.10: exactly one r
   message and PATS will email it" would overpromise on every plain-text
   message that matches nothing.
 
-  **The recording clause was removed in v2.5, deliberately.** Earlier
+  **The storage clause: removed in v2.5, restored in v2.13.** Earlier
   versions opened the line with it (v2.0 "Chats are recorded so Suyu can
   improve these notes"; v2.3 "read them and improve these notes"; v2.4
-  "Chats are recorded so Suyu can read them."). Suyu was shown that
-  removing it leaves the site with no visible notice that transcripts are
-  kept for 365 days and read in `/study`, while the same line solicits an
-  email address, and chose removal anyway. **Do not restore it as a bug
-  fix.** It is a product decision, not drift, and reversing it needs
-  Suyu, not a session that noticed the asymmetry. The remaining channel
-  is `faq.md`, which still records that conversations are logged, so PATS
-  answers honestly when a visitor asks.
+  "Chats are recorded so Suyu can read them."). In v2.5 Suyu was shown
+  that removing it leaves the site with no visible notice that
+  transcripts are kept for 365 days and read in `/study`, while the same
+  line solicits an email address, and chose removal anyway. That ruling
+  stood until v2.13, when making the repository public changed the
+  calculus: the logging becomes legible to anyone reading `§5` and
+  `lib/contactSignal.ts`, and Suyu judged that a visible notice is worth
+  more to the employers he is targeting than the shorter line. He asked
+  for it back directly.
+
+  **Neither half of that is drift, so do not silently revert either
+  one.** The clause is there because Suyu asked for it on 2026-09-19, not
+  because a session noticed the asymmetry, and removing it again needs
+  him. `faq.md` remains the second channel and still records that
+  conversations are logged, so PATS answers consistently when a visitor
+  asks.
 - **Retention.** Raw transcripts kept 365 days (chosen by Suyu
   2026-08-03; this file said 180 until v2.3 corrected it, while §10
   always left the period to him); manual cleanup is acceptable for v1,
@@ -1071,6 +1097,16 @@ Suyu's own study room in the notebook metaphor).
   sets an httpOnly, `Secure`, `SameSite=Lax` cookie containing an
   HMAC-SHA256 signature (`ADMIN_COOKIE_SECRET`) with a 7-day expiry.
   No user table, no OAuth — one operator.
+- **Login throttle (v2.13).** `/api/admin/login` records every attempt
+  in `admin_login_attempts` keyed by the same `ip_hash` §5 uses, and
+  refuses once one IP hash reaches **5 attempts in 15 minutes**, with a
+  429. One operator and one password means there is no account to lock
+  out, so the window simply expires. It **fails closed** like §7's chat
+  limits: if the attempt table cannot be read, the login is refused
+  rather than waved through, because "we could not check" must never
+  resolve to "go ahead" on the one route that guards everything else.
+  A correct password inside a throttled window is refused too; that is
+  the point of a throttle, and the operator waits 15 minutes.
 - **Pages.**
   - `/study` — session list, newest first: started_at, entry page,
     message count, first user question as preview.

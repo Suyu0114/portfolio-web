@@ -52,6 +52,15 @@ create table if not exists public.chat_insights (
   model         text
 );
 
+-- v2.13 — one row per admin login attempt, successful or not, backing the §8
+-- throttle. Keyed by the same HMAC-SHA256 ip_hash the chat tables use, so a
+-- raw IP is no more stored here than anywhere else.
+create table if not exists public.admin_login_attempts (
+  id            bigint generated always as identity primary key,
+  ip_hash       text not null,
+  attempted_at  timestamptz not null default now()
+);
+
 -- ---------------------------------------------------------------------------
 -- Indexes — the two rate-limit checks in §7 are each one indexed count query.
 -- ---------------------------------------------------------------------------
@@ -70,6 +79,10 @@ create index if not exists chat_messages_role_created_idx
 -- Admin session list, newest first (§8).
 create index if not exists chat_sessions_started_at_idx
   on public.chat_sessions (started_at desc);
+
+-- v2.13 — login throttle: count one IP hash's attempts inside the window.
+create index if not exists admin_login_attempts_ip_attempted_idx
+  on public.admin_login_attempts (ip_hash, attempted_at desc);
 
 -- ---------------------------------------------------------------------------
 -- v2.3 additions. Re-runnable like everything above: `add column if not
@@ -108,11 +121,13 @@ create index if not exists chat_sessions_alerted_at_idx
 alter table public.chat_sessions  enable row level security;
 alter table public.chat_messages  enable row level security;
 alter table public.chat_insights  enable row level security;
+alter table public.admin_login_attempts enable row level security;
 
 -- Belt and braces: revoke the implicit grants the anon/authenticated roles get.
 revoke all on public.chat_sessions  from anon, authenticated;
 revoke all on public.chat_messages  from anon, authenticated;
 revoke all on public.chat_insights  from anon, authenticated;
+revoke all on public.admin_login_attempts from anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Retention — 365 days for raw transcripts, confirmed by Suyu 2026-08-03
@@ -125,3 +140,7 @@ revoke all on public.chat_insights  from anon, authenticated;
 -- ---------------------------------------------------------------------------
 
 -- delete from public.chat_sessions where started_at < now() - interval '365 days';
+
+-- v2.13 — login attempts are throttle state, not a record worth keeping. The
+-- §8 window is 15 minutes, so anything older than a day is dead weight.
+-- delete from public.admin_login_attempts where attempted_at < now() - interval '1 day';
