@@ -95,16 +95,22 @@ const COPY = {
    * no handle in it matches nothing and sends nothing, so that phrasing would
    * have promised a delivery the code does not make.
    *
-   * v2.5 removed the recording clause this line opened with from v2.0 through
-   * v2.4 ("Chats are recorded so Suyu can read them."). That is Suyu's
-   * decision, made after being shown that it leaves no visible notice that
-   * transcripts are kept 365 days and read in /study while this same line asks
-   * for an email address. **Do not restore it as a bug fix** — §5 still
-   * describes a disclosure line, so its absence reads like drift, and it is
-   * not. `faq.md` still records the logging, so PATS answers honestly when a
-   * visitor asks.
+   * v2.5 removed the storage clause this line opened with from v2.0 through
+   * v2.4 ("Chats are recorded so Suyu can read them."), after Suyu was shown
+   * that it leaves no visible notice that transcripts are kept 365 days and
+   * read in /study while this same line asks for an email address. v2.13
+   * restores it at his request: publishing this repository makes the logging
+   * legible to anyone reading §5 and lib/contactSignal.ts, and he judged a
+   * visible notice worth more than the shorter line.
+   *
+   * **Neither half was drift, so do not silently revert either one** — the
+   * clause is here because Suyu asked for it on 2026-09-19, and taking it out
+   * again needs him too. "stored" rather than v2.4's "recorded" because the
+   * rows are rows in a table, not a recording. `faq.md` remains the second
+   * channel, so PATS answers consistently when a visitor asks.
    */
-  disclosure: "Leave your email and PATS will let him know.",
+  disclosure:
+    "Chats are stored so Suyu can read them. Leave your email and PATS will let him know.",
   /**
    * §6 (v2.5) — the greeting leads. The header carries the name too, but this
    * is the first line a visitor actually reads, and a header is the kind of
