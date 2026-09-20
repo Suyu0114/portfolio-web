@@ -8,8 +8,11 @@ import type { ConcisenessLevel, HumorLevel } from "@/lib/chatPersonality";
 import type { SupabaseEnv } from "@/lib/env";
 
 /**
- * Supabase access for the chat surface — SPEC-CHATBOT §5 (logging) and §7
- * (rate limits, D4: Supabase-backed rather than a second storage dependency).
+ * Supabase access for the chatbot surface — SPEC-CHATBOT §5 (logging), §7
+ * (rate limits, D4: Supabase-backed rather than a second storage dependency)
+ * and, since v2.13, §8's login throttle. All of it lives here because all of
+ * it is the same dependency reached the same way; splitting the admin half out
+ * would mean exporting `supabaseError` to keep one error shape.
  *
  * Server-side only. Everything here runs with the service/secret key, which
  * bypasses RLS; no table has a public policy and the anon key is never used.
@@ -203,6 +206,60 @@ export async function checkRateLimits(
   }
 
   return { allowed: true };
+}
+
+/**
+ * §8 (v2.13) — the admin login throttle: 5 attempts per IP hash per 15
+ * minutes. Constants rather than env vars for the same reason as the caps
+ * above: changing a fuse should be a commit.
+ */
+export const ADMIN_LOGIN_ATTEMPTS = 5;
+export const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * True when this IP hash has used up the window.
+ *
+ * Throws rather than returning `false` when the count cannot be read, so the
+ * caller fails **closed**. `/api/admin/login` is the one route guarding
+ * everything else, and "we could not check" must not resolve to "go ahead"
+ * there any more than it does in `checkRateLimits`.
+ */
+export async function isLoginThrottled(
+  db: SupabaseClient,
+  ipHash: string,
+): Promise<boolean> {
+  const windowStart = new Date(Date.now() - ADMIN_LOGIN_WINDOW_MS).toISOString();
+
+  const recent = await db
+    .from("admin_login_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("ip_hash", ipHash)
+    .gte("attempted_at", windowStart);
+
+  if (recent.error) {
+    throw supabaseError("Login throttle check failed", recent);
+  }
+  // Same reasoning as the per-IP window above: a null count is not zero, and
+  // reading it as zero would disable the throttle silently.
+  if (recent.count === null) {
+    throw new Error("Login throttle check returned no count");
+  }
+  return recent.count >= ADMIN_LOGIN_ATTEMPTS;
+}
+
+/**
+ * Records one attempt, right or wrong, before the password is checked. Writing
+ * it first is what stops a correct-guess-on-the-last-try from going unrecorded
+ * if the response path throws.
+ */
+export async function recordLoginAttempt(
+  db: SupabaseClient,
+  ipHash: string,
+): Promise<void> {
+  const inserted = await db.from("admin_login_attempts").insert({ ip_hash: ipHash });
+  if (inserted.error) {
+    throw supabaseError("Recording the login attempt failed", inserted);
+  }
 }
 
 /**
