@@ -324,7 +324,7 @@ says something else.
 |---|---|---|
 | `profile.md` | §4 table lists the source as "CV (DE/AE version primary)" | Full-stack / ERP-CRM CV becomes the primary source (`notes/CV_FS_ERPCRM_v2.md`); the DE/AE variant is supplementary only. Update the §4 source column accordingly. |
 | `profile.md` | education wording | "Ontario College Graduate Certificate, Information Technology Solutions with Honours", Sep 2024 – May 2026 |
-| `faq.md` | §4 table says "3-yr Canadian work permit" | ⛔ **Resolved with Suyu 2026-08-08 — see §11.3.** The permit application is in process, not issued. Never state an issued permit or a term of years. Exact wording, verbatim: **"authorized to work in Canada, no employer sponsorship required"**. |
+| `faq.md` | §4 table says "3-yr Canadian work permit" | ⛔ **Resolved with Suyu 2026-08-08 — see §11.3.** Never state a permit status, a permit type, or a term of years. Exact wording, verbatim: **"authorized to work in Canada, no employer sponsorship required"**. |
 | `projects.md` | "the three case studies" | Four case studies, including the assistant (`ask-my-notes`, not `portfolio-assistant` — see §11.1), with its `/projects/[slug]` link |
 | `how-i-work.md` | four items | Add the accuracy-over-fluency item from §6.2 above |
 
@@ -399,17 +399,19 @@ edit the PDF, and STOP rather than leave the stale file in place.
 
 ### 11.3 Work-authorization wording — §9 `faq.md` resolved
 
-Suyu, 2026-08-08: the three-year post-graduation work permit is **applied
-for, not issued**; IRCC has granted interim work authorization; no
-employer sponsorship is required.
+Suyu, 2026-08-08: Suyu is a Taiwanese citizen, authorized to work in
+Canada, and no employer sponsorship is required. The status detail
+behind this ruling is deliberately not recorded in this repository,
+which is public.
 
 Public-facing and bot-facing wording, everywhere, verbatim:
 
 > authorized to work in Canada, no employer sponsorship required
 
-⛔ Never write "three-year" / "3-yr", never describe the permit as
-issued, never name a permit type, and never speculate about dates,
-renewals, or permanent residency — point specifics to Suyu. This applies
+⛔ Never write a term of years such as "three-year" / "3-yr", never
+describe the permit's status, never name a permit type, and never
+speculate about dates, renewals, or permanent residency — point
+specifics to Suyu. This applies
 to `content/chatbot/faq.md`, `content/chatbot/interests.md` (the
 immigration decline bullet), `lib/siteContent.ts` (`ABOUT.bio`), and
 `SPEC.md` §10.
