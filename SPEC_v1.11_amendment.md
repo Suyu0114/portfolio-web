@@ -10,9 +10,12 @@ reveals, chart entrances, a site-wide hover rhythm, a rebuilt card hover
 with a real 3D corner peel, small arrow and underline moves, the
 `motion` library, and an animated reflow on the /projects filter. Not
 chosen: page transitions and pointer-following effects.
-Status: **approved** by Suyu on 2026-09-25 (plan review). §11 is filled
-in as the work is built and reported with the commit that applies
-`CLAUDE.md`.
+Status: **approved** by Suyu on 2026-09-25 (plan review); built and
+verified 2026-09-25 to 2026-09-26 on `feat/motion`. One decision taken
+with Suyu along the way: accept 94 on `/` mobile Lighthouse (§11 item 11).
+§§0–9 went into `SPEC.md` with the first commit and were adjusted where
+§11 says so; §10 went into `CLAUDE.md` with the last one. The P9 run is in
+§13.
 
 **Spec first.** Unlike v1.8, this file is written before the code: it
 reverses SPEC §2's "exactly one motion moment" rule, which CLAUDE.md says
@@ -290,7 +293,76 @@ With the commit that finishes P9:
 
 ## 11. Choices made while building it
 
-Filled in during P9.
+1. **Motion classes live in `globals.css`.** The plan put Tailwind class
+   presets in `lib/motion.ts`. Hovers that exit faster than they enter
+   need a base rule and a `:hover` rule with different durations, behind
+   `(hover: hover)` and sometimes the motion media query too, so they are
+   `mo-*` classes beside the `sk-*` sketch utilities instead. Every value
+   in them is still a `--motion-*` variable from `lib/motion.ts`.
+2. **`lib/motionCss.ts` serialises the tokens.** It is the only file that
+   calls Motion's `spring()`, so client components that read a token don't
+   ship it. The spring's CSS form is Motion's own output: `linear(...)`
+   with a 500ms settle for visual duration 0.35s, bounce 0.1 (peak 1.001).
+3. **The h1 underline now ends on the static line.** The v1.6 draw
+   finished on a full-length dash, 3 to 13 pixels off the static path; the
+   new draw hands back the plain path. Its keyframes use a 1-2 dash pattern
+   starting just past the path, which also removes a stray round-cap dot
+   the v1.6 underline showed before it drew.
+4. **`LinkArrow` draws its own underline.** An `inline-block` doesn't
+   receive its link's underline, so the arrow takes
+   `text-decoration: inherit`. On an underlined link the two underlines
+   meet with a 1px antialiasing seam (the case-study header links), the
+   only rest-state pixel that differs from before P9.
+5. **The peel.** The corner turns 165deg about its 45deg crease with
+   `perspective: 500px`. The front face is a copy of the card's border box
+   (fill, ink border, the card's own `border-radius`) cut to the corner
+   triangle, and the back face is the same box mirrored in z, so the lift
+   starts from exactly what was there and the folded flap is the corner
+   reflected across the crease. The shadow is that reflected footprint,
+   blurred 2px, nudged 3px up and left, only fading. The v1.8 overlay's
+   mismatches were confirmed first (the right border showing inside the
+   lifted area on variant a, a bottom-border stub on variant b, the ink
+   thinning at 150ms).
+6. **`/projects` settles rather than fades.** A card's one-liner is that
+   page's largest contentful paint (measured), so fading the grid would
+   break §4.4's own rule. The grid block settles with a transform only,
+   and the chips, which render on the client only, rise as they mount.
+   §4.4's placement text says so.
+7. **`Reveal`.** The first IntersectionObserver report decides: content
+   wholly below the viewport is hidden, anything else is left alone.
+   Blocks that start in the same moment stagger automatically. It marks
+   itself `data-reveal="shown"` to start CSS steps inside it, which is how
+   `ArchFlow` builds stage by stage and `DoodleArrow` draws.
+8. **Charts** use Motion's `inView` (30% visible) and `motion/mini`'s
+   `animate`, and drop every inline style once they finish, so the settled
+   chart is the plain drawing.
+9. **The filter** animates `layout="position"`, so a moving card never
+   scales its text, with `popLayout` exits. Its markup must not depend on
+   the reduced-motion preference: `next dev` server-renders `FacetFilter`
+   without knowing it, and a markup branch produced a hydration mismatch.
+   Only the transition changes, to instant. §4.4 gained that as a rule.
+10. **Motion loads its features after `load`, when the main thread is
+    idle**, and Next optimises Motion's barrel imports
+    (`optimizePackageImports` in `next.config.ts`), with `m` from
+    `motion/react-m`. Without that, `Reveal` and `FacetFilter` importing
+    from `motion/react` made Turbopack ship both feature packs as initial
+    scripts on `/`: first-load JS 209.7 KB and mobile Lighthouse 91. After:
+    178.5 KB and 94. §4.4's loading rule says so.
+11. **94 on mobile, accepted (2026-09-26).** Loading Motion's runtime in the
+    root layout alone moved `/` mobile Performance from 96 to 94 (removing
+    `MotionProvider` and nothing else restored 96). Offered: keep Motion
+    but load it lazily, or do the reveals in plain CSS. Suyu chose to accept
+    94. §1 notes the exception, and P9's performance line checks 94 on
+    mobile rather than 95. It also checks that no long task comes from *an
+    animation* rather than from *the motion code*: under 4× CPU throttling
+    the hydration long task at load is 130 to 190ms longer than before P9,
+    which is the same accepted cost of shipping Motion, while scrolling
+    through the reveals produces no long task at all.
+12. **Out-of-scope findings, left as they were:** at 360px,
+    `/projects/bluejays-fan-web` is 10px too wide because of the
+    unbreakable `github.com/Suyu0114/BlueJaysFanWeb` link in its body
+    (predates this branch); the study chart's `q = 0.10` label sits on its
+    own line (predates it too).
 
 ## 12. Explicitly out of scope for v1.11
 
@@ -301,3 +373,49 @@ Filled in during P9.
   arrows); no reveals, no opening.
 - Page transitions and pointer-following effects: offered, not chosen.
 - `RoughChart`: still unused and still inventoried (CLAUDE.md).
+
+## 13. P9 run (2026-09-26)
+
+On `feat/motion` at `7270904`. Browser checks drove Chrome headless over
+CDP against `next dev` (as Suyu asked) and, for pixels and Lighthouse,
+against `next start`; WebKit through Playwright 1.63. Scrolling used real
+wheel input: a scripted `scrollTo` doesn't end LCP tracking, which makes
+`next dev` warn that a screenshot below the fold "was detected as" LCP.
+
+- **Build gates:** pass. In a detached worktree with no env file and no
+  `next-env.d.ts`: lint, typecheck, `check` (tokens, links, motion) and
+  build.
+- **Hero:** the opening runs 100 to about 1160ms; headline, intro and
+  portrait are at opacity 1 at t=0. Frames at 0, 150, 300, 600ms and the
+  end.
+- **Cards:** enter 300ms (peel 400ms, shadow delayed 133ms), exit 200ms
+  (peel 240ms); a and b meet the border cleanly at 160ms and settled, in
+  Chrome and WebKit; a click 14px inside the corner opens the case study;
+  same on `/projects`.
+- **Hover:** fills, colors and underlines 300ms in, 200ms out; button
+  lift on the 500ms spring settle.
+- **Reveals and charts:** below-the-fold blocks hide after hydration and
+  fade up once; nothing on screen at hydration moves; charts are hidden
+  until 30% in view and settle to the plain drawing.
+- **Filter:** kept cards slide (about 450ms), leaving cards fade and
+  shrink to 0.98; 165 to 173 frames sampled through the fallback swap, no
+  card's opacity dips.
+- **End state:** full-page screenshots at 1366×768 and 360×740 on five
+  pages match the reduced-motion render taken after M1, apart from §11
+  item 4's pixel.
+- **Mobile:** no horizontal scroll at 360×740 or 390×664 on any page but
+  the one in §11 item 12; the hero row wraps as before, no label wraps.
+- **Reduced motion:** nothing runs, nothing is hidden, cards neither tilt
+  nor peel, charts are drawn complete, the filter swaps instantly, in
+  Chrome and WebKit.
+- **No JavaScript:** every text element on `/`, `/projects` and a case
+  study is fully opaque at both widths.
+- **Performance:** mobile Lighthouse on `/` 94, 95, 93 (median 94, LCP
+  3.0s, CLS 0; before P9: 96, LCP 2.8s); desktop 100/100/100. First-load
+  JS on `/` 178.5 KB against 159.5 KB before (+19 KB). CPU 4×: `/` opening
+  p95 frame 25.1 to 33.5ms (before: 16.7), reveals p95 16.8 to 25.1ms with
+  no long tasks (before: 8.5).
+- **Console:** production, 8 pages × 2 widths, with and without reduced
+  motion: no messages. `next dev` adds one development-only Motion notice
+  when reduced motion is on ("You have Reduced Motion enabled"), which
+  production strips.

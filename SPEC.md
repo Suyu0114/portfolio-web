@@ -96,8 +96,10 @@ paint stays CSS. Every effect runs only under
 `prefers-reduced-motion: no-preference`, and no content needs JavaScript
 to be visible. Page transitions, parallax, custom cursors,
 pointer-following effects, typing effects, smooth scrolling and
-scroll-jacking stay out. Amends §2, §3, §4.3, §5, §6.1, §6.2, §8 and §9
-(adds P9), and adds §4.4. No new route, service, env var, color token,
+scroll-jacking stay out. With Motion on every page, `/` scores 94 on
+mobile Lighthouse, an exception to §1's 95 that Suyu accepted on
+2026-09-26 (§1 notes it). Amends §1, §2, §3, §4.3, §5, §6.1, §6.2, §8 and
+§9 (adds P9), and adds §4.4. No new route, service, env var, color token,
 or font. Source of truth for the change: `SPEC_v1.11_amendment.md`.
 Status: approved; all §10 inputs supplied (last updated 2026-09-25).
 
@@ -136,6 +138,10 @@ BI / research) so each recruiter type self-navigates to their keywords.
 2. An engineer preparing an interview can read a case study and find
    real decision depth (tradeoffs, not feature lists).
 3. Lighthouse ≥ 95 on Performance / Accessibility / SEO for `/`.
+   Known exception (v1.11): with Motion loaded on every page, `/` scores
+   94 on mobile Performance (median of three; desktop 100). Suyu accepted
+   it on 2026-09-26 rather than load Motion lazily
+   (`SPEC_v1.11_amendment.md` §11).
 4. Zero fabricated content; zero broken links; zero placeholder text
    shipped to production.
 
@@ -331,10 +337,12 @@ Where each effect applies:
   one second in all.
 - Scroll reveals (`Reveal`, once each): on `/`, the featured-notes head
   with its arrow, the cards in turn, `all projects →` and the contact
-  strip; on `/projects`, cards below the first screen, while the chips
-  and the grid fade up as one block on load; on a case study, figures
-  and architecture diagrams only, the diagram's steps in turn with their
-  arrows drawing between them. Body text and headings never wait.
+  strip; on `/projects`, cards below the first screen, while on load the
+  h1's arrow draws, the chips rise as they mount, and the grid settles
+  into place with a transform only (a card's one-liner is that page's
+  largest contentful paint); on a case study, figures and architecture
+  diagrams only, the diagram's steps in turn with their arrows drawing
+  between them. Body text and headings never wait.
 - Charts: when a case-study bar chart comes into view, its baseline
   draws, the bars grow from it in turn, their values fade in, and the
   threshold line draws last. Values never count up.
@@ -347,9 +355,13 @@ Rules:
 - An animation's end state is the static page, pixel for pixel.
 - Content never needs JavaScript to be visible, and what may be the
   largest contentful paint (a page's h1, the home intro, the portrait, a
-  case study's one-liner) never starts hidden.
+  case study's one-liner, a `/projects` card) never starts hidden.
 - Whatever plays at first paint is CSS; Motion is only for effects that
-  need JavaScript, and loads its features after hydration.
+  need JavaScript. Its features load once the page has loaded and the
+  main thread is idle, and layout animation (`domMax`) only on
+  `/projects`.
+- Markup never depends on the reduced-motion preference, which the
+  server can't know; only transitions change.
 - Under `prefers-reduced-motion: reduce` nothing moves: CSS animations
   are declared only under `no-preference`, and the Motion effects check
   the preference themselves, since the global reduce rule does not reach
@@ -852,12 +864,12 @@ Work:
   study is visible.
 - **WebKit:** the hero, card, reveal and reduced-motion checks repeated
   in Playwright WebKit.
-- **Performance:** Lighthouse ≥ 95 ×3 on `/` (production build; the
-  median of three runs after a warm-up), and no CLS. With the CPU
-  throttled 4×, the 95th-percentile frame during the hero opening and
-  the reveals is at most 33ms, and no long task comes from the motion
-  code. `/`'s first-load JavaScript grows by about 20 KB gzipped at
-  most.
+- **Performance:** Lighthouse on `/` (production build; the median of
+  three runs after a warm-up) at least 94 on mobile, the accepted
+  exception to §1's 95 (see §1), and ≥ 95 on desktop; no CLS. With the
+  CPU throttled 4×, the 95th-percentile frame during the hero opening and
+  the reveals is at most 33ms, and no long task comes from an animation.
+  `/`'s first-load JavaScript grows by about 20 KB gzipped at most.
 - **Console:** no errors or warnings while doing all of the above.
 
 ## 10. Inputs Suyu must supply (blockers marked ⛔)
