@@ -66,7 +66,52 @@ platform — line work only, no new color token, per CLAUDE.md rule 4. The
 three call sites, previously identical duplicated markup, now share one
 `ContactLinks` component. Amends §5 (footer line), §6.1.3, §8, and §10. No
 new route, service, env var, color token, or font.
-Status: approved; all §10 inputs supplied (last updated 2026-09-15).
+v1.10 (2026-09-19, per Suyu): volunteering on /about. A new section between
+"how I work" and "interests", because volunteer service carries weight with
+North American employers. Three 2025 entries, all with Back Alley Barbell in
+Toronto, all as set-up and spotter/safety crew: a powerlifting competition of
+36 lifters from 5 colleges across the province, Olympic weightlifting meets
+sanctioned by the Ontario Weightlifting Association (OWA), and Back Alley's
+Strongest (a strongman competition). Every fact is
+Suyu's own words; no month, venue, or head-count beyond those was supplied, so
+none is stated. Same card treatment as "how I work", no photos yet (the
+screenshots supplied are Instagram captures with other people's faces in them;
+a photo needs Suyu's own cropped and face-covered edit, §6.4 privacy rules).
+The knowledge pack gets the same facts (`content/chatbot/profile.md`), so the
+site and PATS agree; no SPEC-CHATBOT version bump, as with v1.6's pack
+correction. Amends §6.4 only. No new route, service, env var, color token, or
+font.
+v1.11 (2026-09-25, per Suyu): a motion system. The site felt too static,
+and the note-card corner curl looked fake and uneven. Motion becomes one
+token set in `lib/motion.ts` (easing, duration, stagger, distance,
+spring) that every component reads, with a single rhythm: hover about
+300ms on a soft ease-out, a faster exit, and springs that barely
+overshoot. Adds a staggered opening on the home hero, one-time scroll
+reveals on cards and case-study figures, chart entrances, a hover
+transition on every link, button and chip, small arrow and underline
+moves, the /projects filter reflow, and a rebuilt card hover whose corner
+peels up in 3D and lines up with both border variants. Adds the `motion`
+library for the effects that need JavaScript; whatever plays at first
+paint stays CSS. Every effect runs only under
+`prefers-reduced-motion: no-preference`, and no content needs JavaScript
+to be visible. Page transitions, parallax, custom cursors,
+pointer-following effects, typing effects, smooth scrolling and
+scroll-jacking stay out. With Motion on every page, `/` scores 94 on
+mobile Lighthouse, an exception to §1's 95 that Suyu accepted on
+2026-09-26 (§1 notes it). Amends §1, §2, §3, §4.3, §5, §6.1, §6.2, §8 and
+§9 (adds P9), and adds §4.4. No new route, service, env var, color token,
+or font. Source of truth for the change: `SPEC_v1.11_amendment.md`.
+v1.12 (2026-09-26, per Suyu): the contact links move into the hero. The
+home page showed email, GitHub, LinkedIn and Medium twice, in the contact
+strip and again in the footer just below it. They now sit on one line
+under the hero's actions, so a visitor sees them on the first screen and
+can come back to them; the contact strip keeps only the availability
+sentence. From sm up the hero's bottom padding drops from 80px to 56px so
+the first featured card still starts inside a 1366×768 viewport (at
+741px). Chosen by Suyu over icons only beside the buttons and over a place
+under the doodle. Amends §4.4 (the hero opening) and §6.1. No new route,
+service, env var, color token, or font.
+Status: approved; all §10 inputs supplied (last updated 2026-09-26).
 
 ---
 
@@ -103,6 +148,10 @@ BI / research) so each recruiter type self-navigates to their keywords.
 2. An engineer preparing an interview can read a case study and find
    real decision depth (tradeoffs, not feature lists).
 3. Lighthouse ≥ 95 on Performance / Accessibility / SEO for `/`.
+   Known exception (v1.11): with Motion loaded on every page, `/` scores
+   94 on mobile Performance (median of three; desktop 100). Suyu accepted
+   it on 2026-09-26 rather than load Motion lazily
+   (`SPEC_v1.11_amendment.md` §11).
 4. Zero fabricated content; zero broken links; zero placeholder text
    shipped to production.
 
@@ -112,16 +161,17 @@ BI / research) so each recruiter type self-navigates to their keywords.
 - No backend of any kind (DB, auth, API routes with secrets) — amended
   v1.4: the chatbot surface enumerated in SPEC-CHATBOT.md §2 is the
   single exception.
-- No animation system beyond micro hover states and exactly one motion
-  moment: the page h1's `WobblyUnderline` draws itself once on load
-  (v1.6, §4.3). That moment uses up the old optional P4 scroll-reveal
-  allowance.
-- The moment, and any motion in a hover state (such as the `SketchCard`
-  tilt and corner curl), runs only under
-  `prefers-reduced-motion: no-preference`. Everyone else sees the static
-  end state immediately.
-- No page transitions, parallax, custom cursors, typing effects, or
-  smooth scrolling.
+- Motion is one small, token-driven system (v1.11, §4.4): micro hover
+  states, the home hero's opening, one-time scroll reveals, chart
+  entrances, and the /projects filter reflow. The h1 underline draw-on
+  (v1.6) is part of it. Every duration, easing, stagger, distance and
+  spring comes from `lib/motion.ts`.
+- All of it runs only under `prefers-reduced-motion: no-preference`.
+  Everyone else sees the static end state immediately. No content needs
+  JavaScript, or an animation, to become visible.
+- No page transitions, parallax, custom cursors, pointer-following
+  effects, typing effects, smooth scrolling, scroll-jacking,
+  scroll-scrubbed animation, or numbers that count up.
 - Analytics: Vercel Analytics only, optional, added at P5 if desired.
 
 ## 3. Tech stack
@@ -132,6 +182,7 @@ BI / research) so each recruiter type self-navigates to their keywords.
 | Styling | Tailwind (current stable) + small global CSS for sketch utilities | |
 | Content | MDX in `/content` via `@next/mdx` or `next-mdx-remote` | Do **not** use contentlayer — assumed unmaintained, verify at P0 (§11) |
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
+| Motion | `motion` (`motion/react`): `m` components under `LazyMotion strict`, features imported asynchronously | v1.11. Only for effects that need JavaScript (§4.4): scroll reveals, chart entrances, the filter reflow. Whatever plays at first paint is CSS. |
 | Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). |
 | Images | `next/image`; screenshots in `/public/screens/` (PNG, via `Figure`); personal photos in `/public/photos/` (JPEG, via `Photo`, statically imported) | Photos: EXIF stripped, long edge ≤ 1600px, ≤ 500 KB each; originals never committed |
 | Deploy | Vercel, custom domain (TODO §10) | No runtime env vars (amended v1.4: SPEC-CHATBOT.md §2 lists the only allowed ones) |
@@ -208,25 +259,34 @@ button (SPEC-CHATBOT.md §6), and `about` and `interests` in `--accent-2`.
     allowed (§2).
   - Only page h1s pass `draw`. The nav's current-page underline (§5)
     never does.
+  - Optional `hover` (v1.11): the path draws on while the link it sits
+    in is hovered. The nav's links that aren't current use it.
 - `DoodleArrow`: small hand-drawn arrow SVG used next to section heads.
+  Optional `draw` (v1.11): the arrow draws itself in once, on load or
+  with the reveal it sits in (§4.4).
 - `TagPill`: 1.5px border, small asymmetric radius, optional ±1deg
   rotation, 12px text.
 - `SketchCard`: the whole card is the click target.
   - It is still one link, stretched over the card, and keeps its
     distinct accessible name (`read case study: {title}`).
   - On hover the card tilts 0.5deg (variant a clockwise, variant b
-    counter-clockwise) over 400ms with an ease-out (v1.8; v1.6 shipped
-    Tailwind's 150ms default, which Suyu found too quick).
-  - On the same ease, its bottom-right corner curls up like a sticky note
-    being peeled (v1.8). Where the corner lifted, the page shows through,
-    shaded along the crease. The flap is the note's back: shaded with a
-    gradient, outlined in ink, and casting a soft shadow on the card. It is
-    about 48px, over the corner that holds no text.
-  - The curl is the site's only gradient and shadow (CLAUDE.md
+    counter-clockwise) and lifts 2px, on the hover duration going in and
+    the shorter exit duration coming out (§4.4; v1.8 used 400ms both
+    ways, v1.6 Tailwind's 150ms).
+  - Its bottom-right corner peels up like a sticky note (v1.8, rebuilt
+    v1.11). The corner turns over in 3D along a fixed crease rather than
+    growing out of a point, so the ink outline keeps its width and the
+    shadow only fades. It is clipped to the card's own border shape, so
+    it meets the border the same way on variant a, variant b and any
+    card height. Where it lifted, the page shows through, shaded along
+    the crease; the flap is the note's back, shaded with a gradient,
+    outlined in ink, with a soft shadow on the card. It is about 48px,
+    over the corner that holds no text.
+  - The peel is the site's only gradient and shadow (CLAUDE.md
     conventions). Every color in it is one of the frozen tokens `--ink`,
     `--rule`, `--card` and `--paper`, or a `color-mix()` of them, so
-    nothing outside §4.1 appears. The card itself gains no shadow, no lift
-    and no color change.
+    nothing outside §4.1 appears. The card itself gains no shadow and no
+    color change.
   - Tilt and curl run only under `motion-safe`, and only on devices that
     hover. The curl ignores pointer events, so the whole card stays the
     click target.
@@ -236,9 +296,87 @@ button (SPEC-CHATBOT.md §6), and `about` and `interests` in `--accent-2`.
   - Optional handwritten caption (Caveat, ≥ 20px) and optional ±1deg tilt.
   - Dimensions come from the import, so there is no layout shift.
   - Separate from `Figure`, which stays the PNG screenshot frame.
+- `LinkArrow` (v1.11): the `→` or `←` at the end of a text link, which
+  moves 3px in its own direction while the link (or the card around it)
+  is hovered. It stays in the link's accessible name.
+- `Reveal` (client, v1.11): wraps content that fades up once when it
+  scrolls into view (§4.4). It renders its content visible and only
+  hides what is still below the viewport after hydration.
 - `RoughChart`: client component; renders rough.js SVG after mount;
   must render a plain-SVG fallback (or nothing + reserved space) during
   SSR so layout never shifts.
+
+### 4.4 Motion (v1.11)
+
+One token set, in `lib/motion.ts`. CSS reads it as `--motion-*`
+variables rendered into the page head, Tailwind through preset class
+strings in the same file, and Motion through transition objects built
+from it. `npm run check` fails on a raw duration, easing or spring
+anywhere else.
+
+| Token | Value | Use |
+|---|---|---|
+| ease out | cubic-bezier(0.22, 0.61, 0.36, 1) | hovers, reveals |
+| ease in-out | cubic-bezier(0.65, 0, 0.35, 1) | lines drawing on |
+| press | 120ms | a button pressed |
+| hover | 300ms | going into a hover |
+| exit | 200ms | coming out of a hover |
+| peel / peel exit | 400ms / 240ms | the card corner |
+| reveal | 500ms | fades up, the hero opening |
+| draw | 600ms | underlines, doodles, arrows |
+| chart | 700ms | bars growing |
+| stagger | 70ms (tight 40ms) | items in sequence |
+| base delay | 100ms | the hero opening's start |
+| distances | 12px reveal, 2px lift, 3px arrow | |
+| spring | visual duration 0.35s, bounce 0.1 (never above 0.15) | lifts, the filter reflow |
+
+These values may be tuned during P9, in `lib/motion.ts` only, and the
+table updated with them.
+
+Where each effect applies:
+- Hover (every page but the chat widget and /study): links, chips and
+  the contents line ease their color; the hero buttons also lift 2px and
+  settle 1px when pressed; the nav's other links draw a wobbly underline;
+  arrows at the end of links move 3px; note cards tilt, lift and peel
+  (§4.3).
+- Home hero opening (CSS, on every load of `/`): the headline and the
+  intro paragraph are there from the first paint. The underline draws
+  on, the portrait settles onto the page (a transform only, never
+  faded), the sub-line, the three buttons and the contact line (v1.12)
+  fade up in turn, and the
+  calibration doodle draws its axes and lines, then its caption. About
+  one second in all.
+- Scroll reveals (`Reveal`, once each): on `/`, the featured-notes head
+  with its arrow, the cards in turn, `all projects →` and the contact
+  strip; on `/projects`, cards below the first screen, while on load the
+  h1's arrow draws, the chips rise as they mount, and the grid settles
+  into place with a transform only (a card's one-liner is that page's
+  largest contentful paint); on a case study, figures and architecture
+  diagrams only, the diagram's steps in turn with their arrows drawing
+  between them. Body text and headings never wait.
+- Charts: when a case-study bar chart comes into view, its baseline
+  draws, the bars grow from it in turn, their values fade in, and the
+  threshold line draws last. Values never count up.
+- The /projects filter: cards that stay slide to their new places,
+  cards filtered out fade away, and cards that return fade in.
+
+Rules:
+- Only transform and opacity animate, plus the stroke or clip of a few
+  small SVG paths and the colors of a hover. Nothing animates layout.
+- An animation's end state is the static page, pixel for pixel.
+- Content never needs JavaScript to be visible, and what may be the
+  largest contentful paint (a page's h1, the home intro, the portrait, a
+  case study's one-liner, a `/projects` card) never starts hidden.
+- Whatever plays at first paint is CSS; Motion is only for effects that
+  need JavaScript. Its features load once the page has loaded and the
+  main thread is idle, and layout animation (`domMax`) only on
+  `/projects`.
+- Markup never depends on the reduced-motion preference, which the
+  server can't know; only transitions change.
+- Under `prefers-reduced-motion: reduce` nothing moves: CSS animations
+  are declared only under `no-preference`, and the Motion effects check
+  the preference themselves, since the global reduce rule does not reach
+  them.
 
 ## 5. Information architecture
 
@@ -254,7 +392,8 @@ button (SPEC-CHATBOT.md §6), and `about` and `interests` in `--accent-2`.
 Nav: `Suyu.` (handwriting) | home · projects · about · resume.
 
 - The current section is marked in `--ink`, with a `WobblyUnderline`
-  (no `draw`) and `aria-current="page"`.
+  (no `draw`; the other links draw the same underline on while hovered,
+  v1.11) and `aria-current="page"`.
 - `/projects/[slug]` counts as projects. `resume` (a PDF in a new tab) is
   never marked.
 - Marking needs the pathname, so the links live in a small client
@@ -278,8 +417,9 @@ hand-drawn icon (v1.9), + small hand note ("drawn with rough.js").
    `--accent-2`, rotated −1deg. Right side: static hand-drawn
    calibration doodle SVG
    (solid `--accent` "model" line vs dashed `--accent-2` "market" line,
-   caption "calibration, hand-checked"). This SVG is decorative and
-   static — not rough.js, not data-bound.
+   caption "calibration, hand-checked"). This SVG is decorative: not
+   rough.js, not data-bound. It draws itself in once as part of the
+   hero's opening (v1.11, §4.4).
    **Portrait (v1.6, P7; resized v1.7).** A `Photo` portrait sits beside
    the intro paragraph, 176px wide from sm up; on mobile it is 112px wide
    and stacks under the headline. It has alt text and no caption. The
@@ -296,8 +436,15 @@ hand-drawn icon (v1.9), + small hand note ("drawn with rough.js").
    the two links with `--accent-2` (§4.1). Only the chat button carries an
    icon, the widget's speech-bubble mark in the label's color, so the one
    action that opens something instead of changing page is the one that
-   looks different. On hover each fills with `--ink`, and nothing moves. On
+   looks different. On hover each fills with `--ink` and lifts 2px (v1.11,
+   §4.4). On
    narrow screens the row wraps rather than shrinking its labels.
+   **Contact line (v1.12).** Under the actions: the shared `ContactLinks`
+   (email, GitHub, LinkedIn, Medium, each with its icon), 14px, in
+   `--accent` with a resting underline, as the contact strip had them.
+   One line on desktop; it wraps on phones. From sm up the hero's bottom
+   padding is 56px, so the first featured card still starts inside a
+   1366×768 viewport.
 2. **Featured notes.** Section head + DoodleArrow. Three `SketchCard`s
    in order: the assistant on this site (`ask-my-notes`), BlueJaysFanWeb,
    World Cup platform (§7, order updated v1.5; the pre-registered study
@@ -306,14 +453,17 @@ hand-drawn icon (v1.9), + small hand note ("drawn with rough.js").
    one-liner (13px), `read case
    study →` link in `--accent`. Below the grid: quiet text link
    `all projects →` to `/projects`.
-3. **Contact strip.** One line: availability + email + GitHub/LinkedIn/
-   Medium icons-as-text links (v1.9). No form.
+3. **Contact strip.** One line: the availability sentence (§10). Its
+   email and GitHub/LinkedIn/Medium links (v1.9) moved to the hero's
+   contact line at v1.12, so the page doesn't repeat the footer's links
+   just above it. No form.
 
 ### 6.2 /projects
 
 - Grid of all project cards (4 full, §7).
 - `FacetFilter`: client component; tag chips toggle filtering; state in
-  `?tag=` query param; no external library; "all" resets. Empty result
+  `?tag=` query param; no filtering library (the reflow animates with
+  Motion, v1.11, §4.4); "all" resets. Empty result
   state uses a small hand note (should be unreachable with v1 tags).
 
 ### 6.3 Case study template (`/projects/[slug]`, MDX)
@@ -396,6 +546,10 @@ are server-rendered, with no client JS.
   concrete, not buzzwordy.
 - Portrait (v1.6, P7): the same photo as the hero, beside the bio. It
   floats right on desktop and is centered above the bio on mobile.
+- Volunteering (v1.10), after "how I work" and before interests: one
+  sentence, then a card per entry (title, optional detail, year and city).
+  No photos. Copy is Suyu's own facts only; see the v1.10 version entry and
+  `ABOUT.volunteering` in `lib/siteContent.ts`.
 - Interests, in blocks of one paragraph plus optional photos. Personality
   lives here, stated plainly and confidently. The interests section
   carries `id="interests"` (v1.8), the target of the hero's `interests`
@@ -553,7 +707,8 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 `CaseStudyContents` (v1.6), `NextNote` (v1.6), `SketchButtonLink` (v1.8),
 `OpenChatButton` (v1.8), `SpeechBubble` (v1.8), `RoughChart` (client),
 `FacetFilter` (client), `ContactStrip`, `ContactLinks` (v1.9),
-`ContactIcons` (v1.9), MDX component map (headings with optional
+`ContactIcons` (v1.9), `LinkArrow` (v1.11), `Reveal` (client, v1.11),
+`MotionProvider` (client, v1.11), MDX component map (headings with optional
 underline and h2 slug ids, `Figure`, code blocks in mono on `--card`).
 
 ## 9. Phases & acceptance
@@ -688,6 +843,52 @@ Work:
   horizontally.
 - **Performance:** Lighthouse ≥ 95 ×3 on `/` (production build; the
   median of three runs after a warm-up), and no CLS.
+- **Console:** no errors or warnings while doing all of the above.
+
+**P9 — motion (v1.11).**
+Work:
+- `lib/motion.ts`, its CSS variables, `MotionProvider`, and the
+  `check-motion` gate in `npm run check`.
+- The hover rhythm, `LinkArrow` and the nav's hover underline.
+- `SketchCard`: tilt, lift and the rebuilt corner peel.
+- The home hero opening and the calibration doodle drawing in.
+- `Reveal` and its placements; the /projects block fade.
+- Chart entrances in `RoughBarChart`.
+- The /projects filter reflow.
+
+✓ when:
+- **Build gates:** lint, typecheck, `npm run check` (with
+  `check-motion`) and build all pass with zero env vars.
+- **Hero:** screenshots at 0, 150, 300 and 600ms and at the end, at
+  1366×768; the headline and the intro are visible in the first one.
+- **Cards:** at rest, halfway and settled, zoomed 3×, on variant a and
+  variant b: the peel meets the border cleanly and its outline keeps its
+  width; the exit is shorter than the entry; a click inside the peel
+  still opens the case study; the same on `/projects`.
+- **Hover:** the hero buttons, nav, arrows and chips, halfway and
+  settled.
+- **Reveals and charts:** halfway and settled on `/`, `/projects` and
+  both chart case studies; nothing already on screen when the page
+  hydrates flashes.
+- **Filter:** halfway and settled after a chip click; no flash when the
+  filter replaces the prerendered grid.
+- **End state:** once everything settles, full-page screenshots at
+  1366×768 and 360×740 match the pre-P9 ones.
+- **Mobile:** at 360×740 and 390×664 nothing scrolls horizontally and
+  the hero row wraps as before.
+- **Reduced motion emulated:** nothing runs after load, cards neither
+  tilt nor peel, revealed content is there at once, charts are drawn
+  complete, and the filter swaps instantly.
+- **No JavaScript:** every piece of text on `/`, `/projects` and a case
+  study is visible.
+- **WebKit:** the hero, card, reveal and reduced-motion checks repeated
+  in Playwright WebKit.
+- **Performance:** Lighthouse on `/` (production build; the median of
+  three runs after a warm-up) at least 94 on mobile, the accepted
+  exception to §1's 95 (see §1), and ≥ 95 on desktop; no CLS. With the
+  CPU throttled 4×, the 95th-percentile frame during the hero opening and
+  the reveals is at most 33ms, and no long task comes from an animation.
+  `/`'s first-load JavaScript grows by about 20 KB gzipped at most.
 - **Console:** no errors or warnings while doing all of the above.
 
 ## 10. Inputs Suyu must supply (blockers marked ⛔)

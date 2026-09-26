@@ -21,8 +21,8 @@ function isCurrent(href: string, pathname: string): boolean {
 }
 
 // Client component only because the current section comes from the
-// pathname. The underline never passes `draw`: the h1 owns the page's one
-// motion moment (SPEC §2).
+// pathname. The current link's underline never passes `draw` (SPEC §4.3);
+// the other links draw the same underline on while hovered (v1.11).
 export default function NavLinks() {
   const pathname = usePathname();
 
@@ -38,9 +38,9 @@ export default function NavLinks() {
               href={l.href}
               target="_blank"
               rel="noreferrer"
-              className="hover:text-ink"
+              className="mo-color hover:text-ink"
             >
-              {l.label}
+              <WobblyUnderline hover>{l.label}</WobblyUnderline>
             </a>
           );
         }
@@ -50,9 +50,9 @@ export default function NavLinks() {
             key={l.href}
             href={l.href}
             aria-current={current ? "page" : undefined}
-            className={current ? "text-ink" : "hover:text-ink"}
+            className={current ? "text-ink" : "mo-color hover:text-ink"}
           >
-            {current ? <WobblyUnderline>{l.label}</WobblyUnderline> : l.label}
+            <WobblyUnderline hover={!current}>{l.label}</WobblyUnderline>
           </Link>
         );
       })}

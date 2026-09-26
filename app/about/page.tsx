@@ -62,6 +62,24 @@ export default function AboutPage() {
         </dl>
       </section>
 
+      {/* Volunteering (SPEC §6.4, v1.10): the same card treatment as "how I
+          work", with no photos. */}
+      <section className="mt-12">
+        <h2 className="font-display text-2xl font-medium">
+          {ABOUT.volunteering.heading}
+        </h2>
+        <p className="mt-3">{ABOUT.volunteering.intro}</p>
+        <ul className="mt-5 space-y-4">
+          {ABOUT.volunteering.roles.map((role) => (
+            <li key={role.title} className="sk-border-a bg-card p-4">
+              <p className="text-[15px] font-semibold text-ink">{role.title}</p>
+              {role.detail && <p className="mt-1 text-[15px]">{role.detail}</p>}
+              <p className="mt-1 text-sm text-ink-soft">{role.when}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Interests as blocks of a paragraph plus a row of photos (SPEC §6.4,
           v1.6). A pair stays two-up at every width; a single photo is capped
           so a low-resolution still isn't stretched across the column. The id
@@ -103,7 +121,7 @@ export default function AboutPage() {
         <p className="mt-3 text-sm">
           <span className="text-ink-soft">{CONTACT.availability}</span>
           {" · "}
-          {/* Resting underline, matching ContactStrip — see the note there. */}
+          {/* Resting underline, matching the home hero's contact line (app/page.tsx); see the note there. */}
           <ContactLinks linkClassName="text-accent underline" />
         </p>
       </section>

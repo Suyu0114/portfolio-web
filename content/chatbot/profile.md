@@ -122,3 +122,13 @@ Bachelor of Business Administration.
 He was Chairperson of the Employee Welfare Committee at Seasonic Electronics
 from Sep 2022 to May 2024, coordinating employee activities, vendor
 partnerships, and internal engagement.
+
+## Volunteering
+
+In 2025 he volunteered with Back Alley Barbell at strength competitions in
+Toronto, setting up and then working the floor as a spotter and safety crew.
+The events were a powerlifting competition that featured 36 lifters from 5
+colleges across the province, Olympic weightlifting meets sanctioned by the
+Ontario Weightlifting Association (OWA), and Back Alley's Strongest, a
+strongman competition. Those are the details he has
+given; there is no more on dates, venues, or his exact duties at each event.

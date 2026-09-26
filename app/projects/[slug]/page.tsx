@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import CaseStudyContents from "@/components/CaseStudyContents";
+import LinkArrow from "@/components/LinkArrow";
 import NextNote from "@/components/NextNote";
 import TagPill from "@/components/TagPill";
 import WobblyUnderline from "@/components/WobblyUnderline";
@@ -63,17 +64,17 @@ export default async function CaseStudyPage({ params }: Params) {
           <p className="mt-3 flex flex-wrap gap-4 text-sm">
             {fm.links.demo && (
               <a href={fm.links.demo} target="_blank" rel="noreferrer" className="text-accent underline">
-                live demo →
+                live demo <LinkArrow />
               </a>
             )}
             {fm.links.repo && (
               <a href={fm.links.repo} target="_blank" rel="noreferrer" className="text-accent underline">
-                repo →
+                repo <LinkArrow />
               </a>
             )}
             {fm.links.writeup && (
               <a href={fm.links.writeup} target="_blank" rel="noreferrer" className="text-accent underline">
-                write-up →
+                write-up <LinkArrow />
               </a>
             )}
           </p>

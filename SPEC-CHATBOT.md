@@ -412,7 +412,7 @@ concatenated into the system prompt at module init:
 
 | File | Content | Source |
 |---|---|---|
-| `profile.md` | Work experience, education (Ontario College Graduate Certificate, Information Technology Solutions with Honours — Humber Polytechnic, Sep 2024 – May 2026), skills | CV — full-stack / ERP-CRM version primary (`notes/CV_FS_ERPCRM_v2.md`, v1.5); the DE/AE version is supplementary only |
+| `profile.md` | Work experience, education (Ontario College Graduate Certificate, Information Technology Solutions with Honours — Humber Polytechnic, Sep 2024 – May 2026), skills, volunteering (added per SPEC.md v1.10) | CV — full-stack / ERP-CRM version primary (`notes/CV_FS_ERPCRM_v2.md`, v1.5); the DE/AE version is supplementary only |
 | `projects.md` | Condensed versions of the four case studies, incl. links to `/projects/[slug]` | `content/*.mdx` (rewritten, framing rules of SPEC.md §7 apply — e.g. no betting foregrounding) |
 | `how-i-work.md` | Pre-registration, frozen golden vectors, fail-loud pipelines, design-then-implement, accuracy over fluency (five items, SPEC.md §6.4) | `lib/siteContent.ts` ABOUT |
 | `interests.md` | Baseball (MLB/Blue Jays), other sports, BaZi as a genuine long-term interest, working with him, outside work (training and the 2022 Citizens Sports Games, cooking, hiking, freediving), topics to decline (content corrected per SPEC.md v1.6) | **NEW — Suyu supplies raw material (§10)** |

@@ -23,7 +23,7 @@ export default function CaseStudyContents({
       <ul className="inline">
         {headings.map((h) => (
           <li key={h.id} className="mr-4 inline-block">
-            <a href={`#${h.id}`} className="underline hover:text-ink">
+            <a href={`#${h.id}`} className="mo-color underline hover:text-ink">
               {h.text}
             </a>
           </li>

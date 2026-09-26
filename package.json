@@ -8,13 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "check": "node scripts/check-tokens.mjs && node scripts/check-links.mjs"
+    "check": "node scripts/check-tokens.mjs && node scripts/check-links.mjs && node scripts/check-motion.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
     "@google/genai": "^2.21.0",
     "@supabase/supabase-js": "^2.111.0",
     "gray-matter": "^4.0.3",
+    "motion": "^13.4.4",
     "next": "16.2.10",
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.4",

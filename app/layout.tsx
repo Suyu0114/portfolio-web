@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Caveat, JetBrains_Mono } from "next/font/google";
 import ChatWidget from "@/components/ChatWidget";
 import Footer from "@/components/Footer";
+import MotionProvider from "@/components/MotionProvider";
 import Nav from "@/components/Nav";
 import { getAllProjects } from "@/lib/content";
+import { MOTION_CSS } from "@/lib/motionCss";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -61,6 +63,11 @@ export default function RootLayout({
       lang="en"
       className={`${jetbrainsMono.variable} ${caveat.variable} h-full antialiased`}
     >
+      <head>
+        {/* The motion tokens as --motion-* variables (SPEC §4.4, v1.11),
+            in the static HTML so CSS animations have them at first paint. */}
+        <style>{MOTION_CSS}</style>
+      </head>
       {/* suppressHydrationWarning: browser extensions (e.g. Grammarly)
           inject attributes on <body> before hydration; this ignores those
           attribute-only diffs on this element without masking real ones. */}
@@ -75,7 +82,7 @@ export default function RootLayout({
             so no page has to carry the id. Deliberately no tabIndex: that
             would ring the whole page in the focus outline. */}
         <div id="main" className="flex flex-1 flex-col">
-          {children}
+          <MotionProvider>{children}</MotionProvider>
         </div>
         <Footer />
         <ChatWidget projectTitles={projectTitles} />

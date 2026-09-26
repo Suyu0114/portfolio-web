@@ -4,7 +4,7 @@ Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
 Static Next.js site, English-only, no backend — except the narrowly
 scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` (site, currently v1.9) and `SPEC-CHATBOT.md` (chatbot,
+`SPEC.md` (site, currently v1.12) and `SPEC-CHATBOT.md` (chatbot,
 currently v2.13) are the source of truth for scope, IA, design tokens,
 and content. `SPEC_v1.5_amendment.md` is the source of truth for the
 v1.5 repositioning specifically; its outcome is already folded into
@@ -13,7 +13,9 @@ the seven implementation deviations in its §11. `SPEC_v1.6_amendment.md`
 plays the same role for v1.6 (UX polish, then personal photos), and its
 §15 records the agreed implementation choices. `SPEC_v1.8_amendment.md`
 does the same for v1.8 (hero actions and the note-card hover), and its
-§11 records the choices made while building them. If implementation
+§11 records the choices made while building them. `SPEC_v1.11_amendment.md`
+does the same for v1.11 (the motion system): §11 is what was decided while
+building it, §13 the P9 measurements. If implementation
 conflicts with any of these, STOP and flag the conflict — do not
 improvise a resolution.
 
@@ -98,9 +100,9 @@ improvise a resolution.
   components. Do not hand-roll new wobble styles per page.
 - Rotation accents stay within ±1.5deg. No gradients, no drop shadows,
   no texture images — the hand-drawn feel comes from line work only.
-  One exception, since v1.8: the note card's corner curl on hover
-  (SPEC.md §4.3) uses a gradient and a soft shadow, mixed only from the
-  frozen tokens.
+  One exception, since v1.8: the note card's corner peel on hover
+  (SPEC.md §4.3, rebuilt in 3D at v1.11) uses a gradient and a soft
+  shadow, mixed only from the frozen tokens.
 - Accessibility baseline: visible focus states everywhere, alt text on
   every image, body-text contrast ≥ 4.5:1, `prefers-reduced-motion`
   respected for any animation.
@@ -115,11 +117,65 @@ improvise a resolution.
   way as it is copied in.
 - Commits: one phase concern per commit, imperative subject line.
 
+## Motion (v1.11)
+
+SPEC.md §4.4 is the source of truth; these are the working rules, for
+every new component too.
+
+- **One rhythm, one source.** Every duration, easing, stagger, distance
+  and spring lives in `lib/motion.ts`. CSS reads them as `--motion-*`
+  variables (`lib/motionCss.ts` renders them into `<head>`); Motion reads
+  the transition objects. `npm run check` (`scripts/check-motion.mjs`)
+  fails on a literal duration, delay, easing or spring anywhere else: add
+  a token, not a number. The rhythm: hover 300ms in and 200ms out on the
+  soft ease-out, press 120ms, reveals 500ms and 12px and 70ms apart, line
+  draws 600ms, springs with bounce ≤ 0.15.
+- **Reuse the pieces; don't hand-roll a transition or keyframe in a
+  component.** Hover color `mo-color`; an underline that fades in
+  `mo-underline`; the hero button frame `sketchButtonClass` (`mo-lift`);
+  the arrow at the end of a link `LinkArrow`; first-paint entrances
+  `mo-rise`, `mo-settle`, `mo-draw`, `mo-wipe` with `[--i:n]` for the
+  step; scroll entrances `Reveal`, with `mo-rise-in` and
+  `DoodleArrow draw="reveal"` inside it.
+- **What may move:** transform and opacity, the stroke or clip of small
+  SVG paths, and hover colors. Never a layout property, never a permanent
+  `will-change`. An animation's end state is the static page, pixel for
+  pixel: compare against a reduced-motion render.
+- **Visible without JavaScript.** The server HTML is the finished page.
+  First-paint motion is CSS with `backwards` fill; `Reveal` hides only
+  what is below the viewport after hydration. A page's largest-contentful-
+  paint candidate (an h1, the home intro, the portrait, a case study's
+  one-liner, a `/projects` card) never starts at opacity 0; move it with
+  `mo-settle` (a transform) if it must move.
+- **Motion the library only where JavaScript is needed**, as `m` from
+  `motion/react-m` under `LazyMotion strict`, never `import { motion }`.
+  `MotionProvider` loads the features after `load` when idle, and
+  `domMax` loads only in `FacetFilter`. Keep `optimizePackageImports` for
+  Motion in `next.config.ts`: without it, barrel imports shipped every
+  feature at first load (2026-09-26: `/` mobile Lighthouse 91).
+- **Markup never branches on the motion preference.** The server can't
+  know it, so a branch is a hydration mismatch; switch the transition,
+  not the elements.
+- **Reduced motion.** CSS motion is declared only inside
+  `@media (prefers-reduced-motion: no-preference)`, and hover motion also
+  behind `(hover: hover)`. The global reduce rule doesn't reach Motion's
+  animations, so Motion code checks the preference itself;
+  `MotionConfig reducedMotion="user"` is the backstop.
+- **Still out:** page transitions, parallax, custom cursors,
+  pointer-following effects, typing effects, smooth scrolling,
+  scroll-jacking, scroll-scrubbed animation, numbers that count up. The
+  chat widget and `/study` keep their own motion; changing it is a
+  SPEC-CHATBOT change.
+- **Performance floor.** `/` mobile Lighthouse is 94 (median of three,
+  production build) with Motion on every page, an exception Suyu accepted
+  on 2026-09-26 below SPEC §1's 95. Anything that lowers it further needs
+  Suyu's sign-off, not a quiet regression.
+
 ## Workflow
 
 - Design decisions happen with Suyu in claude.ai; this repo implements
   SPEC.md phases P0–P5, then SPEC-CHATBOT.md phases C0–C9, **in order**,
-  then SPEC.md phases P6–P7 (v1.6) and P8 (v1.8).
+  then SPEC.md phases P6–P7 (v1.6), P8 (v1.8) and P9 (v1.11).
 - Each phase ends with its acceptance checklist (SPEC.md §9 /
   SPEC-CHATBOT.md §9) fully passing. Do not start the next phase with
   failing items.

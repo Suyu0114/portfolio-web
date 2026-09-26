@@ -96,22 +96,416 @@ h4 {
 }
 
 /*
- * The one motion moment — SPEC §2 (v1.6): an h1's WobblyUnderline draws
- * itself once on load. Declared only for users who haven't asked for
+ * Motion — SPEC §4.4 (v1.11). Every value here is a --motion-* variable
+ * serialised from lib/motion.ts into <head> by the root layout;
+ * `npm run check` (check-motion) rejects a literal duration or easing.
+ *
+ * Anything that moves is declared only for users who haven't asked for
  * reduced motion, so the rule above never has to collapse it and nobody
- * waits out the delay for a line that should simply be there.
+ * waits out a delay for content that should simply be there. Entrances use
+ * `backwards` fill: they hold their first frame through the delay, then
+ * leave the element's own style in charge, so the end state is the static
+ * page and nothing lingers to fight a later hover.
+ */
+
+/*
+ * A line that draws itself once: an h1's WobblyUnderline (v1.6), the hero
+ * doodle, a DoodleArrow. The path needs pathLength="1". --i places it in a
+ * sequence, one stagger step per unit.
  */
 @media (prefers-reduced-motion: no-preference) {
-  .wobbly-draw {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: wobbly-draw 0.6s ease-out 0.1s both;
+  .mo-draw {
+    animation: mo-draw var(--motion-draw) var(--motion-ease-in-out)
+      calc(var(--motion-delay-base) + var(--i, 0) * var(--motion-stagger))
+      backwards;
   }
 }
 
-@keyframes wobbly-draw {
+/* Dash 1, gap 2: before the draw the dash sits just past the path's start
+   inside a gap longer than the path, so no round cap shows as a stray dot
+   at either end (a plain dasharray of 1 left one at the far end). */
+@keyframes mo-draw {
+  from {
+    stroke-dasharray: 1 2;
+    stroke-dashoffset: 1.05;
+  }
   to {
+    stroke-dasharray: 1 2;
     stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * Entrances that play at first paint, with no JavaScript (the home hero's
+ * opening, SPEC §4.4). Each keyframe gives only its first frame, so the
+ * element ends on its own style: its tilt, its position, full opacity.
+ * --i places it in the sequence, as for .mo-draw.
+ *
+ * - rise: fades up into place (the hero's sub-line, buttons, doodle caption).
+ * - settle: drops onto the page and into its tilt, a transform only, for
+ *   the hero portrait, which may be the largest contentful paint and so is
+ *   never faded.
+ * - wipe: uncovers a line from the left, for a dashed line that a dash
+ *   draw would break.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .mo-rise {
+    animation: mo-rise var(--motion-reveal) var(--motion-ease-out)
+      calc(var(--motion-delay-base) + var(--i, 0) * var(--motion-stagger))
+      backwards;
+  }
+
+  .mo-settle {
+    animation: mo-settle var(--motion-reveal) var(--motion-ease-out)
+      calc(var(--motion-delay-base) + var(--i, 0) * var(--motion-stagger))
+      backwards;
+  }
+
+  .mo-wipe {
+    animation: mo-wipe var(--motion-draw) var(--motion-ease-in-out)
+      calc(var(--motion-delay-base) + var(--i, 0) * var(--motion-stagger))
+      backwards;
+  }
+}
+
+@keyframes mo-rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--motion-reveal-distance);
+  }
+}
+
+@keyframes mo-settle {
+  from {
+    translate: 0 calc(var(--motion-reveal-distance) / 2);
+    rotate: 0deg;
+  }
+}
+
+@keyframes mo-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/*
+ * Inside a Reveal (components/Reveal.tsx): steps that play once the block
+ * scrolls in. Reveal marks itself data-reveal="shown" when it starts to
+ * fade up; content that was already on screen when the page hydrated is
+ * never marked, so it never replays. --i is the step, counted from the
+ * reveal rather than from page load.
+ * - rise-in: an ArchFlow step fading up in turn.
+ * - DoodleArrow: the shaft draws, then the head, on load (mo-arrow-load,
+ *   next to a page's h1) or with a reveal (mo-arrow-in).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal="shown"] .mo-rise-in {
+    animation: mo-rise var(--motion-reveal) var(--motion-ease-out)
+      calc(var(--i, 0) * var(--motion-stagger)) backwards;
+  }
+
+  .mo-arrow-load {
+    --arrow-start: var(--motion-delay-base);
+  }
+
+  .mo-arrow-in {
+    --arrow-start: 0ms;
+  }
+
+  .mo-arrow-load path,
+  [data-reveal="shown"] .mo-arrow-in path {
+    animation: mo-draw var(--motion-draw) var(--motion-ease-in-out)
+      calc(var(--arrow-start) + var(--i, 0) * var(--motion-stagger)) backwards;
+  }
+
+  /* The head starts once the shaft is about halfway drawn. */
+  .mo-arrow-load path + path,
+  [data-reveal="shown"] .mo-arrow-in path + path {
+    animation-delay: calc(var(--arrow-start) + (var(--i, 0) + 4) * var(--motion-stagger));
+  }
+}
+
+/*
+ * The hover rhythm. Going into a hover takes --motion-hover and coming out
+ * the shorter --motion-exit: the base rule carries the exit and the :hover
+ * rule the entry, because a transition runs on the timing of the state it
+ * is heading to. Like Tailwind's hover: variant, the :hover rules apply only
+ * where the device can hover, so a tap never leaves anything stuck.
+ * Colors aren't motion, so they ease for everyone; the global reduce rule
+ * above makes them instant for visitors who ask.
+ */
+
+/* A link or chip whose text, fill or underline color changes on hover. */
+.mo-color {
+  transition-property: color, background-color, text-decoration-color;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+/*
+ * A link whose underline fades in on hover rather than snapping on, as
+ * `hover:underline` did: the line is always there, just transparent.
+ */
+.mo-underline {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+}
+
+@media (hover: hover) {
+  .mo-color:hover,
+  .mo-underline:hover {
+    transition-duration: var(--motion-hover);
+  }
+
+  .mo-underline:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/*
+ * The hero buttons (lib/sketchButton.ts): the fill eases to --ink while the
+ * button lifts on the soft spring, and settles halfway back when pressed.
+ */
+.mo-lift {
+  transition-property: background-color, translate;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+@media (hover: hover) {
+  .mo-lift:hover {
+    transition-duration: var(--motion-hover), var(--motion-spring-soft-duration);
+    transition-timing-function: var(--motion-ease-out), var(--motion-spring-soft);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .mo-lift:hover {
+    translate: 0 calc(-1 * var(--motion-lift));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mo-lift:active {
+    translate: 0 calc(-0.5 * var(--motion-lift));
+    transition-duration: var(--motion-press);
+  }
+}
+
+/*
+ * LinkArrow: the → or ← at the end of a link moves a few pixels its own way
+ * while the link is hovered. A card's link is stretched over the whole card
+ * (SketchCard), so hovering the card hovers the link and moves its arrow.
+ * An inline-block doesn't receive its parent's underline, so the arrow
+ * draws its own from the link's (and eases its color along with a
+ * .mo-underline link's).
+ */
+.mo-nudge {
+  display: inline-block;
+  text-decoration: inherit;
+  transition-property: translate, text-decoration-color;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :hover > .mo-nudge {
+    transition-duration: var(--motion-hover);
+  }
+
+  :hover > .mo-nudge-right {
+    translate: var(--motion-nudge) 0;
+  }
+
+  :hover > .mo-nudge-left {
+    translate: calc(-1 * var(--motion-nudge)) 0;
+  }
+}
+
+/*
+ * WobblyUnderline's `hover` mode (the nav's other links): the underline
+ * draws on while hovered and draws back off after. At rest the dash sits
+ * just past the path's start, in a gap longer than the path, so neither of
+ * its round caps shows.
+ */
+.mo-hover-line path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.05;
+  transition: stroke-dashoffset var(--motion-exit) var(--motion-ease-in-out);
+}
+
+@media (hover: hover) {
+  .mo-hover-line:hover path {
+    stroke-dashoffset: 0;
+    transition-duration: var(--motion-hover);
+  }
+}
+
+/*
+ * SketchCard's hover (SPEC §4.3). The card lifts 2px; its tilt is the
+ * variant's Tailwind rotate. Both come in on --motion-hover and go back on
+ * --motion-exit.
+ */
+.mo-card {
+  transition-property: rotate, translate;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .mo-card:hover {
+    translate: 0 calc(-1 * var(--motion-lift));
+    transition-duration: var(--motion-hover);
+  }
+}
+
+/*
+ * The corner peel (SPEC §4.3, v1.8, rebuilt v1.11): the card's blank
+ * bottom-right corner turns over along a 45deg crease, like a sticky note
+ * being peeled.
+ *
+ * Every layer is the size of the card's border box and inherits its
+ * border-radius, so each one follows that card's own outline: variant a,
+ * variant b and any card height meet the border the same way, where the
+ * v1.8 square overlay didn't. A clip-path cuts each layer down to its
+ * triangle of the --peel square.
+ *
+ * - gap: the page showing through where the corner lifted, --paper
+ *   shaded along the crease.
+ * - shadow: a soft shadow the flap casts on the card, which only fades.
+ * - flap: turns about the crease in 3D. Its front face is a copy of the
+ *   card's corner (fill and ink border), so the lift starts from exactly
+ *   what is there. Its back face sits in the same place mirrored in z, so
+ *   once the flap passes 90deg it shows the corner reflected across the
+ *   crease, as paper folds: shaded with a gradient, outlined in ink.
+ *
+ * Nothing scales, so the ink keeps its width all the way through. The only
+ * gradients and shadow on the site (CLAUDE.md conventions), mixed from the
+ * frozen tokens alone. Hidden at rest and when motion is reduced;
+ * pointer-events: none keeps the stretched link underneath clickable.
+ */
+.mo-peel {
+  --peel: 48px;
+  --peel-crease: calc(100% - var(--peel) / 2) calc(100% - var(--peel) / 2);
+  position: absolute;
+  inset: -2px; /* the .sk-border-* width: the card's border box */
+  border-radius: inherit;
+  pointer-events: none;
+  perspective: 500px;
+  visibility: hidden;
+  /* Hide only once the flap has settled back. */
+  transition: visibility 0s var(--motion-peel-exit);
+}
+
+.mo-peel > span,
+.mo-peel-flap > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.mo-peel-gap {
+  clip-path: polygon(calc(100% - var(--peel)) 100%, 100% calc(100% - var(--peel)), 100% 100%);
+  background: linear-gradient(
+      to bottom right,
+      color-mix(in srgb, var(--color-paper), var(--color-ink) 22%) 50%,
+      var(--color-paper) 75%
+    )
+    right bottom / var(--peel) var(--peel) no-repeat;
+  opacity: 0;
+  transition: opacity var(--motion-peel-exit) var(--motion-ease-out);
+}
+
+/* The folded flap's footprint: the card's corner (its fill, so its own
+   rounded outline), cut to the corner triangle, reflected across the crease
+   and nudged up and to the left. Blurred by the middle span, which has to
+   sit outside the triangle's clip or the clip would cut the blur, and kept
+   on the card by the outer span's overflow. */
+.mo-peel-shadow {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--motion-peel-exit) var(--motion-ease-out);
+}
+
+.mo-peel-shadow > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  filter: blur(2px);
+}
+
+.mo-peel-shadow > span > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  clip-path: polygon(calc(100% - var(--peel)) 100%, 100% calc(100% - var(--peel)), 100% 100%);
+  background: color-mix(in srgb, var(--color-ink), transparent 78%);
+  transform-origin: var(--peel-crease);
+  transform: matrix(0, -1, -1, 0, 0, 0);
+  translate: -3px -3px;
+}
+
+.mo-peel-flap {
+  transform-style: preserve-3d;
+  transform-origin: var(--peel-crease);
+  transform: rotate3d(1, -1, 0, 0deg);
+  transition: transform var(--motion-peel-exit) var(--motion-ease-out);
+}
+
+.mo-peel-front,
+.mo-peel-back {
+  border: 2px solid var(--color-ink);
+  backface-visibility: hidden;
+  clip-path: polygon(calc(100% - var(--peel)) 100%, 100% calc(100% - var(--peel)), 100% 100%);
+}
+
+.mo-peel-front {
+  background-color: var(--color-card);
+}
+
+/* The flap's underside: darker at the crease, lighter toward the tip, with
+   an ink line along the crease itself. */
+.mo-peel-back {
+  transform: scale3d(1, 1, -1);
+  background:
+    linear-gradient(
+        to bottom right,
+        transparent 50%,
+        var(--color-ink) 50%,
+        var(--color-ink) calc(50% + 2px),
+        transparent calc(50% + 2px)
+      )
+      right bottom / var(--peel) var(--peel) no-repeat,
+    linear-gradient(
+        to bottom right,
+        color-mix(in srgb, var(--color-rule), var(--color-ink) 15%) 50%,
+        var(--color-rule) 75%,
+        var(--color-card) 100%
+      )
+      right bottom / var(--peel) var(--peel) no-repeat;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .mo-card:hover .mo-peel {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .mo-card:hover .mo-peel-gap {
+    opacity: 1;
+    transition-duration: var(--motion-peel);
+  }
+
+  /* The shadow waits until the flap is past upright and over the card. */
+  .mo-card:hover .mo-peel-shadow {
+    opacity: 1;
+    transition-duration: var(--motion-peel);
+    transition-delay: calc(var(--motion-peel) / 3);
+  }
+
+  .mo-card:hover .mo-peel-flap {
+    transform: rotate3d(1, -1, 0, 165deg);
+    transition-duration: var(--motion-peel);
   }
 }
 

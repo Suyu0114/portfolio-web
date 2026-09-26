@@ -26,14 +26,15 @@ const FILL: Record<SketchFill, string> = {
 // and 4.82:1 on --accent-2, and 20px Caveat is normal-size text under WCAG, so
 // it needs the full 4.5:1. Hover can't borrow the pills' --rule fill, where the
 // label would drop to about 1.5:1, so it turns --ink, the fill a selected pill
-// already uses.
+// already uses. `mo-lift` eases that fill and lifts the button 2px on the
+// shared hover rhythm (SPEC §4.4, v1.11).
 export function sketchButtonClass(
   fill: SketchFill,
   border: "a" | "b",
   rotate: SketchRotate,
   className = "",
 ): string {
-  return `${border === "a" ? "sk-border-a" : "sk-border-b"} ${FILL[fill]} text-card hover:bg-ink inline-flex items-center gap-1.5 px-3 py-1.5 ${ROTATION[rotate]} ${className}`;
+  return `${border === "a" ? "sk-border-a" : "sk-border-b"} ${FILL[fill]} text-card hover:bg-ink mo-lift inline-flex items-center gap-1.5 px-3 py-1.5 ${ROTATION[rotate]} ${className}`;
 }
 
 /** The label inside the frame. Caveat is display-only and never below 20px (CLAUDE.md rule 5). */

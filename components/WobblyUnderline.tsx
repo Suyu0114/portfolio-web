@@ -2,19 +2,22 @@
 // stretches to the width of whatever it wraps (preserveAspectRatio
 // none), so the wobble adapts to any heading length.
 //
-// `draw` (v1.6) makes the path draw itself once on load: the site's one
-// motion moment (SPEC §2), passed by page h1s only. pathLength={1} lets the
-// dash animation in globals.css (.wobbly-draw) cover the path whatever its
-// rendered length.
+// `draw` (v1.6) makes the path draw itself once on load, passed by page h1s
+// only (SPEC §4.3). `hover` (v1.11) keeps the path hidden until what it
+// wraps is hovered, then draws it on; the nav's other links use it.
+// pathLength={1} lets the dash animations in globals.css (.mo-draw,
+// .mo-hover-line; SPEC §4.4) cover the path whatever its rendered length.
 export default function WobblyUnderline({
   children,
   draw = false,
+  hover = false,
 }: {
   children: React.ReactNode;
   draw?: boolean;
+  hover?: boolean;
 }) {
   return (
-    <span className="relative inline-block">
+    <span className={`relative inline-block${hover ? " mo-hover-line" : ""}`}>
       {children}
       <svg
         aria-hidden="true"
@@ -29,7 +32,7 @@ export default function WobblyUnderline({
           strokeWidth="2.5"
           strokeLinecap="round"
           pathLength={1}
-          className={draw ? "wobbly-draw" : undefined}
+          className={draw ? "mo-draw" : undefined}
         />
       </svg>
     </span>

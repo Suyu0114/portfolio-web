@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LinkArrow from "@/components/LinkArrow";
 
 // Footer row after a case study — SPEC §6.3 (v1.6 page chrome): back to
 // the index, or on to the next note by frontmatter order. The page picks
@@ -14,11 +15,11 @@ export default function NextNote({
       aria-label="More notes"
       className="mt-14 flex flex-col gap-3 border-t border-rule pt-6 text-sm sm:flex-row sm:items-baseline sm:justify-between"
     >
-      <Link href="/projects" className="text-muted underline hover:text-ink">
-        ← all projects
+      <Link href="/projects" className="mo-color text-muted underline hover:text-ink">
+        <LinkArrow direction="left" /> all projects
       </Link>
       <Link href={`/projects/${next.slug}`} className="text-accent underline">
-        next note: {next.title} →
+        next note: {next.title} <LinkArrow />
       </Link>
     </nav>
   );

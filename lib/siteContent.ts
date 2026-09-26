@@ -22,6 +22,9 @@ import powerlifting2 from "@/public/photos/powerlifting-2.jpg";
  */
 type SitePhoto = { image: StaticImageData; alt: string; caption?: string };
 
+/** A volunteering entry on /about (SPEC §6.4, v1.10). */
+type VolunteerRole = { title: string; detail?: string; when: string };
+
 /** An interests block on /about: one paragraph, then its photos. */
 type InterestBlock = { body: string; photos: readonly SitePhoto[] };
 
@@ -132,6 +135,30 @@ const INTERESTS: readonly InterestBlock[] = [
   },
 ];
 
+// Volunteering (SPEC §6.4, v1.10). Every fact is Suyu's own, supplied
+// 2026-09-19: the year, the city, the club, the role, and the 36 lifters from
+// 5 colleges. No month, venue or head-count was given, so none is stated.
+// The sport (Olympic weightlifting) is Suyu's word; "OWA" is the Ontario
+// Weightlifting Association, the body that sanctions the meets, checked
+// against onweightlifting.ca on 2026-09-19.
+const VOLUNTEER_ROLES: readonly VolunteerRole[] = [
+  {
+    title: "Powerlifting competition",
+    detail: "Featured 36 lifters from 5 colleges across the province.",
+    when: "2025 · Toronto",
+  },
+  {
+    title: "Olympic weightlifting meets",
+    detail: "Sanctioned by the Ontario Weightlifting Association (OWA).",
+    when: "2025 · Toronto",
+  },
+  {
+    title: "Back Alley's Strongest",
+    detail: "A strongman competition.",
+    when: "2025 · Toronto",
+  },
+];
+
 /**
  * About page copy — SPEC §6.4. Bio + "how I work" + interests, drawn
  * from the approved positioning (§1) and verified project facts.
@@ -180,6 +207,12 @@ export const ABOUT = {
         body: "The assistant on this site can only state facts that exist in its knowledge pack; anything else gets a fixed fallback line rather than a plausible guess.",
       },
     ],
+  },
+  volunteering: {
+    heading: "volunteering",
+    intro:
+      "In 2025 I volunteered with Back Alley Barbell at strength competitions in Toronto: setting up, then working the floor as a spotter and safety crew.",
+    roles: VOLUNTEER_ROLES,
   },
   interests: INTERESTS,
 } as const;
