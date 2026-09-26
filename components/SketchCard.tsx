@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LinkArrow from "@/components/LinkArrow";
 import TagPill from "@/components/TagPill";
 
 type SketchCardProps = {
@@ -117,9 +118,9 @@ export default function SketchCard({
       <Link
         href={href}
         aria-label={`read case study: ${title}`}
-        className="mt-auto text-[13px] text-accent after:absolute after:inset-0 after:content-[''] hover:underline"
+        className="mo-underline mo-color mt-auto text-[13px] text-accent after:absolute after:inset-0 after:content-['']"
       >
-        read case study →
+        read case study <LinkArrow />
       </Link>
       <CornerCurl id={curlId} />
     </article>

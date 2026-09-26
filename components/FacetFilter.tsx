@@ -27,7 +27,7 @@ export default function FacetFilter({
     );
   }
 
-  const chipBase = "sk-pill px-2.5 py-0.5 text-xs";
+  const chipBase = "sk-pill mo-color px-2.5 py-0.5 text-xs";
   const chipOn = "bg-ink text-paper";
   const chipOff = "text-ink hover:bg-rule";
 

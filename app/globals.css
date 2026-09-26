@@ -133,6 +133,122 @@ h4 {
 }
 
 /*
+ * The hover rhythm. Going into a hover takes --motion-hover and coming out
+ * the shorter --motion-exit: the base rule carries the exit and the :hover
+ * rule the entry, because a transition runs on the timing of the state it
+ * is heading to. Like Tailwind's hover: variant, the :hover rules apply only
+ * where the device can hover, so a tap never leaves anything stuck.
+ * Colors aren't motion, so they ease for everyone; the global reduce rule
+ * above makes them instant for visitors who ask.
+ */
+
+/* A link or chip whose text, fill or underline color changes on hover. */
+.mo-color {
+  transition-property: color, background-color, text-decoration-color;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+/*
+ * A link whose underline fades in on hover rather than snapping on, as
+ * `hover:underline` did: the line is always there, just transparent.
+ */
+.mo-underline {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+}
+
+@media (hover: hover) {
+  .mo-color:hover,
+  .mo-underline:hover {
+    transition-duration: var(--motion-hover);
+  }
+
+  .mo-underline:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/*
+ * The hero buttons (lib/sketchButton.ts): the fill eases to --ink while the
+ * button lifts on the soft spring, and settles halfway back when pressed.
+ */
+.mo-lift {
+  transition-property: background-color, translate;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+@media (hover: hover) {
+  .mo-lift:hover {
+    transition-duration: var(--motion-hover), var(--motion-spring-soft-duration);
+    transition-timing-function: var(--motion-ease-out), var(--motion-spring-soft);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .mo-lift:hover {
+    translate: 0 calc(-1 * var(--motion-lift));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mo-lift:active {
+    translate: 0 calc(-0.5 * var(--motion-lift));
+    transition-duration: var(--motion-press);
+  }
+}
+
+/*
+ * LinkArrow: the → or ← at the end of a link moves a few pixels its own way
+ * while the link is hovered. A card's link is stretched over the whole card
+ * (SketchCard), so hovering the card hovers the link and moves its arrow.
+ * An inline-block doesn't receive its parent's underline, so the arrow
+ * draws its own from the link's (and eases its color along with a
+ * .mo-underline link's).
+ */
+.mo-nudge {
+  display: inline-block;
+  text-decoration: inherit;
+  transition-property: translate, text-decoration-color;
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :hover > .mo-nudge {
+    transition-duration: var(--motion-hover);
+  }
+
+  :hover > .mo-nudge-right {
+    translate: var(--motion-nudge) 0;
+  }
+
+  :hover > .mo-nudge-left {
+    translate: calc(-1 * var(--motion-nudge)) 0;
+  }
+}
+
+/*
+ * WobblyUnderline's `hover` mode (the nav's other links): the underline
+ * draws on while hovered and draws back off after. At rest the dash sits
+ * just past the path's start, in a gap longer than the path, so neither of
+ * its round caps shows.
+ */
+.mo-hover-line path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.05;
+  transition: stroke-dashoffset var(--motion-exit) var(--motion-ease-in-out);
+}
+
+@media (hover: hover) {
+  .mo-hover-line:hover path {
+    stroke-dashoffset: 0;
+    transition-duration: var(--motion-hover);
+  }
+}
+
+/*
  * Sketch utilities — SPEC.md §4.3.
  * Shared, never ad-hoc; asymmetric radius pairs are mirrored so
  * adjacent cards don't repeat the same wobble.

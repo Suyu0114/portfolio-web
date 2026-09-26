@@ -10,7 +10,7 @@ export default function Footer() {
             is what satisfies axe link-in-text-block; the color stays --muted
             per SPEC §4.1 ("captions, nav links, meta"). */}
         <p className="text-sm text-muted">
-          <ContactLinks linkClassName="underline hover:text-ink" />
+          <ContactLinks linkClassName="mo-color underline hover:text-ink" />
         </p>
         <p className="font-display text-xl text-muted">{FOOTER.handNote}</p>
       </div>

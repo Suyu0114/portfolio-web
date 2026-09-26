@@ -2,6 +2,7 @@ import Link from "next/link";
 import CalibrationDoodle from "@/components/CalibrationDoodle";
 import ContactStrip from "@/components/ContactStrip";
 import DoodleArrow from "@/components/DoodleArrow";
+import LinkArrow from "@/components/LinkArrow";
 import OpenChatButton from "@/components/OpenChatButton";
 import Photo from "@/components/Photo";
 import SketchButtonLink from "@/components/SketchButtonLink";
@@ -81,9 +82,9 @@ export default function Home() {
         <p className="mt-7">
           <Link
             href="/projects"
-            className="text-sm text-muted hover:text-ink"
+            className="mo-color text-sm text-muted hover:text-ink"
           >
-            all projects →
+            all projects <LinkArrow />
           </Link>
         </p>
       </section>

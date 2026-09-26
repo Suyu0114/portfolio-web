@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LinkArrow from "@/components/LinkArrow";
 
 // Hand-drawn empty state — copy from SPEC §5.
 export default function NotFound() {
@@ -11,7 +12,7 @@ export default function NotFound() {
         </h1>
         <p className="mt-4 text-sm">
           <Link href="/" className="text-accent underline">
-            back to the front page →
+            back to the front page <LinkArrow />
           </Link>
         </p>
       </div>
