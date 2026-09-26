@@ -33,7 +33,9 @@ export default function FacetFilter({
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter projects by tag">
+      {/* The chips render on the client only, so they rise in as they
+          mount rather than popping in (SPEC §4.4). */}
+      <div className="mo-rise flex flex-wrap gap-2" role="group" aria-label="Filter projects by tag">
         <button
           type="button"
           aria-pressed={activeTag === null}

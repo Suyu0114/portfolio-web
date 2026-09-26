@@ -5,6 +5,7 @@ import DoodleArrow from "@/components/DoodleArrow";
 import LinkArrow from "@/components/LinkArrow";
 import OpenChatButton from "@/components/OpenChatButton";
 import Photo from "@/components/Photo";
+import Reveal from "@/components/Reveal";
 import SketchButtonLink from "@/components/SketchButtonLink";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
@@ -71,35 +72,45 @@ export default function Home() {
         <CalibrationDoodle />
       </section>
 
-      {/* Featured notes — SPEC §6.1.2 */}
+      {/* Featured notes — SPEC §6.1.2. Each block fades up once as it
+          scrolls in (Reveal, SPEC §4.4); cards arriving together go in
+          turn. A card's Reveal is a one-cell grid so the card still
+          stretches to its row's height. */}
       <section className="py-10">
-        <h2 className="font-display text-3xl font-medium">
-          featured notes <DoodleArrow className="ml-1" />
-        </h2>
+        <Reveal>
+          <h2 className="font-display text-3xl font-medium">
+            featured notes <DoodleArrow className="ml-1" draw="reveal" />
+          </h2>
+        </Reveal>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map(({ frontmatter: fm }, i) => (
-            <SketchCard
-              key={fm.slug}
-              title={fm.title}
-              tags={fm.tags}
-              oneLiner={fm.oneLiner}
-              href={`/projects/${fm.slug}`}
-              variant={i % 2 === 0 ? "a" : "b"}
-            />
+            <Reveal key={fm.slug} className="grid">
+              <SketchCard
+                title={fm.title}
+                tags={fm.tags}
+                oneLiner={fm.oneLiner}
+                href={`/projects/${fm.slug}`}
+                variant={i % 2 === 0 ? "a" : "b"}
+              />
+            </Reveal>
           ))}
         </div>
-        <p className="mt-7">
-          <Link
-            href="/projects"
-            className="mo-color text-sm text-muted hover:text-ink"
-          >
-            all projects <LinkArrow />
-          </Link>
-        </p>
+        <Reveal>
+          <p className="mt-7">
+            <Link
+              href="/projects"
+              className="mo-color text-sm text-muted hover:text-ink"
+            >
+              all projects <LinkArrow />
+            </Link>
+          </p>
+        </Reveal>
       </section>
 
       {/* Contact strip — SPEC §6.1.3 */}
-      <ContactStrip />
+      <Reveal>
+        <ContactStrip />
+      </Reveal>
     </main>
   );
 }

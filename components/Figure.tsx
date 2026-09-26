@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Image from "next/image";
+import Reveal from "@/components/Reveal";
 
 type FigureProps = {
   /** Screenshot path under /public (e.g. "/screens/foo.png"). */
@@ -36,19 +37,24 @@ export default function Figure({ src, alt, caption }: FigureProps) {
     throw new Error(`Figure: "${src}" is not a readable PNG`);
   }
 
+  // Fades up once as it scrolls in (Reveal, SPEC §4.4, v1.11). The
+  // figure's margins collapse through the Reveal's plain block, so the
+  // layout is unchanged.
   return (
-    <figure className="sk-border-b my-8 bg-card p-3">
-      <Image
-        src={src}
-        alt={alt}
-        width={size.width}
-        height={size.height}
-        sizes="(min-width: 768px) 720px, 100vw"
-        className="h-auto w-full"
-      />
-      <figcaption className="mt-2 font-display text-xl text-muted">
-        {caption}
-      </figcaption>
-    </figure>
+    <Reveal>
+      <figure className="sk-border-b my-8 bg-card p-3">
+        <Image
+          src={src}
+          alt={alt}
+          width={size.width}
+          height={size.height}
+          sizes="(min-width: 768px) 720px, 100vw"
+          className="h-auto w-full"
+        />
+        <figcaption className="mt-2 font-display text-xl text-muted">
+          {caption}
+        </figcaption>
+      </figure>
+    </Reveal>
   );
 }

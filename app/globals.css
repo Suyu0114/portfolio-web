@@ -189,6 +189,43 @@ h4 {
 }
 
 /*
+ * Inside a Reveal (components/Reveal.tsx): steps that play once the block
+ * scrolls in. Reveal marks itself data-reveal="shown" when it starts to
+ * fade up; content that was already on screen when the page hydrated is
+ * never marked, so it never replays. --i is the step, counted from the
+ * reveal rather than from page load.
+ * - rise-in: an ArchFlow step fading up in turn.
+ * - DoodleArrow: the shaft draws, then the head, on load (mo-arrow-load,
+ *   next to a page's h1) or with a reveal (mo-arrow-in).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal="shown"] .mo-rise-in {
+    animation: mo-rise var(--motion-reveal) var(--motion-ease-out)
+      calc(var(--i, 0) * var(--motion-stagger)) backwards;
+  }
+
+  .mo-arrow-load {
+    --arrow-start: var(--motion-delay-base);
+  }
+
+  .mo-arrow-in {
+    --arrow-start: 0ms;
+  }
+
+  .mo-arrow-load path,
+  [data-reveal="shown"] .mo-arrow-in path {
+    animation: mo-draw var(--motion-draw) var(--motion-ease-in-out)
+      calc(var(--arrow-start) + var(--i, 0) * var(--motion-stagger)) backwards;
+  }
+
+  /* The head starts once the shaft is about halfway drawn. */
+  .mo-arrow-load path + path,
+  [data-reveal="shown"] .mo-arrow-in path + path {
+    animation-delay: calc(var(--arrow-start) + (var(--i, 0) + 4) * var(--motion-stagger));
+  }
+}
+
+/*
  * The hover rhythm. Going into a hover takes --motion-hover and coming out
  * the shorter --motion-exit: the base rule carries the exit and the :hover
  * rule the entry, because a transition runs on the timing of the state it
