@@ -70,12 +70,19 @@ export const LAYOUT_TRANSITION = {
   scale: { duration: s(DURATION.exit), ease: EASE.out },
 } as const;
 
-/** Chart entrance timings, in seconds for `animate`. */
+/**
+ * Chart entrance (RoughBarChart), in seconds for `animate`. The baseline
+ * draws first; the bars start growing two stagger steps in, one step
+ * apart; each value fades in halfway through its bar; the threshold line
+ * draws once the last bar is halfway up.
+ */
 export const CHART = {
   draw: s(DURATION.draw),
   grow: s(DURATION.chart),
   fade: s(DURATION.reveal),
   stagger: s(STAGGER.base),
+  barsAt: s(2 * STAGGER.base),
+  valueLag: s(DURATION.chart) / 2,
   ease: EASE.out,
   drawEase: EASE.inOut,
 } as const;
