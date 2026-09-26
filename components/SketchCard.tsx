@@ -20,7 +20,7 @@ const VARIANT = {
 } as const;
 
 const EASE =
-  "motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out";
+  "motion-safe:transition-transform motion-safe:duration-(--motion-peel) motion-safe:ease-(--motion-ease-out)";
 
 /**
  * The peeled corner, and the one place the site draws a gradient or a shadow

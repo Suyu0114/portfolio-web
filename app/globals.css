@@ -96,21 +96,38 @@ h4 {
 }
 
 /*
- * The one motion moment — SPEC §2 (v1.6): an h1's WobblyUnderline draws
- * itself once on load. Declared only for users who haven't asked for
+ * Motion — SPEC §4.4 (v1.11). Every value here is a --motion-* variable
+ * serialised from lib/motion.ts into <head> by the root layout;
+ * `npm run check` (check-motion) rejects a literal duration or easing.
+ *
+ * Anything that moves is declared only for users who haven't asked for
  * reduced motion, so the rule above never has to collapse it and nobody
- * waits out the delay for a line that should simply be there.
+ * waits out a delay for content that should simply be there. Entrances use
+ * `backwards` fill: they hold their first frame through the delay, then
+ * leave the element's own style in charge, so the end state is the static
+ * page and nothing lingers to fight a later hover.
+ */
+
+/*
+ * A line that draws itself once: an h1's WobblyUnderline (v1.6), the hero
+ * doodle, a DoodleArrow. The path needs pathLength="1". --i places it in a
+ * sequence, one stagger step per unit.
  */
 @media (prefers-reduced-motion: no-preference) {
-  .wobbly-draw {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: wobbly-draw 0.6s ease-out 0.1s both;
+  .mo-draw {
+    animation: mo-draw var(--motion-draw) var(--motion-ease-in-out)
+      calc(var(--motion-delay-base) + var(--i, 0) * var(--motion-stagger))
+      backwards;
   }
 }
 
-@keyframes wobbly-draw {
+@keyframes mo-draw {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
   to {
+    stroke-dasharray: 1;
     stroke-dashoffset: 0;
   }
 }
