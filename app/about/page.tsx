@@ -121,7 +121,7 @@ export default function AboutPage() {
         <p className="mt-3 text-sm">
           <span className="text-ink-soft">{CONTACT.availability}</span>
           {" · "}
-          {/* Resting underline, matching ContactStrip — see the note there. */}
+          {/* Resting underline, matching the home hero's contact line (app/page.tsx); see the note there. */}
           <ContactLinks linkClassName="text-accent underline" />
         </p>
       </section>

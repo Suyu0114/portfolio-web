@@ -4,7 +4,7 @@ Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
 Static Next.js site, English-only, no backend — except the narrowly
 scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` (site, currently v1.11) and `SPEC-CHATBOT.md` (chatbot,
+`SPEC.md` (site, currently v1.12) and `SPEC-CHATBOT.md` (chatbot,
 currently v2.13) are the source of truth for scope, IA, design tokens,
 and content. `SPEC_v1.5_amendment.md` is the source of truth for the
 v1.5 repositioning specifically; its outcome is already folded into

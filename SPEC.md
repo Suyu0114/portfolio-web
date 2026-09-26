@@ -101,7 +101,17 @@ mobile Lighthouse, an exception to §1's 95 that Suyu accepted on
 2026-09-26 (§1 notes it). Amends §1, §2, §3, §4.3, §5, §6.1, §6.2, §8 and
 §9 (adds P9), and adds §4.4. No new route, service, env var, color token,
 or font. Source of truth for the change: `SPEC_v1.11_amendment.md`.
-Status: approved; all §10 inputs supplied (last updated 2026-09-25).
+v1.12 (2026-09-26, per Suyu): the contact links move into the hero. The
+home page showed email, GitHub, LinkedIn and Medium twice, in the contact
+strip and again in the footer just below it. They now sit on one line
+under the hero's actions, so a visitor sees them on the first screen and
+can come back to them; the contact strip keeps only the availability
+sentence. From sm up the hero's bottom padding drops from 80px to 56px so
+the first featured card still starts inside a 1366×768 viewport (at
+741px). Chosen by Suyu over icons only beside the buttons and over a place
+under the doodle. Amends §4.4 (the hero opening) and §6.1. No new route,
+service, env var, color token, or font.
+Status: approved; all §10 inputs supplied (last updated 2026-09-26).
 
 ---
 
@@ -332,7 +342,8 @@ Where each effect applies:
 - Home hero opening (CSS, on every load of `/`): the headline and the
   intro paragraph are there from the first paint. The underline draws
   on, the portrait settles onto the page (a transform only, never
-  faded), the sub-line and the three buttons fade up in turn, and the
+  faded), the sub-line, the three buttons and the contact line (v1.12)
+  fade up in turn, and the
   calibration doodle draws its axes and lines, then its caption. About
   one second in all.
 - Scroll reveals (`Reveal`, once each): on `/`, the featured-notes head
@@ -428,6 +439,12 @@ hand-drawn icon (v1.9), + small hand note ("drawn with rough.js").
    looks different. On hover each fills with `--ink` and lifts 2px (v1.11,
    §4.4). On
    narrow screens the row wraps rather than shrinking its labels.
+   **Contact line (v1.12).** Under the actions: the shared `ContactLinks`
+   (email, GitHub, LinkedIn, Medium, each with its icon), 14px, in
+   `--accent` with a resting underline, as the contact strip had them.
+   One line on desktop; it wraps on phones. From sm up the hero's bottom
+   padding is 56px, so the first featured card still starts inside a
+   1366×768 viewport.
 2. **Featured notes.** Section head + DoodleArrow. Three `SketchCard`s
    in order: the assistant on this site (`ask-my-notes`), BlueJaysFanWeb,
    World Cup platform (§7, order updated v1.5; the pre-registered study
@@ -436,8 +453,10 @@ hand-drawn icon (v1.9), + small hand note ("drawn with rough.js").
    one-liner (13px), `read case
    study →` link in `--accent`. Below the grid: quiet text link
    `all projects →` to `/projects`.
-3. **Contact strip.** One line: availability + email + GitHub/LinkedIn/
-   Medium icons-as-text links (v1.9). No form.
+3. **Contact strip.** One line: the availability sentence (§10). Its
+   email and GitHub/LinkedIn/Medium links (v1.9) moved to the hero's
+   contact line at v1.12, so the page doesn't repeat the footer's links
+   just above it. No form.
 
 ### 6.2 /projects
 

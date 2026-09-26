@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CalibrationDoodle from "@/components/CalibrationDoodle";
+import ContactLinks from "@/components/ContactLinks";
 import ContactStrip from "@/components/ContactStrip";
 import DoodleArrow from "@/components/DoodleArrow";
 import LinkArrow from "@/components/LinkArrow";
@@ -23,8 +24,11 @@ export default function Home() {
       {/* Hero — SPEC §6.1.1. Its opening (SPEC §4.4, v1.11) is CSS, so it
           plays at first paint with no JavaScript: the headline and intro are
           there at once, the underline draws, the portrait settles, and the
-          sub-line and buttons rise in turn ([--i:n] is the step). */}
-      <section className="grid items-center gap-10 py-14 sm:py-20 md:grid-cols-[3fr_2fr]">
+          sub-line, buttons and contact line rise in turn ([--i:n] is the
+          step). The bottom padding is 56px from sm up, not 80px (v1.12), so
+          the contact line fits and the first featured card still starts
+          inside a 1366×768 viewport (SPEC §1). */}
+      <section className="grid items-center gap-10 py-14 sm:pt-20 sm:pb-14 md:grid-cols-[3fr_2fr]">
         <div>
           <h1 className="font-display text-5xl font-bold sm:text-6xl">
             <WobblyUnderline draw>{HERO.headline}</WobblyUnderline>
@@ -68,6 +72,14 @@ export default function Home() {
               className="mo-rise [--i:4]"
             />
           </div>
+          {/* Contact line (SPEC §6.1, v1.12): the footer's links, on the
+              first screen so a visitor has them from the start. They keep
+              a resting underline, not hover-only: --accent on --ink-soft
+              text is 1.51:1, below the 3:1 axe link-in-text-block needs
+              from color alone. It rises in after the buttons. */}
+          <p className="mo-rise mt-4 text-sm [--i:5]">
+            <ContactLinks linkClassName="text-accent underline" />
+          </p>
         </div>
         <CalibrationDoodle />
       </section>
