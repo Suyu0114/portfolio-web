@@ -1,8 +1,14 @@
 import { HERO } from "@/lib/siteContent";
 
-// Hero doodle — SPEC §6.1.1: static, decorative, hand-drawn calibration
-// sketch. Deliberately NOT rough.js and not data-bound; the wobble is
-// drawn into the paths themselves.
+// Hero doodle — SPEC §6.1.1: decorative, hand-drawn calibration sketch.
+// Deliberately NOT rough.js and not data-bound; the wobble is drawn into
+// the paths themselves.
+//
+// It draws itself in once as part of the hero's opening (SPEC §4.4, v1.11):
+// the axes, then the model line, then the dashed market line wiped on from
+// the left (a dash draw would break its dashes), then the caption. [--i:n]
+// is the step in the sequence; the classes are in globals.css. pathLength
+// lets the draw cover each path whatever its length.
 export default function CalibrationDoodle() {
   return (
     <figure className="mx-auto w-full max-w-sm">
@@ -18,12 +24,16 @@ export default function CalibrationDoodle() {
           stroke="var(--color-ink)"
           strokeWidth="2"
           strokeLinecap="round"
+          pathLength={1}
+          className="mo-draw [--i:1]"
         />
         <path
           d="M26 174 C 100 176 220 173 304 175"
           stroke="var(--color-ink)"
           strokeWidth="2"
           strokeLinecap="round"
+          pathLength={1}
+          className="mo-draw [--i:2]"
         />
         {/* solid "model" line (--accent) */}
         <path
@@ -31,6 +41,8 @@ export default function CalibrationDoodle() {
           stroke="var(--color-accent)"
           strokeWidth="2.5"
           strokeLinecap="round"
+          pathLength={1}
+          className="mo-draw [--i:4]"
         />
         {/* dashed "market" line (--accent-2) */}
         <path
@@ -39,9 +51,10 @@ export default function CalibrationDoodle() {
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeDasharray="7 7"
+          className="mo-wipe [--i:5]"
         />
       </svg>
-      <figcaption className="mt-2 text-center font-display text-xl text-muted">
+      <figcaption className="mo-rise mt-2 text-center font-display text-xl text-muted [--i:8]">
         {HERO.doodleCaption}
       </figcaption>
     </figure>
