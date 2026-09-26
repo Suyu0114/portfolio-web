@@ -66,7 +66,22 @@ platform — line work only, no new color token, per CLAUDE.md rule 4. The
 three call sites, previously identical duplicated markup, now share one
 `ContactLinks` component. Amends §5 (footer line), §6.1.3, §8, and §10. No
 new route, service, env var, color token, or font.
-Status: approved; all §10 inputs supplied (last updated 2026-09-15).
+v1.10 (2026-09-19, per Suyu): volunteering on /about. A new section between
+"how I work" and "interests", because volunteer service carries weight with
+North American employers. Three 2025 entries, all with Back Alley Barbell in
+Toronto, all as set-up and spotter/safety crew: a powerlifting competition of
+36 lifters from 5 colleges across the province, Olympic weightlifting meets
+sanctioned by the Ontario Weightlifting Association (OWA), and Back Alley's
+Strongest (a strongman competition). Every fact is
+Suyu's own words; no month, venue, or head-count beyond those was supplied, so
+none is stated. Same card treatment as "how I work", no photos yet (the
+screenshots supplied are Instagram captures with other people's faces in them;
+a photo needs Suyu's own cropped and face-covered edit, §6.4 privacy rules).
+The knowledge pack gets the same facts (`content/chatbot/profile.md`), so the
+site and PATS agree; no SPEC-CHATBOT version bump, as with v1.6's pack
+correction. Amends §6.4 only. No new route, service, env var, color token, or
+font.
+Status: approved; all §10 inputs supplied (last updated 2026-09-19).
 
 ---
 
@@ -396,6 +411,10 @@ are server-rendered, with no client JS.
   concrete, not buzzwordy.
 - Portrait (v1.6, P7): the same photo as the hero, beside the bio. It
   floats right on desktop and is centered above the bio on mobile.
+- Volunteering (v1.10), after "how I work" and before interests: one
+  sentence, then a card per entry (title, optional detail, year and city).
+  No photos. Copy is Suyu's own facts only; see the v1.10 version entry and
+  `ABOUT.volunteering` in `lib/siteContent.ts`.
 - Interests, in blocks of one paragraph plus optional photos. Personality
   lives here, stated plainly and confidently. The interests section
   carries `id="interests"` (v1.8), the target of the hero's `interests`
