@@ -22,7 +22,7 @@
 }
 
 /* Fonts are loaded via next/font in lib/fonts.ts (and, for Iansui, in
-   app/zh-tw/layout.tsx). */
+   lib/fontIansui.ts, after load). */
 @theme inline {
   --font-mono: var(--font-jetbrains-mono);
   --font-display: var(--font-caveat);
@@ -55,8 +55,11 @@ html:lang(zh-TW) .font-mono {
   font-family: var(--font-jetbrains-mono), var(--font-cjk-sans);
 }
 
+/* --font-iansui is defined only once ChineseDisplayFont has brought the
+   face in after load; until then (and without JavaScript) the fallback
+   keeps the declaration valid and the system sans draws the Chinese. */
 html:lang(zh-TW) .font-display {
-  font-family: var(--font-caveat), var(--font-iansui), var(--font-cjk-sans);
+  font-family: var(--font-caveat), var(--font-iansui, var(--font-cjk-sans)), var(--font-cjk-sans);
 }
 
 /*

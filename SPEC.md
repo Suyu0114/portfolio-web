@@ -204,7 +204,7 @@ BI / research) so each recruiter type self-navigates to their keywords.
 | Content | MDX in `/content` via `@next/mdx` or `next-mdx-remote` | Do **not** use contentlayer — assumed unmaintained, verify at P0 (§11) |
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
 | Motion | `motion` (`motion/react`): `m` components under `LazyMotion strict`, features imported asynchronously | v1.11. Only for effects that need JavaScript (§4.4): scroll reveals, chart entrances, the filter reflow. Whatever plays at first paint is CSS. |
-| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). v1.13: Iansui (芫荽) for Chinese display text, loaded only by the `/zh-tw` root layout with `preload: false` (Google Fonts serves it in unicode-range slices, so a page downloads only the slices its characters need); Chinese body text uses the system stack `--font-cjk-sans` (§4.2), nothing downloaded. |
+| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). v1.13: Iansui (芫荽) for Chinese display text, on `/zh-tw` pages only, brought in by `ChineseDisplayFont` once the page has loaded and the main thread is idle, like Motion's features (loaded with the page it took `/zh-tw` mobile Lighthouse to 69); until then, and without JavaScript, Chinese headings use `--font-cjk-sans`. Google Fonts serves it in unicode-range slices, so a page downloads only the slices its characters need. Chinese body text uses the system stack `--font-cjk-sans` (§4.2), nothing downloaded. |
 | Locales | Static, per locale (v1.13) | `app/(en)/` and `app/zh-tw/` are separate root layouts; `app/global-not-found.tsx` (`experimental.globalNotFound`) answers unmatched URLs. Copy is typed per locale in `lib/`; no i18n library. |
 | Images | `next/image`; screenshots in `/public/screens/` (PNG, via `Figure`); personal photos in `/public/photos/` (JPEG, via `Photo`, statically imported) | Photos: EXIF stripped, long edge ≤ 1600px, ≤ 500 KB each; originals never committed |
 | Deploy | Vercel, custom domain (TODO §10) | No runtime env vars (amended v1.4: SPEC-CHATBOT.md §2 lists the only allowed ones) |
@@ -272,7 +272,9 @@ button (SPEC-CHATBOT.md §6), and `about` and `interests` in `--accent-2`.
 - **Chinese (v1.13).** On `/zh-tw` pages only:
   - Display: Caveat first, then Iansui, then `--font-cjk-sans`. Latin
     characters in a heading stay Caveat; Chinese ones fall through to
-    Iansui. Iansui is display-only and ≥ 20px, exactly like Caveat
+    Iansui, once it has arrived after load (§3), and to `--font-cjk-sans`
+    until then. Chinese glyphs are one em wide in both, so the swap shifts
+    nothing. Iansui is display-only and ≥ 20px, exactly like Caveat
     (CLAUDE.md rule 5).
   - Body, labels and code: JetBrains Mono first, then `--font-cjk-sans`.
   - `--font-cjk-sans` is frozen: `"PingFang TC", "Noto Sans CJK TC",
@@ -810,7 +812,8 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 `FacetFilter` (client), `ContactStrip`, `ContactLinks` (v1.9),
 `ContactIcons` (v1.9), `LinkArrow` (v1.11), `Reveal` (client, v1.11),
 `MotionProvider` (client, v1.11), `SiteShell` (v1.13), `LanguageSwitch`
-(client, v1.13), `NotFoundNote` (v1.13), the page bodies both locales
+(client, v1.13), `ChineseDisplayFont` (client, v1.13), `NotFoundNote`
+(v1.13), the page bodies both locales
 share (`HomePage`, `ProjectsPage`, `CaseStudyPage`, `AboutPage`, v1.13),
 MDX component map (headings with optional underline and h2 slug ids,
 `Figure`, code blocks in mono on `--card`).

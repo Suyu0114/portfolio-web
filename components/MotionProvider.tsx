@@ -1,23 +1,13 @@
 "use client";
 
 import { LazyMotion, MotionConfig } from "motion/react";
+import { afterLoadAndIdle } from "@/lib/afterLoad";
 
 // Motion's animation features load in their own chunk once the page has
 // loaded and the main thread is idle, so they compete with nothing the
 // first paint needs (SPEC §4.4, v1.11). Until then `m` elements render as
 // plain, visible elements; nothing on screen at that point is waiting on
 // them, since Reveal only hides content below the viewport.
-function afterLoadAndIdle(): Promise<void> {
-  return new Promise((resolve) => {
-    const idle = () =>
-      "requestIdleCallback" in window
-        ? requestIdleCallback(() => resolve())
-        : setTimeout(resolve, 0);
-    if (document.readyState === "complete") idle();
-    else window.addEventListener("load", idle, { once: true });
-  });
-}
-
 const loadFeatures = () =>
   afterLoadAndIdle()
     .then(() => import("@/lib/motionFeatures"))
