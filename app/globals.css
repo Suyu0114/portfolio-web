@@ -21,7 +21,8 @@
   --color-rule: #d8cfbb;
 }
 
-/* Fonts are loaded via next/font in app/layout.tsx. */
+/* Fonts are loaded via next/font in lib/fonts.ts (and, for Iansui, in
+   app/zh-tw/layout.tsx). */
 @theme inline {
   --font-mono: var(--font-jetbrains-mono);
   --font-display: var(--font-caveat);
@@ -35,6 +36,27 @@ body {
   font-family: var(--font-mono);
   font-size: 16px;
   line-height: 1.65;
+}
+
+/*
+ * Chinese pages — SPEC.md §4.2 (v1.13). Latin text keeps Caveat and
+ * JetBrains Mono; Chinese characters fall through, glyph by glyph, to
+ * Iansui in display text and to the system's Chinese sans everywhere else.
+ * Every rule matches only <html lang="zh-TW">, so no English page's CSS
+ * changes. Unlayered, so they beat the layered font utilities. The sans
+ * stack is frozen (CLAUDE.md rule 4; check-tokens).
+ */
+html:lang(zh-TW) {
+  --font-cjk-sans: "PingFang TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif;
+}
+
+html:lang(zh-TW) body,
+html:lang(zh-TW) .font-mono {
+  font-family: var(--font-jetbrains-mono), var(--font-cjk-sans);
+}
+
+html:lang(zh-TW) .font-display {
+  font-family: var(--font-caveat), var(--font-iansui), var(--font-cjk-sans);
 }
 
 /*

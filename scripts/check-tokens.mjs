@@ -26,8 +26,15 @@ const FROZEN_TOKENS = {
   "--color-rule": "#d8cfbb",
 };
 
-/** SPEC.md §4.2: mono is the body face, display is Caveat. No third face. */
-const ALLOWED_FONT_VARS = ["--font-mono", "--font-display"];
+/**
+ * SPEC.md §4.2: mono is the body face, display is Caveat. No third Latin
+ * face. v1.13 adds the Chinese pages' system sans stack, frozen below;
+ * Iansui comes from next/font, like Caveat, so it declares no variable here.
+ */
+const ALLOWED_FONT_VARS = ["--font-mono", "--font-display", "--font-cjk-sans"];
+
+/** SPEC.md §4.2 (v1.13), frozen. */
+const CJK_SANS = '"PingFang TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif';
 
 /** Directories scanned for the rule 6 (no dark mode) check. */
 const SOURCE_DIRS = ["app", "components", "lib", "content"];
@@ -107,6 +114,13 @@ for (const required of ALLOWED_FONT_VARS) {
     fail(`Font variable ${required} is missing from app/globals.css.`);
   }
 }
+const cjkSans = [...css.matchAll(/--font-cjk-sans\s*:\s*([^;]+);/g)].map((m) => m[1].trim());
+if (cjkSans.length !== 1 || cjkSans[0] !== CJK_SANS) {
+  fail(
+    `--font-cjk-sans must be declared once, as ${CJK_SANS} (SPEC.md §4.2, v1.13); ` +
+      `found ${cjkSans.join(" | ") || "nothing"}. A new font is a spec change (CLAUDE.md rule 4).`,
+  );
+}
 
 // ---------------------------------------------------------------- rule 6
 
@@ -142,5 +156,5 @@ if (errors.length > 0) {
 
 console.log(
   `check-tokens: ok (${expectedHexCount} frozen tokens, ` +
-    `${ALLOWED_FONT_VARS.length} font faces, no dark mode)`,
+    `${ALLOWED_FONT_VARS.length} font variables, no dark mode)`,
 );

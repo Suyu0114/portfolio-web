@@ -6,7 +6,7 @@ import StudyArch from "@/components/StudyArch";
 import StudyNulls from "@/components/StudyNulls";
 import WorldCupArch from "@/components/WorldCupArch";
 import WorldCupCalibration from "@/components/WorldCupCalibration";
-import { slugify } from "@/lib/headings";
+import type { Heading } from "@/lib/headings";
 import type { Locale } from "@/lib/i18n";
 
 /**
@@ -15,18 +15,28 @@ import type { Locale } from "@/lib/i18n";
  * per-project architecture flows, and rough.js data charts). The visuals
  * get the page's locale here, so an MDX file never names one (SPEC v1.13).
  */
-export function getMdxComponents(locale: Locale): MDXComponents {
+export function getMdxComponents(
+  locale: Locale,
+  headings: readonly Heading[],
+): MDXComponents {
+  const ids = new Map(headings.map((h) => [h.text, h.id]));
   return {
     // Each h2 carries the id the contents line links to (SPEC §6.3, v1.6),
-    // from the same slugify as getH2Headings. Fail loud: a heading with
-    // inline markup has no plain text to derive the id from, and rendering
-    // it without one would leave its contents link dead.
+    // looked up by its text in the headings the contents line was built
+    // from: slugified in English, the English heading's id in a
+    // translation (v1.13). Fail loud: a heading with inline markup has no
+    // plain text to look up, and one the list lacks would leave its
+    // contents link dead.
     h2: ({ children, ...props }) => {
       if (typeof children !== "string") {
         throw new Error("MDX h2 headings must be plain text so they can carry a contents id");
       }
+      const id = ids.get(children);
+      if (id === undefined) {
+        throw new Error(`MDX h2 "${children}" is not among the body's headings`);
+      }
       return (
-        <h2 id={slugify(children)} className="mt-10 font-display text-2xl font-medium" {...props}>
+        <h2 id={id} className="mt-10 font-display text-2xl font-medium" {...props}>
           {children}
         </h2>
       );

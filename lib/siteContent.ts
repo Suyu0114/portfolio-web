@@ -3,6 +3,8 @@ import type { FacetTag } from "@/lib/facets";
 import type { Locale } from "@/lib/i18n";
 import { PHOTOS } from "@/lib/photos";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { SITE_COPY_ZH, SITE_COPY_ZH_EXTRA_NUMBERS } from "@/lib/siteContent.zh-tw";
+import { assertTranslatedCopy } from "@/lib/translationChecks";
 
 /**
  * Site copy — SPEC.md §1, §5, §6.1. Content constants per CLAUDE.md
@@ -305,7 +307,17 @@ export type SiteCopy = Widen<typeof SITE_COPY_EN>;
 
 const SITE_COPY: Record<Locale, SiteCopy> = {
   en: SITE_COPY_EN,
+  "zh-tw": SITE_COPY_ZH,
 };
+
+// Fail the build if the Chinese copy lost a number, changed a photo, or
+// carries an em dash (SPEC.md §7.5; lib/translationChecks.ts). The two
+// metadata strings that open with "Suyu — " use the name separator rule 10
+// allows.
+assertTranslatedCopy(SITE_COPY_EN, SITE_COPY_ZH, "lib/siteContent.zh-tw.ts", {
+  extras: SITE_COPY_ZH_EXTRA_NUMBERS,
+  nameSeparated: ["meta.siteName", "meta.aboutDescription"],
+});
 
 export function getSiteCopy(locale: Locale): SiteCopy {
   return SITE_COPY[locale];

@@ -87,9 +87,11 @@ improvise a resolution.
     paragraphs, figure captions, chart titles, diagram rails, card
     one-liners, `content/chatbot/*.md`, bot replies, and the system
     prompt in `lib/chatbotPrompt.ts`. Two frozen exceptions: the
-    standardized fallback line (SPEC-CHATBOT.md §4) in **both** of its
-    copies, `content/ask-my-notes.mdx` and `lib/chatbotKnowledge.ts`,
-    because the `/study` gap analysis matches that exact string; and the
+    standardized fallback line (SPEC-CHATBOT.md §4) in **each** of its
+    copies, `content/ask-my-notes.mdx`, `lib/chatbotKnowledge.ts` and the
+    English quote of it in `content/zh-tw/ask-my-notes.mdx` (v1.13; the
+    build checks it matches the constant), because the `/study` gap
+    analysis matches that exact string; and the
     `Avoid the em dash (—)` instruction in `lib/chatbotPrompt.ts`, where
     the glyph is the subject of the sentence. Code comments are not
     visitor-facing and are out of scope. Chinese copy is covered too: no

@@ -5,7 +5,6 @@ import NextNote from "@/components/NextNote";
 import TagPill from "@/components/TagPill";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getProject, getProjects } from "@/lib/content";
-import { getH2Headings } from "@/lib/headings";
 import { localePath, type Locale } from "@/lib/i18n";
 import { getMdxComponents } from "@/lib/mdxComponents";
 import { getSiteCopy } from "@/lib/siteContent";
@@ -19,8 +18,7 @@ export default function CaseStudyPage({
   slug: string;
 }) {
   const { ui } = getSiteCopy(locale);
-  const { frontmatter: fm, body } = getProject(locale, slug);
-  const headings = getH2Headings(body);
+  const { frontmatter: fm, body, headings } = getProject(locale, slug);
 
   // Next note by frontmatter order, wrapping from the last back to the
   // first (SPEC §6.3, v1.6). getProjects() is already sorted by order.
@@ -71,7 +69,7 @@ export default function CaseStudyPage({
       </header>
 
       <article className="mt-4">
-        <MDXRemote source={body} components={getMdxComponents(locale)} />
+        <MDXRemote source={body} components={getMdxComponents(locale, headings)} />
       </article>
 
       <NextNote
