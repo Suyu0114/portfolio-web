@@ -1,8 +1,9 @@
 import Link from "next/link";
 import LinkArrow from "@/components/LinkArrow";
 
-// Hand-drawn empty state — copy from SPEC §5.
-export default function NotFound() {
+// Hand-drawn empty state — copy from SPEC §5. Shared by the route groups'
+// not-found pages and app/global-not-found.tsx.
+export default function NotFoundNote() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center px-6 py-24">
       <div className="sk-border-a max-w-md bg-card p-10 text-center">
