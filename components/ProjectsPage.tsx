@@ -16,7 +16,7 @@ export default function ProjectsPage({ locale }: { locale: Locale }) {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
       <h1 className="font-display text-4xl font-bold">
-        {meta.projectsTitle} <DoodleArrow className="ml-1" draw="load" />
+        {`${meta.projectsTitle} `}<DoodleArrow className="ml-1" draw="load" />
       </h1>
       {/* useSearchParams needs a Suspense boundary for static rendering;
           the fallback prerenders the unfiltered grid. On load this block

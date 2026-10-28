@@ -21,7 +21,7 @@ export default function NextNote({
       className="mt-14 flex flex-col gap-3 border-t border-rule pt-6 text-sm sm:flex-row sm:items-baseline sm:justify-between"
     >
       <Link href={allHref} className="mo-color text-muted underline hover:text-ink">
-        <LinkArrow direction="left" /> {copy.allProjects}
+        <LinkArrow direction="left" />{` ${copy.allProjects}`}
       </Link>
       <Link href={next.href} className="text-accent underline">
         {copy.nextNotePrefix}

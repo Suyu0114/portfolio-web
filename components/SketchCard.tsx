@@ -78,7 +78,7 @@ export default function SketchCard({
         aria-label={`${copy.ctaLabelPrefix}${title}`}
         className="mo-underline mo-color mt-auto text-[13px] text-accent after:absolute after:inset-0 after:content-['']"
       >
-        {copy.cta} <LinkArrow />
+        {`${copy.cta} `}<LinkArrow />
       </Link>
       <CornerPeel />
     </article>

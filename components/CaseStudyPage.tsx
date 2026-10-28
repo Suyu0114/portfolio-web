@@ -46,17 +46,17 @@ export default function CaseStudyPage({
           <p className="mt-3 flex flex-wrap gap-4 text-sm">
             {fm.links.demo && (
               <a href={fm.links.demo} target="_blank" rel="noreferrer" className="text-accent underline">
-                {ui.caseStudy.demo} <LinkArrow />
+                {`${ui.caseStudy.demo} `}<LinkArrow />
               </a>
             )}
             {fm.links.repo && (
               <a href={fm.links.repo} target="_blank" rel="noreferrer" className="text-accent underline">
-                {ui.caseStudy.repo} <LinkArrow />
+                {`${ui.caseStudy.repo} `}<LinkArrow />
               </a>
             )}
             {fm.links.writeup && (
               <a href={fm.links.writeup} target="_blank" rel="noreferrer" className="text-accent underline">
-                {ui.caseStudy.writeup} <LinkArrow />
+                {`${ui.caseStudy.writeup} `}<LinkArrow />
               </a>
             )}
           </p>

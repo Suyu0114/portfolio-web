@@ -96,7 +96,7 @@ export default function HomePage({ locale }: { locale: Locale }) {
       <section className="py-10">
         <Reveal>
           <h2 className="font-display text-3xl font-medium">
-            {ui.featuredHeading} <DoodleArrow className="ml-1" draw="reveal" />
+            {`${ui.featuredHeading} `}<DoodleArrow className="ml-1" draw="reveal" />
           </h2>
         </Reveal>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -119,7 +119,7 @@ export default function HomePage({ locale }: { locale: Locale }) {
               href={localePath(locale, "/projects")}
               className="mo-color text-sm text-muted hover:text-ink"
             >
-              {ui.allProjects} <LinkArrow />
+              {`${ui.allProjects} `}<LinkArrow />
             </Link>
           </p>
         </Reveal>
