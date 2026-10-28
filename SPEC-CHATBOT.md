@@ -237,7 +237,7 @@ remains forbidden; the rest of the site stays static.
 | `app/api/admin/login/route.ts` | admin password login → signed cookie |
 | `app/api/admin/logout/route.ts` | clears the admin cookie |
 | `app/api/admin/analyze/route.ts` | on-demand insight generation |
-| `app/study/*` | admin pages (server components, read Supabase) |
+| `app/study/*` | admin pages (server components, read Supabase). At `app/(en)/study/*` since SPEC.md v1.13 gave each locale its own root layout; same URLs, same code |
 | `middleware.ts` | auth gate for `/study` and `/api/admin/*` (login exempt) |
 
 **Allowed external services (exhaustive):** Anthropic API (server-side

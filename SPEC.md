@@ -111,7 +111,25 @@ the first featured card still starts inside a 1366×768 viewport (at
 741px). Chosen by Suyu over icons only beside the buttons and over a place
 under the doodle. Amends §4.4 (the hero opening) and §6.1. No new route,
 service, env var, color token, or font.
-Status: approved; all §10 inputs supplied (last updated 2026-09-26).
+v1.13 (2026-10-28, per Suyu): a Traditional Chinese edition. Every public
+page also exists under /zh-tw (/zh-tw, /zh-tw/projects,
+/zh-tw/projects/[slug], /zh-tw/about), the four case studies included;
+the English pages keep their URLs and are the default. A visitor switches
+with a link in the nav from sm up and in the footer at every width. No
+locale detection, no redirects, no i18n library: each locale has its own
+root layout, so each page's <html lang> is right, and both stay static.
+Chinese display text is set in Iansui (芫荽), only at 20px and up like
+Caveat, and Chinese body text in the system's Chinese sans; both load
+only on /zh-tw pages, and Latin text keeps Caveat and JetBrains Mono.
+Every Chinese string is a translation of an English one, approved by
+Suyu, and the build checks that the Chinese keeps every number, section,
+figure and visual of its English source (§7.5). PATS stays in English on
+both editions (SPEC-CHATBOT.md unchanged). Amends §2, §3, §4.2, §5, §6.3,
+§6.5, §7, §8 and §9 (adds P10). New font (Iansui); no new route outside
+/zh-tw, service, env var or color token. Source of truth for the change:
+`SPEC_v1.13_amendment.md`.
+Status: approved; all §10 inputs supplied (last updated 2026-10-28). The
+v1.13 Chinese copy awaits Suyu's approval (`SPEC_v1.13_amendment.md` §6).
 
 ---
 
@@ -157,7 +175,10 @@ BI / research) so each recruiter type self-navigates to their keywords.
 
 ## 2. Non-goals (v1)
 
-- No dark mode. No i18n. No CMS. No blog. No comments.
+- No dark mode. No CMS. No blog. No comments. Two locales only, English
+  and Traditional Chinese (v1.13, §5): no i18n library, no locale
+  detection from `Accept-Language`, no redirects between locales, and no
+  request-time routing for them.
 - No backend of any kind (DB, auth, API routes with secrets) — amended
   v1.4: the chatbot surface enumerated in SPEC-CHATBOT.md §2 is the
   single exception.
@@ -183,7 +204,8 @@ BI / research) so each recruiter type self-navigates to their keywords.
 | Content | MDX in `/content` via `@next/mdx` or `next-mdx-remote` | Do **not** use contentlayer — assumed unmaintained, verify at P0 (§11) |
 | Charts | `rough.js` via a thin `RoughChart` client wrapper | `chart.xkcd` / `roughViz` only if P0 verification shows active maintenance; otherwise wrap rough.js directly |
 | Motion | `motion` (`motion/react`): `m` components under `LazyMotion strict`, features imported asynchronously | v1.11. Only for effects that need JavaScript (§4.4): scroll reveals, chart entrances, the filter reflow. Whatever plays at first paint is CSS. |
-| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). |
+| Fonts | `next/font` + Google Fonts, latin subset, `display: swap` | Display: Caveat 500/700 (finalized at P0; Patrick Hand / Gochi Hand rejected — 400-only). Body: JetBrains Mono (changed from Inter 2026-07-29; Inter dropped). v1.13: Iansui (芫荽) for Chinese display text, loaded only by the `/zh-tw` root layout with `preload: false` (Google Fonts serves it in unicode-range slices, so a page downloads only the slices its characters need); Chinese body text uses the system stack `--font-cjk-sans` (§4.2), nothing downloaded. |
+| Locales | Static, per locale (v1.13) | `app/(en)/` and `app/zh-tw/` are separate root layouts; `app/global-not-found.tsx` (`experimental.globalNotFound`) answers unmatched URLs. Copy is typed per locale in `lib/`; no i18n library. |
 | Images | `next/image`; screenshots in `/public/screens/` (PNG, via `Figure`); personal photos in `/public/photos/` (JPEG, via `Photo`, statically imported) | Photos: EXIF stripped, long edge ≤ 1600px, ≤ 500 KB each; originals never committed |
 | Deploy | Vercel, custom domain (TODO §10) | No runtime env vars (amended v1.4: SPEC-CHATBOT.md §2 lists the only allowed ones) |
 
@@ -247,6 +269,18 @@ button (SPEC-CHATBOT.md §6), and `about` and `interests` in `--accent-2`.
 - Mono is the body face; inline code, stack lists, and small technical
   labels use it too.
 - Sentence case everywhere. No ALL CAPS.
+- **Chinese (v1.13).** On `/zh-tw` pages only:
+  - Display: Caveat first, then Iansui, then `--font-cjk-sans`. Latin
+    characters in a heading stay Caveat; Chinese ones fall through to
+    Iansui. Iansui is display-only and ≥ 20px, exactly like Caveat
+    (CLAUDE.md rule 5).
+  - Body, labels and code: JetBrains Mono first, then `--font-cjk-sans`.
+  - `--font-cjk-sans` is frozen: `"PingFang TC", "Noto Sans CJK TC",
+    "Microsoft JhengHei", sans-serif`.
+  - The stacks are applied by rules that match only `html:lang(zh-TW)`,
+    so no English page's CSS changes.
+  - Full-width Chinese punctuation (，。：；（）). No 破折號 (——):
+    CLAUDE.md rule 10 applies to Chinese copy as written.
 
 ### 4.3 Sketch utilities
 
@@ -388,6 +422,27 @@ Rules:
 | `/about` | Bio, how-I-work, interests, contact |
 | `/resume.pdf` | Static file in `/public` (TODO §10) |
 | 404 | Hand-drawn empty state ("this page isn't in the notebook") |
+| `/zh-tw` | Home, Chinese (v1.13) |
+| `/zh-tw/projects` | All projects, Chinese |
+| `/zh-tw/projects/[slug]` | Case study, Chinese (same slugs) |
+| `/zh-tw/about` | About, Chinese |
+
+**Chinese edition (v1.13).**
+- `/resume.pdf` stays the one English PDF (§10: it is never generated or
+  edited). `/study` and the API have no Chinese edition.
+- A URL that matches no route gets the English notebook 404, under
+  `/zh-tw` too: a Chinese 404 for unmatched URLs would need a
+  request-time route.
+- **Switch.** From `sm` up, the nav ends with a link to the same page in
+  the other language: `中文` on English pages, `English` on Chinese ones.
+  Below `sm` the nav has no room for a fifth item (P6: four links already
+  fill 360px), so it is hidden there. The footer carries `English · 中文`
+  at every width, the current language as plain text and the other as
+  the link. Both are plain `<a>` with `hrefLang` and `lang`: the locales
+  are separate root layouts, so the switch is a full page load, and the
+  chat transcript survives it in `sessionStorage`. Pages without a
+  counterpart (`/study`, the 404) show no switch.
+- Nav on Chinese pages: `Suyu.` | 首頁 · 專案 · 關於 · 履歷.
 
 Nav: `Suyu.` (handwriting) | home · projects · about · resume.
 
@@ -518,6 +573,17 @@ are server-rendered, with no client JS.
    - `next note: {title} →` links to the next project by `order`.
    - From the last project it wraps back to the first.
 
+**Chinese case studies (v1.13).**
+- A Chinese case study is `content/zh-tw/<slug>.mdx`. Its frontmatter is
+  `title` and `oneLiner` only; every other field (slug, tags, year,
+  stack, featured, order, links) is the English file's, never restated.
+  The build fails if either side has a case study the other lacks.
+- The h2 ids come from the English headings, paired by position, so an
+  anchor is the same in both languages. The build fails if the two bodies
+  have a different number of h2s.
+- The length budget applies to the English source; the Chinese mirrors
+  its structure.
+
 ### 6.4 /about
 
 - Short bio, in this order (v1.5 — lead with the experience, not the
@@ -582,6 +648,13 @@ are server-rendered, with no client JS.
   description, and the OG image's two text strings all derive from the
   positioning statement (§1). They are duplicated across several files,
   so a positioning change is not complete until all of them match.
+- **Locales (v1.13).** Every public page carries `alternates.canonical`
+  and `alternates.languages` (`en`, `zh-TW`, and `x-default` pointing to
+  English). The sitemap lists both editions with the same alternates.
+  Chinese pages: `og:locale` `zh_TW`, titles `{頁面} — Suyu`, descriptions
+  in Chinese (the zh site and /about descriptions are copies of the
+  Chinese positioning statement, under the sync rule above). They share
+  the English OG image, which Satori renders with no Chinese font.
 
 ## 7. Content spec (draft copy — every number below must be re-verified against project records before publishing)
 
@@ -700,6 +773,34 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 - Links: the demo is the widget itself, reachable from any page — phrase
   it accordingly. The repo is not public, so no repo link.
 
+### 7.5 The Chinese copy (added v1.13)
+
+- A translation is content (CLAUDE.md rule 1). Every Chinese string
+  renders one English string; it adds no fact, number, date, name or
+  claim, and drops none. Proper names stay in English unless Suyu gives
+  the Chinese: Humber Polytechnic, Back Alley Barbell, the OWA,
+  BlueJaysFanWeb, PATS, and every library and model name.
+- Suyu's display name stays "Suyu". No Chinese name is invented. No
+  「資深」, for the same reason as no "Senior" (§1).
+- Digits stay digits: where the English writes a number in digits, the
+  Chinese writes the same number in digits. An English number word may
+  become a Chinese one (six → 六); the build cannot check those, so
+  review does.
+- The fixed wordings (§1 positioning, §6.4 credential and companies,
+  §10 availability and work authorization) have Chinese versions Suyu
+  writes or approves; the table is `SPEC_v1.13_amendment.md` §6.2. The
+  credential stays in English.
+- Facet tags keep their English keys and `?tag=` values; only their
+  labels are translated.
+- Copy is drafted by Claude and approved by Suyu string by string.
+  Nothing ships unapproved.
+- **Checked by the build** (fail loud, `SPEC_v1.13_amendment.md` §7):
+  every English digit token appears in the Chinese (a Chinese-only number
+  must be allowlisted with the English word it renders); the same h2
+  count, figures and visuals in the same order; no U+2014 in Chinese
+  copy. `npm run check` adds route parity and that Chinese pages link
+  only to Chinese pages or to assets.
+
 ## 8. Component inventory
 
 `Nav`, `NavLinks` (client, v1.6), `Footer`, `SketchCard`, `TagPill`,
@@ -708,8 +809,11 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 `OpenChatButton` (v1.8), `SpeechBubble` (v1.8), `RoughChart` (client),
 `FacetFilter` (client), `ContactStrip`, `ContactLinks` (v1.9),
 `ContactIcons` (v1.9), `LinkArrow` (v1.11), `Reveal` (client, v1.11),
-`MotionProvider` (client, v1.11), MDX component map (headings with optional
-underline and h2 slug ids, `Figure`, code blocks in mono on `--card`).
+`MotionProvider` (client, v1.11), `SiteShell` (v1.13), `LanguageSwitch`
+(client, v1.13), `NotFoundNote` (v1.13), the page bodies both locales
+share (`HomePage`, `ProjectsPage`, `CaseStudyPage`, `AboutPage`, v1.13),
+MDX component map (headings with optional underline and h2 slug ids,
+`Figure`, code blocks in mono on `--card`).
 
 ## 9. Phases & acceptance
 
@@ -889,6 +993,51 @@ Work:
   CPU throttled 4×, the 95th-percentile frame during the hero opening and
   the reveals is at most 33ms, and no long task comes from an animation.
   `/`'s first-load JavaScript grows by about 20 KB gzipped at most.
+- **Console:** no errors or warnings while doing all of the above.
+
+**P10 — Traditional Chinese (v1.13).**
+Work:
+- Routes in `app/(en)` and `app/zh-tw`, `app/global-not-found.tsx`.
+- `lib/i18n.ts`, the copy split by locale, shared page bodies, the MDX
+  component factory and heading pairing.
+- The integrity checks (§7.5) and `scripts/check-i18n.mjs`.
+- The `/zh-tw` layout, Iansui, the Chinese font stacks, and
+  `check-tokens` updated for them.
+- `LanguageSwitch`, alternates, sitemap, OG locale.
+- The Chinese copy and the four Chinese case studies, approved by Suyu.
+
+✓ when:
+- **Build gates:** lint, typecheck, `npm run check` (with `check-i18n`)
+  and build all pass with zero env vars.
+- **English unchanged:** full-page screenshots of `/`, `/projects`, a
+  case study and `/about` at 1366×768 and 360×740 match the pre-P10 ones
+  except for the switch; the first featured card still starts inside a
+  1366×768 viewport.
+- **Performance:** Lighthouse (production build, median of three after a
+  warm-up): `/` at least 94 on mobile (§1) and ≥ 95 on desktop, as
+  before; `/zh-tw` the same; no CLS on either. No English page requests
+  an Iansui file.
+- **Locale markup:** `<html lang="en">` on English pages and `zh-TW` on
+  Chinese ones; alternates reciprocal with `x-default` on English; the
+  sitemap lists every page in both.
+- **Switch:** on every public page the nav (from 640px) and the footer
+  link to the counterpart; at 360px the nav doesn't overflow and hides
+  its switch; `/study` and the 404 show none; the chat transcript
+  survives a switch.
+- **404:** `/foo`, `/zh-tw/foo` and `/zh-tw/projects/unknown` return 404.
+- **Fonts:** Chinese headings in Iansui, all at 20px and up; Chinese body
+  text in the system sans.
+- **Content:** every Chinese string approved by Suyu (§7.5); the number
+  and structure checks pass; no 破折號 and no 資深 in Chinese copy; the
+  work-authorization wording exactly as approved.
+- **PATS:** opens on Chinese pages and answers as before; the Chinese
+  hero button opens it.
+- **No JavaScript, reduced motion, WebKit:** every piece of text on the
+  Chinese pages is visible without JavaScript; under reduced motion they
+  behave like the English ones; the font and hero checks repeated in
+  Playwright WebKit.
+- **Mobile:** at 360×740 and 390×664 no Chinese page scrolls
+  horizontally.
 - **Console:** no errors or warnings while doing all of the above.
 
 ## 10. Inputs Suyu must supply (blockers marked ⛔)
