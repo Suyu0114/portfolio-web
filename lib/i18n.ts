@@ -26,6 +26,12 @@ const PREFIX: Record<Locale, string> = {
   "zh-tw": "/zh-tw",
 };
 
+/** Each language's name in its own language, for the switch (SPEC §5). */
+export const LANGUAGE_NAME: Record<Locale, string> = {
+  en: "English",
+  "zh-tw": "中文",
+};
+
 /** A site path in `locale`: "/projects" is "/zh-tw/projects" in Chinese. */
 export function localePath(locale: Locale, path: string): string {
   if (!path.startsWith("/")) {
@@ -34,4 +40,30 @@ export function localePath(locale: Locale, path: string): string {
   const prefix = PREFIX[locale];
   if (prefix === "") return path;
   return path === "/" ? prefix : `${prefix}${path}`;
+}
+
+/** The locale a pathname belongs to. */
+export function localeOf(pathname: string): Locale {
+  const prefixed = LOCALES.find(
+    (locale) =>
+      PREFIX[locale] !== "" &&
+      (pathname === PREFIX[locale] || pathname.startsWith(`${PREFIX[locale]}/`)),
+  );
+  return prefixed ?? "en";
+}
+
+/** The pages that exist in both locales (SPEC §5), without a prefix. */
+const BOTH_LOCALES = /^\/(?:projects(?:\/[a-z0-9-]+)?|about)?$/;
+
+/**
+ * The same page in the other locale, or null when it has none (/study).
+ * Unmatched URLs render the 404 inside this pattern too, so the 404 asks
+ * for no switch itself (SiteShell's `languageSwitch`).
+ */
+export function counterpartPath(pathname: string): { locale: Locale; href: string } | null {
+  const locale = localeOf(pathname);
+  const path = pathname.slice(PREFIX[locale].length) || "/";
+  if (!BOTH_LOCALES.test(path)) return null;
+  const other: Locale = locale === "en" ? "zh-tw" : "en";
+  return { locale: other, href: localePath(other, path) };
 }

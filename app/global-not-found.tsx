@@ -26,7 +26,7 @@ export default function GlobalNotFound() {
         <style>{MOTION_CSS}</style>
       </head>
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
-        <SiteShell locale="en">
+        <SiteShell locale="en" languageSwitch={false}>
           <NotFoundNote />
         </SiteShell>
       </body>

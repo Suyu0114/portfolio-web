@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import LanguageSwitch from "@/components/LanguageSwitch";
 import WobblyUnderline from "@/components/WobblyUnderline";
 
 // One nav entry. Nav builds them in the page's locale (SPEC v1.13): home,
@@ -23,9 +24,12 @@ function isCurrent(href: string, pathname: string, isHome: boolean): boolean {
 export default function NavLinks({
   label,
   links,
+  languageSwitch,
 }: {
   label: string;
   links: readonly NavLink[];
+  /** End with the switch to the other language (SPEC §5, v1.13). */
+  languageSwitch: boolean;
 }) {
   const pathname = usePathname();
 
@@ -59,6 +63,7 @@ export default function NavLinks({
           </Link>
         );
       })}
+      {languageSwitch && <LanguageSwitch variant="nav" />}
     </nav>
   );
 }

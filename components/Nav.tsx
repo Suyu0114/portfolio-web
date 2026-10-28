@@ -3,7 +3,13 @@ import NavLinks from "@/components/NavLinks";
 import { localePath, type Locale } from "@/lib/i18n";
 import { getSiteCopy } from "@/lib/siteContent";
 
-export default function Nav({ locale }: { locale: Locale }) {
+export default function Nav({
+  locale,
+  languageSwitch,
+}: {
+  locale: Locale;
+  languageSwitch: boolean;
+}) {
   const { nav } = getSiteCopy(locale).ui;
   return (
     // gap-4 keeps the wordmark and the links apart when a narrow screen
@@ -24,6 +30,7 @@ export default function Nav({ locale }: { locale: Locale }) {
           { href: localePath(locale, "/about"), label: nav.about, newTab: false },
           { href: "/resume.pdf", label: nav.resume, newTab: true },
         ]}
+        languageSwitch={languageSwitch}
       />
     </header>
   );
