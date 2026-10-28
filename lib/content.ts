@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { z } from "zod";
 import { FACET_TAGS } from "@/lib/facets";
+import type { Locale } from "@/lib/i18n";
 
 export { FACET_TAGS };
 
@@ -77,10 +78,18 @@ export function getAllProjects(): ProjectEntry[] {
   return entries.sort((a, b) => a.frontmatter.order - b.frontmatter.order);
 }
 
-export function getProjectBySlug(slug: string): ProjectEntry {
-  const entry = getAllProjects().find((e) => e.frontmatter.slug === slug);
+/** The case studies as `locale` shows them, sorted by order (SPEC v1.13). */
+export function getProjects(locale: Locale): ProjectEntry[] {
+  switch (locale) {
+    case "en":
+      return getAllProjects();
+  }
+}
+
+export function getProject(locale: Locale, slug: string): ProjectEntry {
+  const entry = getProjects(locale).find((e) => e.frontmatter.slug === slug);
   if (!entry) {
-    throw new Error(`No case study found for slug "${slug}"`);
+    throw new Error(`No ${locale} case study found for slug "${slug}"`);
   }
   return entry;
 }

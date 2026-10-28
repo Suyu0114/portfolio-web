@@ -1,5 +1,3 @@
-import { HERO } from "@/lib/siteContent";
-
 // Hero doodle — SPEC §6.1.1: decorative, hand-drawn calibration sketch.
 // Deliberately NOT rough.js and not data-bound; the wobble is drawn into
 // the paths themselves.
@@ -9,7 +7,7 @@ import { HERO } from "@/lib/siteContent";
 // the left (a dash draw would break its dashes), then the caption. [--i:n]
 // is the step in the sequence; the classes are in globals.css. pathLength
 // lets the draw cover each path whatever its length.
-export default function CalibrationDoodle() {
+export default function CalibrationDoodle({ caption }: { caption: string }) {
   return (
     <figure className="mx-auto w-full max-w-sm">
       <svg
@@ -55,7 +53,7 @@ export default function CalibrationDoodle() {
         />
       </svg>
       <figcaption className="mo-rise mt-2 text-center font-display text-xl text-muted [--i:8]">
-        {HERO.doodleCaption}
+        {caption}
       </figcaption>
     </figure>
   );

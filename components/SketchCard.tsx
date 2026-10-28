@@ -1,14 +1,17 @@
 import Link from "next/link";
 import LinkArrow from "@/components/LinkArrow";
 import TagPill from "@/components/TagPill";
+import type { CardCopy } from "@/lib/facets";
 
 type SketchCardProps = {
   title: string;
+  /** Tag labels, in the page's locale. */
   tags: readonly string[];
   oneLiner: string;
   href: string;
   /** Alternate a/b between adjacent cards so the wobble doesn't repeat. */
   variant: "a" | "b";
+  copy: CardCopy;
 };
 
 // Hover — SPEC §4.3 (v1.8, reworked v1.11): the card tilts 0.5deg, mirrored
@@ -51,6 +54,7 @@ export default function SketchCard({
   oneLiner,
   href,
   variant,
+  copy,
 }: SketchCardProps) {
   return (
     <article
@@ -71,10 +75,10 @@ export default function SketchCard({
           the card is the click target without a second link or a handler. */}
       <Link
         href={href}
-        aria-label={`read case study: ${title}`}
+        aria-label={`${copy.ctaLabelPrefix}${title}`}
         className="mo-underline mo-color mt-auto text-[13px] text-accent after:absolute after:inset-0 after:content-['']"
       >
-        read case study <LinkArrow />
+        {copy.cta} <LinkArrow />
       </Link>
       <CornerPeel />
     </article>

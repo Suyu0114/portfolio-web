@@ -1,6 +1,6 @@
 import Reveal from "@/components/Reveal";
 import SketchCard from "@/components/SketchCard";
-import type { ProjectCardData } from "@/lib/facets";
+import type { CardCopy, ProjectCardData } from "@/lib/facets";
 
 /** The /projects grid, shared with FacetFilter's animated grid so the two can't drift apart. */
 export const PROJECT_GRID_CLASS = "grid gap-5 sm:grid-cols-2 lg:grid-cols-3";
@@ -11,8 +11,10 @@ export const PROJECT_GRID_CLASS = "grid gap-5 sm:grid-cols-2 lg:grid-cols-3";
 // grid so its card still stretches to the row's height.
 export default function ProjectGrid({
   projects,
+  cardCopy,
 }: {
   projects: readonly ProjectCardData[];
+  cardCopy: CardCopy;
 }) {
   return (
     <div className={PROJECT_GRID_CLASS}>
@@ -20,10 +22,11 @@ export default function ProjectGrid({
         <Reveal key={p.slug} className="grid">
           <SketchCard
             title={p.title}
-            tags={p.tags}
+            tags={p.tagLabels}
             oneLiner={p.oneLiner}
-            href={`/projects/${p.slug}`}
+            href={p.href}
             variant={i % 2 === 0 ? "a" : "b"}
+            copy={cardCopy}
           />
         </Reveal>
       ))}
