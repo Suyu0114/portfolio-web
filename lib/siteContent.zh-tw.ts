@@ -3,11 +3,13 @@ import type { SiteCopy } from "@/lib/siteContent";
 import type { ExtraNumbers } from "@/lib/translationChecks";
 
 /**
- * Traditional Chinese site copy — SPEC.md §7.5 (v1.13). Every string
- * renders the English string at the same place in lib/siteContent.ts, and
- * adds or drops nothing (CLAUDE.md rule 1). Drafted by Claude, approved
- * by Suyu as drafted on 2026-11-05 (SPEC_v1.13_amendment.md §6.2); a
- * changed string needs Suyu's approval again.
+ * Traditional Chinese site copy — SPEC.md §7.5 (v1.13, v1.14). Each
+ * string sits at the same place as its English one in lib/siteContent.ts.
+ * Claude's translations add and drop nothing (CLAUDE.md rule 1); the
+ * strings marked "Suyu's own wording" are Suyu's, who may say in Chinese
+ * what the English does not (v1.14). Approved by Suyu on 2026-11-05
+ * (SPEC_v1.13_amendment.md §6.2); a changed string needs Suyu's approval
+ * again.
  *
  * Proper names stay English (Humber Polytechnic, Back Alley Barbell, the
  * OWA, Rogers Centre, BlueJaysFanWeb, PATS), and so do the two employers.
@@ -17,15 +19,18 @@ import type { ExtraNumbers } from "@/lib/translationChecks";
  */
 export const SITE_COPY_ZH: SiteCopy = {
   meta: {
-    title: "田野筆記",
-    siteName: "Suyu — 田野筆記",
+    // Kept in English by Suyu (2026-11-05), like the hero's headline.
+    title: "field notes",
+    siteName: "Suyu — field notes",
+    // Suyu's own wording (v1.14), not a translation of SITE_DESCRIPTION.
     description:
-      "Suyu，多倫多的全端工程師。六年來打造支撐企業營運的核心系統：規劃、簽核、資產與銷售，現在也在導入 AI。",
+      "Suyu，全端工程師，有 6 年企業內部系統開發經驗，涵蓋產品規劃、簽核、資產與銷售。來加拿大求學後，也開始學習導入 AI，並使用 AI 輔助開發，完成了許多專案。",
     projectsTitle: "專案",
     projectsDescription: "所有專案，可依標籤篩選。",
-    aboutTitle: "關於",
+    aboutTitle: "about",
+    // Suyu's own wording (v1.14).
     aboutDescription:
-      "Suyu — 多倫多的全端工程師：六年的 ERP、CRM 與企業系統經驗，現在也在導入 AI。",
+      "Suyu: 目前在多倫多的全端工程師，六年的 ERP、CRM 與企業系統經驗，並使用AI 導入各種專案。",
   },
   ui: {
     skipLink: "跳到主要內容",
@@ -51,14 +56,14 @@ export const SITE_COPY_ZH: SiteCopy = {
       "full-stack": "全端",
       AI: "AI",
       "data engineering": "資料工程",
-      modeling: "建模",
+      modeling: "建立模型",
       frontend: "前端",
       BI: "BI",
       research: "研究",
     },
     caseStudy: {
-      demo: "線上展示",
-      repo: "原始碼",
+      demo: "線上 demo",
+      repo: "repo",
       writeup: "文章",
       contentsLabel: "目錄",
       contentsLead: "目錄：",
@@ -68,32 +73,37 @@ export const SITE_COPY_ZH: SiteCopy = {
     },
   },
   hero: {
-    headline: "田野筆記",
-    // The positioning statement (SPEC §1), as approved in §6.2. Its
-    // copies, the zh site and /about descriptions above, follow it
-    // (SPEC §6.5).
+    // English on both editions, by Suyu's choice (2026-11-05); pages mark
+    // English strings on Chinese pages lang="en" (langOf in lib/i18n.ts).
+    headline: "field notes",
+    // The positioning statement (SPEC §1), in Suyu's own Chinese wording
+    // (v1.14). Its copies, the zh site and /about descriptions above, are
+    // Suyu's too (SPEC §6.5).
     intro:
-      "你好，我是 Suyu。過去六年，我打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。",
-    subline: "多倫多 · 全端 · ERP 與企業系統 · AI 整合",
-    chatCta: "和 PATS 聊聊",
+      "你好，我是 Suyu。有 6 年企業內部系統開發經驗，打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。",
+    subline: "Toronto · full-stack · ERP & business systems · AI integration",
+    chatCta: "和 PATS 聊聊 Suyu",
     aboutCta: "關於我",
     interestsCta: "興趣",
     doodleCaption: "校準，親手檢查",
     portrait: {
       image: PHOTOS.portrait,
-      alt: "Suyu 戴著藍鳥隊球帽、穿著球衣微笑",
+      alt: "Suyu smiling in a Blue Jays cap and jersey",
     },
   },
-  availability: "現在即可到職，尋找全職的全端與軟體工程職位。人在多倫多，也願意搬遷。",
+  // Suyu's own wording (v1.14): it names AI integration roles and work
+  // anywhere, which the English and PATS's knowledge pack do not.
+  availability:
+    "現在即可到職，尋找全職的全端、AI 整合與軟體工程職位。人在多倫多，也願意到任何地方工作。",
   footer: {
-    handNote: "用 rough.js 畫的",
+    handNote: "使用 rough.js 繪製",
   },
   about: {
     headline: "關於",
     interestsId: "interests",
     portrait: {
       image: PHOTOS.portrait,
-      alt: "Suyu 戴著藍鳥隊球帽、穿著球衣微笑",
+      alt: "Suyu smiling in a Blue Jays cap and jersey",
     },
     bio: [
       "我是 Suyu。我在台北的 Seasonic Electronics（電源供應器製造商）和 ACTi Corporation（安全科技公司）待過六年，兩邊都是兩到三人的內部開發團隊。我打造的是這些公司日常真正倚賴的系統：物料需求規劃、多階段簽核流程、固定資產追蹤、銷售預測與佣金。所謂從頭到尾，是和執行長、財務、採購與工廠現場一起釐清需求，設計資料模型，寫大量 SQL 的後端和前端，再推行到四個國家。",
@@ -219,5 +229,7 @@ export const SITE_COPY_ZH: SiteCopy = {
  * English word it renders (lib/translationChecks.ts).
  */
 export const SITE_COPY_ZH_EXTRA_NUMBERS: Readonly<Record<string, ExtraNumbers>> = {
+  "meta.description": { "6": "Six" },
+  "hero.intro": { "6": "six" },
   "about.bio.1": { "9": "September", "5": "May" },
 };
