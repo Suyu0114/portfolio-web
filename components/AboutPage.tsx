@@ -1,7 +1,7 @@
 import ContactLinks from "@/components/ContactLinks";
 import Photo from "@/components/Photo";
 import WobblyUnderline from "@/components/WobblyUnderline";
-import type { Locale } from "@/lib/i18n";
+import { langOf, type Locale } from "@/lib/i18n";
 import { getSiteCopy } from "@/lib/siteContent";
 
 // `sizes` below is the photo's own width, not its frame's: the frame adds
@@ -27,6 +27,7 @@ export default function AboutPage({ locale }: { locale: Locale }) {
         <Photo
           image={ABOUT.portrait.image}
           alt={ABOUT.portrait.alt}
+          altLang={langOf(locale, ABOUT.portrait.alt)}
           sizes="(min-width: 640px) 156px, 172px"
           rotate="cw"
           border="b"

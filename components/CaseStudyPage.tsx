@@ -5,7 +5,7 @@ import NextNote from "@/components/NextNote";
 import TagPill from "@/components/TagPill";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getProject, getProjects } from "@/lib/content";
-import { localePath, type Locale } from "@/lib/i18n";
+import { langOf, localePath, type Locale } from "@/lib/i18n";
 import { getMdxComponents } from "@/lib/mdxComponents";
 import { getSiteCopy } from "@/lib/siteContent";
 
@@ -50,7 +50,13 @@ export default function CaseStudyPage({
               </a>
             )}
             {fm.links.repo && (
-              <a href={fm.links.repo} target="_blank" rel="noreferrer" className="text-accent underline">
+              <a
+                href={fm.links.repo}
+                target="_blank"
+                rel="noreferrer"
+                lang={langOf(locale, ui.caseStudy.repo)}
+                className="text-accent underline"
+              >
                 {`${ui.caseStudy.repo} `}<LinkArrow />
               </a>
             )}

@@ -42,6 +42,15 @@ export function localePath(locale: Locale, path: string): string {
   return path === "/" ? prefix : `${prefix}${path}`;
 }
 
+/**
+ * `lang="en"` for a string a Chinese page shows in English (one Suyu kept
+ * English, SPEC §7.5), so a screen reader voices it in English; otherwise
+ * undefined, which leaves English pages' markup as it was.
+ */
+export function langOf(locale: Locale, text: string): string | undefined {
+  return locale !== "en" && !/\p{Script=Han}/u.test(text) ? HTML_LANG.en : undefined;
+}
+
 /** The locale a pathname belongs to. */
 export function localeOf(pathname: string): Locale {
   const prefixed = LOCALES.find(

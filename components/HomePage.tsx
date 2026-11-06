@@ -11,7 +11,7 @@ import SketchButtonLink from "@/components/SketchButtonLink";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
 import { getProjects } from "@/lib/content";
-import { localePath, type Locale } from "@/lib/i18n";
+import { langOf, localePath, type Locale } from "@/lib/i18n";
 import { toProjectCard } from "@/lib/projectCards";
 import { getSiteCopy } from "@/lib/siteContent";
 
@@ -35,7 +35,10 @@ export default function HomePage({ locale }: { locale: Locale }) {
           inside a 1366×768 viewport (SPEC §1). */}
       <section className="grid items-center gap-10 py-14 sm:pt-20 sm:pb-14 md:grid-cols-[3fr_2fr]">
         <div>
-          <h1 className="font-display text-5xl font-bold sm:text-6xl">
+          <h1
+            lang={langOf(locale, HERO.headline)}
+            className="font-display text-5xl font-bold sm:text-6xl"
+          >
             <WobblyUnderline draw>{HERO.headline}</WobblyUnderline>
           </h1>
           {/* Portrait beside the intro (SPEC §6.1): 112px under the headline
@@ -46,6 +49,7 @@ export default function HomePage({ locale }: { locale: Locale }) {
             <Photo
               image={HERO.portrait.image}
               alt={HERO.portrait.alt}
+              altLang={langOf(locale, HERO.portrait.alt)}
               sizes="(min-width: 640px) 156px, 92px"
               rotate="cw"
               border="b"
@@ -55,7 +59,10 @@ export default function HomePage({ locale }: { locale: Locale }) {
             />
             <p className="max-w-prose">{HERO.intro}</p>
           </div>
-          <p className="mo-rise mt-5 inline-block -rotate-1 font-display text-xl font-medium text-accent-2 [--i:1]">
+          <p
+            lang={langOf(locale, HERO.subline)}
+            className="mo-rise mt-5 inline-block -rotate-1 font-display text-xl font-medium text-accent-2 [--i:1]"
+          >
             {HERO.subline}
           </p>
           {/* The hero's actions (SPEC §6.1, v1.8): a button that opens the

@@ -4,6 +4,8 @@ type PhotoProps = {
   /** Static import from /public/photos, so width and height come from the file. */
   image: StaticImageData;
   alt: string;
+  /** The alt text's language, when it isn't the page's (an English alt on a Chinese page). */
+  altLang?: string;
   sizes: string;
   /** Handwritten line under the photo; omit for a bare portrait. */
   caption?: string;
@@ -35,6 +37,7 @@ const ROTATION: Record<NonNullable<PhotoProps["rotate"]>, string> = {
 export default function Photo({
   image,
   alt,
+  altLang,
   sizes,
   caption,
   rotate = "none",
@@ -50,6 +53,7 @@ export default function Photo({
       <Image
         src={image}
         alt={alt}
+        lang={altLang}
         sizes={sizes}
         preload={load === "preload"}
         loading={load === "preload" ? undefined : load}

@@ -4,7 +4,7 @@ Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
 Static Next.js site in English and Traditional Chinese, no backend —
 except the narrowly scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` (site, currently v1.13) and `SPEC-CHATBOT.md` (chatbot,
+`SPEC.md` (site, currently v1.14) and `SPEC-CHATBOT.md` (chatbot,
 currently v2.13) are the source of truth for scope, IA, design tokens,
 and content. `SPEC_v1.5_amendment.md` is the source of truth for the
 v1.5 repositioning specifically; its outcome is already folded into
@@ -29,9 +29,11 @@ improvise a resolution.
    metrics, dates, quotes, or project facts. All numbers must come from
    SPEC.md §7 or from Suyu directly. Anything marked `TODO(...)` stays as
    a visible TODO in the rendered page — do not fill it with
-   plausible-looking values. A Chinese string is a translation of an
-   English one (SPEC.md §7.5): it adds and drops nothing, keeps every
-   number in digits, and ships only once Suyu has approved it.
+   plausible-looking values. A Chinese string Claude writes is a
+   translation of an English one (SPEC.md §7.5): it adds and drops
+   nothing, keeps every number in digits, and ships only once Suyu has
+   approved it. Only Suyu's own Chinese wording may say what the English
+   does not (v1.14); apply it as written, never extend it.
 2. **Fail loud.** No silent catch blocks. The build fails on broken MDX
    and missing or invalid frontmatter (`lib/content.ts`), and on an image
    missing from a `Figure` (`components/Figure.tsx`). Dead internal links

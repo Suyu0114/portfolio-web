@@ -128,9 +128,22 @@ both editions (SPEC-CHATBOT.md unchanged). Amends §2, §3, §4.2, §5, §6.3,
 §6.5, §7, §8 and §9 (adds P10). New font (Iansui); no new route outside
 /zh-tw, service, env var or color token. Source of truth for the change:
 `SPEC_v1.13_amendment.md`.
+v1.14 (2026-11-05, per Suyu): Suyu's own Chinese wording. Reviewing the
+Chinese copy string by string, Suyu rewrote some of it and kept some in
+English. A Chinese string Suyu writes himself may say what its English
+string does not, since he is the source of the facts (CLAUDE.md rule 1);
+a translation by Claude still adds and drops nothing. So the Chinese
+positioning statement, site and /about descriptions, and availability
+sentence are now Suyu's, and the Chinese availability names AI
+integration roles and work anywhere where the English (§10) and PATS's
+knowledge pack say full-stack and software engineering, open to
+relocation. Strings kept in English on a Chinese page carry `lang="en"`.
+The build still checks every Chinese string's digits against its English
+one, with each number only Suyu's wording has named in the extra numbers.
+Amends §7.5 only. No new route, service, env var, color token, or font.
 Status: approved; all §10 inputs supplied (last updated 2026-11-05). The
 v1.13 Chinese copy was approved by Suyu as drafted on 2026-11-05
-(`SPEC_v1.13_amendment.md` §6.2).
+(`SPEC_v1.13_amendment.md` §6.2), then partly rewritten by Suyu (v1.14).
 
 ---
 
@@ -779,10 +792,15 @@ guess"), one-liner, and body all stay. See `SPEC_v1.5_amendment.md`
 ### 7.5 The Chinese copy (added v1.13)
 
 - A translation is content (CLAUDE.md rule 1). Every Chinese string
-  renders one English string; it adds no fact, number, date, name or
-  claim, and drops none. Proper names stay in English unless Suyu gives
-  the Chinese: Humber Polytechnic, Back Alley Barbell, the OWA,
-  BlueJaysFanWeb, PATS, and every library and model name.
+  Claude translates renders one English string; it adds no fact, number,
+  date, name or claim, and drops none. Proper names stay in English
+  unless Suyu gives the Chinese: Humber Polytechnic, Back Alley Barbell,
+  the OWA, BlueJaysFanWeb, PATS, and every library and model name.
+- **Suyu's own wording (v1.14).** A Chinese string Suyu writes himself
+  may differ from its English one, since he is the source of the facts.
+  Claude applies it as written, fixing only what Suyu agrees to, and
+  marks it "Suyu's own wording" in the copy module. A string Suyu keeps
+  in English stays English on the Chinese page, with `lang="en"`.
 - Suyu's display name stays "Suyu". No Chinese name is invented. No
   「資深」, for the same reason as no "Senior" (§1).
 - Digits stay digits: where the English writes a number in digits, the
