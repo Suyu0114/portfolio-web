@@ -15,10 +15,10 @@ trade-offs, all on 2026-10-28:
 - **Switch:** in the nav from `sm` up, plus a line in the footer at every
   width. Not chosen: a line above the nav, or the footer only.
 
-Status: **approved** by Suyu on 2026-10-28 (plan review). The Chinese copy
-itself is drafted by Claude and is **not approved yet**: nothing merges
-until Suyu has approved every string (§6), and the fixed-wording items in
-§6.2 are Suyu's to write.
+Status: **approved** by Suyu on 2026-10-28 (plan review). The Chinese copy,
+drafted by Claude, was **approved by Suyu as drafted on 2026-11-05**,
+including every fixed-wording item in §6.2, before `feat/zh-tw` merged
+into `main`.
 
 **Spec first.** This reverses `CLAUDE.md` rule 7 ("English only. No i18n
 scaffolding, no locale routing") and SPEC §2 ("No i18n"), and adds a font
@@ -169,12 +169,12 @@ Add, after the route table:
 
 | Item | English (fixed) | Chinese draft | Approved |
 |---|---|---|---|
-| Positioning statement (§1), and its §6.5 copies | "Hello, I'm Suyu. For six years, …" | 你好，我是 Suyu。過去六年，我打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。 | ☐ |
-| Credential (§6.4) | "Ontario College Graduate Certificate, Information Technology Solutions with Honours" | Kept in English, unglossed: no Chinese rendering risks reading as 研究所、碩士 or 文憑, which §6.4 forbids. | ☐ |
-| Work authorization (§10) | "authorized to work in Canada, no employer sponsorship required" | 可在加拿大合法工作，不需雇主擔保 (no permit type, no term: §10) | ☐ |
-| Availability (§10) | "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation." | 現在即可到職，尋找全職的全端與軟體工程職位。人在多倫多，也願意搬遷。 (no 破折號) | ☐ |
-| Companies (§6.4) | Seasonic Electronics; ACTi Corporation | The draft keeps the English names. Proposed: 海韻電子；建碁 (Suyu to confirm both before either is used) | ☐ |
-| Powerlifting (§6.4) | the 2022 Citizens Sports Games, for Yilan County | 2022 年全民運動會，代表宜蘭縣 | ☐ |
+| Positioning statement (§1), and its §6.5 copies | "Hello, I'm Suyu. For six years, …" | 你好，我是 Suyu。過去六年，我打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。 | ☑ 2026-11-05 |
+| Credential (§6.4) | "Ontario College Graduate Certificate, Information Technology Solutions with Honours" | Kept in English, unglossed: no Chinese rendering risks reading as 研究所、碩士 or 文憑, which §6.4 forbids. | ☑ 2026-11-05 |
+| Work authorization (§10) | "authorized to work in Canada, no employer sponsorship required" | 可在加拿大合法工作，不需雇主擔保 (no permit type, no term: §10) | ☑ 2026-11-05 |
+| Availability (§10) | "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation." | 現在即可到職，尋找全職的全端與軟體工程職位。人在多倫多，也願意搬遷。 (no 破折號) | ☑ 2026-11-05 |
+| Companies (§6.4) | Seasonic Electronics; ACTi Corporation | The English names, as drafted. The proposed 海韻電子 and 建碁 are not used. | ☑ 2026-11-05 |
+| Powerlifting (§6.4) | the 2022 Citizens Sports Games, for Yilan County | 2022 年全民運動會，代表宜蘭縣 | ☑ 2026-11-05 |
 
 ## 7. Integrity checks (new)
 
@@ -337,9 +337,9 @@ changing that is a SPEC-CHATBOT change.
    slugify its own children; it now finds its id in the headings the
    contents line was built from, and throws if it isn't there. English
    ids are unchanged.
-10. **Employers stay English in the draft.** Until Suyu confirms 海韻電子
+10. **Employers stay English.** Without Suyu's confirmation of 海韻電子
     and 建碁 (§6.2), the Chinese bio names Seasonic Electronics and ACTi
-    Corporation in English.
+    Corporation in English; Suyu approved it that way on 2026-11-05.
 11. **Iansui has no fallback metrics.** `adjustFontFallback: false` says
     so; Turbopack prints "Failed to find font override values" anyway.
     Until a slice arrives, Chinese headings show in the system sans.
@@ -425,8 +425,8 @@ is drawn with synthetic bold: kept, pending Suyu's eye (S4).
 
 **Content.** The number, structure, refusal-line and em-dash checks pass
 on the site copy, the visuals and all four case studies, and fail the
-build when broken (§11 item 5). **Suyu's approval of the Chinese copy
-(§6) is still open, so P10 is not complete.**
+build when broken (§11 item 5). Suyu approved the Chinese copy as drafted
+on 2026-11-05 (§6.2).
 
 **PATS.** The Chinese hero button opens the panel with focus in its
 input; the widget is English, as decided.
@@ -443,3 +443,9 @@ except the BlueJaysFanWeb case study at 360 (10px), as its English twin
 already did (§11 item 12).
 
 **Console.** No errors or warnings in Chrome or WebKit throughout.
+
+**Where P10 stands (2026-11-05, at the merge into `main`).** Every item
+above passes except one: the BlueJaysFanWeb case study scrolls sideways by
+10px at 360px, in Chinese and, as before P10, in English (§11 item 12).
+Its fix changes the English page, so it is Suyu's call. Also open, by
+Suyu's eye rather than by a check: synthetic bold on Iansui headings (S4).

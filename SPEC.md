@@ -128,8 +128,9 @@ both editions (SPEC-CHATBOT.md unchanged). Amends §2, §3, §4.2, §5, §6.3,
 §6.5, §7, §8 and §9 (adds P10). New font (Iansui); no new route outside
 /zh-tw, service, env var or color token. Source of truth for the change:
 `SPEC_v1.13_amendment.md`.
-Status: approved; all §10 inputs supplied (last updated 2026-10-28). The
-v1.13 Chinese copy awaits Suyu's approval (`SPEC_v1.13_amendment.md` §6).
+Status: approved; all §10 inputs supplied (last updated 2026-11-05). The
+v1.13 Chinese copy was approved by Suyu as drafted on 2026-11-05
+(`SPEC_v1.13_amendment.md` §6.2).
 
 ---
 

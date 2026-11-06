@@ -5,14 +5,15 @@ import type { ExtraNumbers } from "@/lib/translationChecks";
 /**
  * Traditional Chinese site copy — SPEC.md §7.5 (v1.13). Every string
  * renders the English string at the same place in lib/siteContent.ts, and
- * adds or drops nothing (CLAUDE.md rule 1). Drafted by Claude; each string
- * ships only once Suyu has approved it (SPEC_v1.13_amendment.md §6).
+ * adds or drops nothing (CLAUDE.md rule 1). Drafted by Claude, approved
+ * by Suyu as drafted on 2026-11-05 (SPEC_v1.13_amendment.md §6.2); a
+ * changed string needs Suyu's approval again.
  *
  * Proper names stay English (Humber Polytechnic, Back Alley Barbell, the
- * OWA, Rogers Centre, BlueJaysFanWeb, PATS), and so do the two employers
- * until Suyu confirms their Chinese names. The credential stays English,
- * unglossed. The work-authorization and availability wordings are the
- * §6.2 drafts. No 破折號 (rule 10); lib/translationChecks.ts enforces it.
+ * OWA, Rogers Centre, BlueJaysFanWeb, PATS), and so do the two employers.
+ * The credential stays English, unglossed. The work-authorization and
+ * availability wordings are the approved §6.2 ones. No 破折號 (rule 10);
+ * lib/translationChecks.ts enforces it.
  */
 export const SITE_COPY_ZH: SiteCopy = {
   meta: {
@@ -68,8 +69,9 @@ export const SITE_COPY_ZH: SiteCopy = {
   },
   hero: {
     headline: "田野筆記",
-    // The positioning statement (SPEC §1), §6.2 draft. Its copies, the zh
-    // site and /about descriptions above, follow it (SPEC §6.5).
+    // The positioning statement (SPEC §1), as approved in §6.2. Its
+    // copies, the zh site and /about descriptions above, follow it
+    // (SPEC §6.5).
     intro:
       "你好，我是 Suyu。過去六年，我打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。",
     subline: "多倫多 · 全端 · ERP 與企業系統 · AI 整合",
