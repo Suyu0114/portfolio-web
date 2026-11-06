@@ -23,4 +23,11 @@ export type ProjectCardData = {
   slug: string;
   oneLiner: string;
   tags: readonly FacetTag[];
+  /** The tags' labels in the page's locale, in the same order. */
+  tagLabels: readonly string[];
+  /** The case study's path in the page's locale. */
+  href: string;
 };
+
+/** A card's link text, and the prefix of its accessible name. */
+export type CardCopy = { cta: string; ctaLabelPrefix: string };

@@ -1,10 +1,10 @@
 # CLAUDE.md — suyu-portfolio
 
 Job-hunting portfolio site. Retro hand-drawn "field notes" aesthetic.
-Static Next.js site, English-only, no backend — except the narrowly
-scoped chatbot surface defined in SPEC-CHATBOT.md §2.
+Static Next.js site in English and Traditional Chinese, no backend —
+except the narrowly scoped chatbot surface defined in SPEC-CHATBOT.md §2.
 
-`SPEC.md` (site, currently v1.12) and `SPEC-CHATBOT.md` (chatbot,
+`SPEC.md` (site, currently v1.13) and `SPEC-CHATBOT.md` (chatbot,
 currently v2.13) are the source of truth for scope, IA, design tokens,
 and content. `SPEC_v1.5_amendment.md` is the source of truth for the
 v1.5 repositioning specifically; its outcome is already folded into
@@ -15,7 +15,9 @@ plays the same role for v1.6 (UX polish, then personal photos), and its
 does the same for v1.8 (hero actions and the note-card hover), and its
 §11 records the choices made while building them. `SPEC_v1.11_amendment.md`
 does the same for v1.11 (the motion system): §11 is what was decided while
-building it, §13 the P9 measurements. If implementation
+building it, §13 the P9 measurements. `SPEC_v1.13_amendment.md` does the
+same for v1.13 (the Traditional Chinese edition): §6 is the Chinese-copy
+approval table, §11 the choices made while building it. If implementation
 conflicts with any of these, STOP and flag the conflict — do not
 improvise a resolution.
 
@@ -27,7 +29,9 @@ improvise a resolution.
    metrics, dates, quotes, or project facts. All numbers must come from
    SPEC.md §7 or from Suyu directly. Anything marked `TODO(...)` stays as
    a visible TODO in the rendered page — do not fill it with
-   plausible-looking values.
+   plausible-looking values. A Chinese string is a translation of an
+   English one (SPEC.md §7.5): it adds and drops nothing, keeps every
+   number in digits, and ships only once Suyu has approved it.
 2. **Fail loud.** No silent catch blocks. The build fails on broken MDX
    and missing or invalid frontmatter (`lib/content.ts`), and on an image
    missing from a `Figure` (`components/Figure.tsx`). Dead internal links
@@ -49,14 +53,21 @@ improvise a resolution.
    spec change, not a code change.
 4. **Design tokens are frozen.** Only the colors and fonts in SPEC.md §4
    may appear. A new color or font is a spec change, not a code change.
-5. **Handwriting font is display-only.** The handwriting face (Caveat)
-   appears only at ≥ 20px, and never in body copy, tags, or long
-   passages. Body, tags, labels, and code are all JetBrains Mono — there
-   is no sans/Inter face (removed 2026-07-29); don't reintroduce one
-   without a spec change.
+   Since v1.13 the fonts include Iansui and the `--font-cjk-sans` system
+   stack, both on `/zh-tw` pages only (SPEC.md §4.2).
+5. **Handwriting font is display-only.** The handwriting faces (Caveat,
+   and Iansui for Chinese) appear only at ≥ 20px, and never in body copy,
+   tags, or long passages. Body, tags, labels, and code are all
+   JetBrains Mono, falling back to `--font-cjk-sans` for Chinese
+   characters — there is no Latin sans/Inter face (removed 2026-07-29);
+   don't reintroduce one without a spec change.
 6. **No dark mode.** Do not add `prefers-color-scheme` styling. The paper
    aesthetic is light-only by design.
-7. **English only.** No i18n scaffolding, no locale routing.
+7. **Two locales, no more.** English and Traditional Chinese (SPEC.md
+   v1.13): English is the default and its URLs never change; Chinese
+   lives under `/zh-tw`. No i18n library, no locale detection, no
+   redirects, no request-time locale routing. A third locale is a spec
+   change.
 8. **TypeScript strict.** No `any` without a one-line justification comment.
 9. **Chatbot output is content. IMPORTANT: silent when broken, like
    rule 1.** Rule 1 applies to AI-generated replies:
@@ -76,12 +87,16 @@ improvise a resolution.
     paragraphs, figure captions, chart titles, diagram rails, card
     one-liners, `content/chatbot/*.md`, bot replies, and the system
     prompt in `lib/chatbotPrompt.ts`. Two frozen exceptions: the
-    standardized fallback line (SPEC-CHATBOT.md §4) in **both** of its
-    copies, `content/ask-my-notes.mdx` and `lib/chatbotKnowledge.ts`,
-    because the `/study` gap analysis matches that exact string; and the
+    standardized fallback line (SPEC-CHATBOT.md §4) in **each** of its
+    copies, `content/ask-my-notes.mdx`, `lib/chatbotKnowledge.ts` and the
+    English quote of it in `content/zh-tw/ask-my-notes.mdx` (v1.13; the
+    build checks it matches the constant), because the `/study` gap
+    analysis matches that exact string; and the
     `Avoid the em dash (—)` instruction in `lib/chatbotPrompt.ts`, where
     the glyph is the subject of the sentence. Code comments are not
-    visitor-facing and are out of scope.
+    visitor-facing and are out of scope. Chinese copy is covered too: no
+    破折號 (——) outside the same name-separator uses, and the build fails
+    on a U+2014 in Chinese copy or Chinese MDX.
 
 ## Conventions
 
@@ -175,7 +190,8 @@ every new component too.
 
 - Design decisions happen with Suyu in claude.ai; this repo implements
   SPEC.md phases P0–P5, then SPEC-CHATBOT.md phases C0–C9, **in order**,
-  then SPEC.md phases P6–P7 (v1.6), P8 (v1.8) and P9 (v1.11).
+  then SPEC.md phases P6–P7 (v1.6), P8 (v1.8), P9 (v1.11) and P10
+  (v1.13).
 - Each phase ends with its acceptance checklist (SPEC.md §9 /
   SPEC-CHATBOT.md §9) fully passing. Do not start the next phase with
   failing items.

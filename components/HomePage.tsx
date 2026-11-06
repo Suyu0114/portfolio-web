@@ -10,14 +10,19 @@ import Reveal from "@/components/Reveal";
 import SketchButtonLink from "@/components/SketchButtonLink";
 import SketchCard from "@/components/SketchCard";
 import WobblyUnderline from "@/components/WobblyUnderline";
-import { getAllProjects } from "@/lib/content";
-import { ABOUT, HERO } from "@/lib/siteContent";
+import { getProjects } from "@/lib/content";
+import { localePath, type Locale } from "@/lib/i18n";
+import { toProjectCard } from "@/lib/projectCards";
+import { getSiteCopy } from "@/lib/siteContent";
 
-export default function Home() {
-  // getAllProjects() is already sorted by frontmatter order.
-  const featured = getAllProjects()
+// The home page — SPEC §6.1 — in either locale (SPEC v1.13).
+export default function HomePage({ locale }: { locale: Locale }) {
+  const { hero: HERO, about: ABOUT, ui, availability } = getSiteCopy(locale);
+  // getProjects() is already sorted by frontmatter order.
+  const featured = getProjects(locale)
     .filter((p) => p.frontmatter.featured)
-    .slice(0, 3);
+    .slice(0, 3)
+    .map((p) => toProjectCard(locale, p.frontmatter));
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6">
@@ -59,13 +64,13 @@ export default function Home() {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <OpenChatButton label={HERO.chatCta} className="mo-rise [--i:2]" />
             <SketchButtonLink
-              href="/about"
+              href={localePath(locale, "/about")}
               label={HERO.aboutCta}
               rotate="cw"
               className="mo-rise [--i:3]"
             />
             <SketchButtonLink
-              href={`/about#${ABOUT.interestsId}`}
+              href={`${localePath(locale, "/about")}#${ABOUT.interestsId}`}
               label={HERO.interestsCta}
               border="b"
               rotate="ccw"
@@ -81,7 +86,7 @@ export default function Home() {
             <ContactLinks linkClassName="text-accent underline" />
           </p>
         </div>
-        <CalibrationDoodle />
+        <CalibrationDoodle caption={HERO.doodleCaption} />
       </section>
 
       {/* Featured notes — SPEC §6.1.2. Each block fades up once as it
@@ -91,18 +96,19 @@ export default function Home() {
       <section className="py-10">
         <Reveal>
           <h2 className="font-display text-3xl font-medium">
-            featured notes <DoodleArrow className="ml-1" draw="reveal" />
+            {`${ui.featuredHeading} `}<DoodleArrow className="ml-1" draw="reveal" />
           </h2>
         </Reveal>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map(({ frontmatter: fm }, i) => (
-            <Reveal key={fm.slug} className="grid">
+          {featured.map((card, i) => (
+            <Reveal key={card.slug} className="grid">
               <SketchCard
-                title={fm.title}
-                tags={fm.tags}
-                oneLiner={fm.oneLiner}
-                href={`/projects/${fm.slug}`}
+                title={card.title}
+                tags={card.tagLabels}
+                oneLiner={card.oneLiner}
+                href={card.href}
                 variant={i % 2 === 0 ? "a" : "b"}
+                copy={ui.card}
               />
             </Reveal>
           ))}
@@ -110,10 +116,10 @@ export default function Home() {
         <Reveal>
           <p className="mt-7">
             <Link
-              href="/projects"
+              href={localePath(locale, "/projects")}
               className="mo-color text-sm text-muted hover:text-ink"
             >
-              all projects <LinkArrow />
+              {`${ui.allProjects} `}<LinkArrow />
             </Link>
           </p>
         </Reveal>
@@ -121,7 +127,7 @@ export default function Home() {
 
       {/* Contact strip — SPEC §6.1.3 */}
       <Reveal>
-        <ContactStrip />
+        <ContactStrip availability={availability} />
       </Reveal>
     </main>
   );

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "check": "node scripts/check-tokens.mjs && node scripts/check-links.mjs && node scripts/check-motion.mjs"
+    "check": "node scripts/check-tokens.mjs && node scripts/check-links.mjs && node scripts/check-motion.mjs && node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

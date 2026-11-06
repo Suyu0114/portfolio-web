@@ -6,49 +6,63 @@ import StudyArch from "@/components/StudyArch";
 import StudyNulls from "@/components/StudyNulls";
 import WorldCupArch from "@/components/WorldCupArch";
 import WorldCupCalibration from "@/components/WorldCupCalibration";
-import { slugify } from "@/lib/headings";
+import type { Heading } from "@/lib/headings";
+import type { Locale } from "@/lib/i18n";
 
 /**
  * MDX component map — SPEC §8: handwriting h2 headings, code blocks in
  * mono on --card, plus the case-study visuals (Figure screenshots,
- * per-project architecture flows, and rough.js data charts).
+ * per-project architecture flows, and rough.js data charts). The visuals
+ * get the page's locale here, so an MDX file never names one (SPEC v1.13).
  */
-export const mdxComponents: MDXComponents = {
-  // Each h2 carries the id the contents line links to (SPEC §6.3, v1.6),
-  // from the same slugify as getH2Headings. Fail loud: a heading with
-  // inline markup has no plain text to derive the id from, and rendering
-  // it without one would leave its contents link dead.
-  h2: ({ children, ...props }) => {
-    if (typeof children !== "string") {
-      throw new Error("MDX h2 headings must be plain text so they can carry a contents id");
-    }
-    return (
-      <h2 id={slugify(children)} className="mt-10 font-display text-2xl font-medium" {...props}>
-        {children}
-      </h2>
-    );
-  },
-  h3: (props) => (
-    <h3 className="mt-6 text-[15px] font-semibold text-ink" {...props} />
-  ),
-  p: (props) => <p className="mt-3" {...props} />,
-  ul: (props) => <ul className="mt-3 list-disc pl-5" {...props} />,
-  ol: (props) => <ol className="mt-3 list-decimal pl-5" {...props} />,
-  a: (props) => <a className="text-accent underline" {...props} />,
-  code: (props) => (
-    <code className="rounded-sm bg-card px-1 font-mono text-[13px] text-ink" {...props} />
-  ),
-  pre: (props) => (
-    <pre
-      className="mt-4 overflow-x-auto rounded-sm border border-rule bg-card p-4 font-mono text-[13px] leading-relaxed"
-      {...props}
-    />
-  ),
-  Figure,
-  AssistantArch,
-  BlueJaysArch,
-  WorldCupArch,
-  WorldCupCalibration,
-  StudyArch,
-  StudyNulls,
-};
+export function getMdxComponents(
+  locale: Locale,
+  headings: readonly Heading[],
+): MDXComponents {
+  const ids = new Map(headings.map((h) => [h.text, h.id]));
+  return {
+    // Each h2 carries the id the contents line links to (SPEC §6.3, v1.6),
+    // looked up by its text in the headings the contents line was built
+    // from: slugified in English, the English heading's id in a
+    // translation (v1.13). Fail loud: a heading with inline markup has no
+    // plain text to look up, and one the list lacks would leave its
+    // contents link dead.
+    h2: ({ children, ...props }) => {
+      if (typeof children !== "string") {
+        throw new Error("MDX h2 headings must be plain text so they can carry a contents id");
+      }
+      const id = ids.get(children);
+      if (id === undefined) {
+        throw new Error(`MDX h2 "${children}" is not among the body's headings`);
+      }
+      return (
+        <h2 id={id} className="mt-10 font-display text-2xl font-medium" {...props}>
+          {children}
+        </h2>
+      );
+    },
+    h3: (props) => (
+      <h3 className="mt-6 text-[15px] font-semibold text-ink" {...props} />
+    ),
+    p: (props) => <p className="mt-3" {...props} />,
+    ul: (props) => <ul className="mt-3 list-disc pl-5" {...props} />,
+    ol: (props) => <ol className="mt-3 list-decimal pl-5" {...props} />,
+    a: (props) => <a className="text-accent underline" {...props} />,
+    code: (props) => (
+      <code className="rounded-sm bg-card px-1 font-mono text-[13px] text-ink" {...props} />
+    ),
+    pre: (props) => (
+      <pre
+        className="mt-4 overflow-x-auto rounded-sm border border-rule bg-card p-4 font-mono text-[13px] leading-relaxed"
+        {...props}
+      />
+    ),
+    Figure,
+    AssistantArch: () => <AssistantArch locale={locale} />,
+    BlueJaysArch: () => <BlueJaysArch locale={locale} />,
+    WorldCupArch: () => <WorldCupArch locale={locale} />,
+    WorldCupCalibration: () => <WorldCupCalibration locale={locale} />,
+    StudyArch: () => <StudyArch locale={locale} />,
+    StudyNulls: () => <StudyNulls locale={locale} />,
+  };
+}

@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
 import ContactLinks from "@/components/ContactLinks";
 import Photo from "@/components/Photo";
 import WobblyUnderline from "@/components/WobblyUnderline";
-import { ABOUT, CONTACT } from "@/lib/siteContent";
-
-export const metadata: Metadata = {
-  title: "about",
-  description:
-    "Suyu — Toronto-based full-stack engineer: six years of ERP, CRM, and business systems, now integrating AI.",
-};
+import type { Locale } from "@/lib/i18n";
+import { getSiteCopy } from "@/lib/siteContent";
 
 // `sizes` below is the photo's own width, not its frame's: the frame adds
 // 2px of border and p-3 (or compact p-2) on each side. Sizing to the frame
@@ -18,7 +12,9 @@ export const metadata: Metadata = {
 const PAIR_SIZES = "(min-width: 672px) 274px, calc(50vw - 60px)";
 const SINGLE_SIZES = "(min-width: 432px) 356px, calc(100vw - 76px)";
 
-export default function AboutPage() {
+// The about page — SPEC §6.4 — in either locale (SPEC v1.13).
+export default function AboutPage({ locale }: { locale: Locale }) {
+  const { about: ABOUT, availability } = getSiteCopy(locale);
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
       <h1 className="font-display text-4xl font-bold sm:text-5xl">
@@ -85,7 +81,7 @@ export default function AboutPage() {
           so a low-resolution still isn't stretched across the column. The id
           is the target of the home hero's interests link (v1.8). */}
       <section id={ABOUT.interestsId} className="mt-12">
-        <h2 className="font-display text-2xl font-medium">interests</h2>
+        <h2 className="font-display text-2xl font-medium">{ABOUT.interestsHeading}</h2>
         <div className="mt-3 space-y-8">
           {ABOUT.interests.map((block) => (
             <div key={block.body.slice(0, 24)}>
@@ -117,11 +113,11 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-12 border-t border-rule pt-6">
-        <h2 className="font-display text-2xl font-medium">contact</h2>
+        <h2 className="font-display text-2xl font-medium">{ABOUT.contactHeading}</h2>
         <p className="mt-3 text-sm">
-          <span className="text-ink-soft">{CONTACT.availability}</span>
+          <span className="text-ink-soft">{availability}</span>
           {" · "}
-          {/* Resting underline, matching the home hero's contact line (app/page.tsx); see the note there. */}
+          {/* Resting underline, matching the home hero's contact line (HomePage); see the note there. */}
           <ContactLinks linkClassName="text-accent underline" />
         </p>
       </section>

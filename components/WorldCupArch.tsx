@@ -1,19 +1,11 @@
 import ArchFlow from "@/components/ArchFlow";
+import { getVisualsCopy } from "@/lib/caseStudyVisuals";
+import type { Locale } from "@/lib/i18n";
 
 // World Cup forecasting architecture. Framing (SPEC §7.1): the model is a
 // clearly-labeled experimental layer; de-vigged market odds are the
-// benchmark, shown side by side.
-export default function WorldCupArch() {
-  return (
-    <ArchFlow
-      caption="Elo → Dixon-Coles → Monte Carlo, benchmarked against the market"
-      rail="GitHub Actions matchday recompute: ingest → predict → simulate → ingest odds → calibrate"
-      steps={[
-        { label: "Elo + fixtures + market odds", note: "eloratings · football-data · Odds API" },
-        { label: "Dixon-Coles engine", note: "pure-function Python" },
-        { label: "Monte Carlo (10k sims)", note: "groups + Annex C knockout" },
-        { label: "Supabase → Next.js", note: "model ∥ de-vigged market" },
-      ]}
-    />
-  );
+// benchmark, shown side by side. The words are in lib/caseStudyVisuals.ts,
+// per locale.
+export default function WorldCupArch({ locale }: { locale: Locale }) {
+  return <ArchFlow {...getVisualsCopy(locale).worldCupArch} />;
 }

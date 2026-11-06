@@ -1,49 +1,31 @@
-import type { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import CaseStudyContents from "@/components/CaseStudyContents";
 import LinkArrow from "@/components/LinkArrow";
 import NextNote from "@/components/NextNote";
 import TagPill from "@/components/TagPill";
 import WobblyUnderline from "@/components/WobblyUnderline";
-import { getAllProjects, getProjectBySlug } from "@/lib/content";
-import { getH2Headings } from "@/lib/headings";
-import { mdxComponents } from "@/lib/mdxComponents";
-import { SITE_URL } from "@/lib/site";
+import { getProject, getProjects } from "@/lib/content";
+import { localePath, type Locale } from "@/lib/i18n";
+import { getMdxComponents } from "@/lib/mdxComponents";
+import { getSiteCopy } from "@/lib/siteContent";
 
-type Params = { params: Promise<{ slug: string }> };
-
-// SSG only — unknown slugs 404 instead of rendering dynamically.
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getAllProjects().map((p) => ({ slug: p.frontmatter.slug }));
-}
-
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
-  const { frontmatter } = getProjectBySlug(slug);
-  return {
-    title: frontmatter.title,
-    description: frontmatter.oneLiner,
-    openGraph: {
-      title: `${frontmatter.title} — Suyu`,
-      description: frontmatter.oneLiner,
-      url: `${SITE_URL}/projects/${frontmatter.slug}`,
-    },
-  };
-}
-
-export default async function CaseStudyPage({ params }: Params) {
-  const { slug } = await params;
-  const { frontmatter: fm, body } = getProjectBySlug(slug);
-  const headings = getH2Headings(body);
+// A case study — SPEC §6.3 — in either locale (SPEC v1.13).
+export default function CaseStudyPage({
+  locale,
+  slug,
+}: {
+  locale: Locale;
+  slug: string;
+}) {
+  const { ui } = getSiteCopy(locale);
+  const { frontmatter: fm, body, headings } = getProject(locale, slug);
 
   // Next note by frontmatter order, wrapping from the last back to the
-  // first (SPEC §6.3, v1.6). getAllProjects() is already sorted by order.
-  const projects = getAllProjects();
+  // first (SPEC §6.3, v1.6). getProjects() is already sorted by order.
+  const projects = getProjects(locale);
   const index = projects.findIndex((p) => p.frontmatter.slug === fm.slug);
   if (index === -1) {
-    throw new Error(`CaseStudyPage: "${fm.slug}" is missing from getAllProjects()`);
+    throw new Error(`CaseStudyPage: "${fm.slug}" is missing from getProjects()`);
   }
   const next = projects[(index + 1) % projects.length].frontmatter;
 
@@ -56,7 +38,7 @@ export default async function CaseStudyPage({ params }: Params) {
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs text-muted">{fm.year}</span>
           {fm.tags.map((tag, i) => (
-            <TagPill key={tag} label={tag} rotate={i % 2 === 1 ? "ccw" : "none"} />
+            <TagPill key={tag} label={ui.tags[tag]} rotate={i % 2 === 1 ? "ccw" : "none"} />
           ))}
         </div>
         <p className="mt-4 text-ink">{fm.oneLiner}</p>
@@ -64,29 +46,41 @@ export default async function CaseStudyPage({ params }: Params) {
           <p className="mt-3 flex flex-wrap gap-4 text-sm">
             {fm.links.demo && (
               <a href={fm.links.demo} target="_blank" rel="noreferrer" className="text-accent underline">
-                live demo <LinkArrow />
+                {`${ui.caseStudy.demo} `}<LinkArrow />
               </a>
             )}
             {fm.links.repo && (
               <a href={fm.links.repo} target="_blank" rel="noreferrer" className="text-accent underline">
-                repo <LinkArrow />
+                {`${ui.caseStudy.repo} `}<LinkArrow />
               </a>
             )}
             {fm.links.writeup && (
               <a href={fm.links.writeup} target="_blank" rel="noreferrer" className="text-accent underline">
-                write-up <LinkArrow />
+                {`${ui.caseStudy.writeup} `}<LinkArrow />
               </a>
             )}
           </p>
         )}
-        <CaseStudyContents headings={headings} />
+        <CaseStudyContents
+          headings={headings}
+          label={ui.caseStudy.contentsLabel}
+          lead={ui.caseStudy.contentsLead}
+        />
       </header>
 
       <article className="mt-4">
-        <MDXRemote source={body} components={mdxComponents} />
+        <MDXRemote source={body} components={getMdxComponents(locale, headings)} />
       </article>
 
-      <NextNote next={{ slug: next.slug, title: next.title }} />
+      <NextNote
+        next={{ href: localePath(locale, `/projects/${next.slug}`), title: next.title }}
+        allHref={localePath(locale, "/projects")}
+        copy={{
+          label: ui.caseStudy.moreNotesLabel,
+          allProjects: ui.caseStudy.allProjects,
+          nextNotePrefix: ui.caseStudy.nextNotePrefix,
+        }}
+      />
     </main>
   );
 }

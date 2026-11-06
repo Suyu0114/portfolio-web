@@ -6,7 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PROJECT_GRID_CLASS } from "@/components/ProjectGrid";
 import Reveal from "@/components/Reveal";
 import SketchCard from "@/components/SketchCard";
-import { FACET_TAGS, type ProjectCardData } from "@/lib/facets";
+import {
+  FACET_TAGS,
+  type CardCopy,
+  type FacetTag,
+  type ProjectCardData,
+} from "@/lib/facets";
 import { INSTANT, LAYOUT_TRANSITION } from "@/lib/motion";
 
 // Layout animation needs Motion's larger feature set, loaded here only, so
@@ -27,10 +32,27 @@ const loadLayoutFeatures = () =>
 // first render don't animate in. With reduced motion the markup is the
 // same (it must match whatever the server rendered, which can't know the
 // preference) and only the transition changes, to instant.
+//
+// Every word arrives already in the page's locale (SPEC v1.13), so this
+// client bundle carries no copy of its own.
+export type FilterCopy = {
+  label: string;
+  all: string;
+  empty: string;
+  tags: Readonly<Record<FacetTag, string>>;
+};
+
 export default function FacetFilter({
   projects,
+  path,
+  copy,
+  cardCopy,
 }: {
   projects: readonly ProjectCardData[];
+  /** This page's path in its locale, which the ?tag= state rides on. */
+  path: string;
+  copy: FilterCopy;
+  cardCopy: CardCopy;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,7 +66,7 @@ export default function FacetFilter({
 
   function setTag(tag: string | null) {
     router.replace(
-      tag ? `/projects?tag=${encodeURIComponent(tag)}` : "/projects",
+      tag ? `${path}?tag=${encodeURIComponent(tag)}` : path,
       { scroll: false },
     );
   }
@@ -57,14 +79,14 @@ export default function FacetFilter({
     <div>
       {/* The chips render on the client only, so they rise in as they
           mount rather than popping in (SPEC §4.4). */}
-      <div className="mo-rise flex flex-wrap gap-2" role="group" aria-label="Filter projects by tag">
+      <div className="mo-rise flex flex-wrap gap-2" role="group" aria-label={copy.label}>
         <button
           type="button"
           aria-pressed={activeTag === null}
           onClick={() => setTag(null)}
           className={`${chipBase} ${activeTag === null ? chipOn : chipOff}`}
         >
-          all
+          {copy.all}
         </button>
         {FACET_TAGS.map((tag) => (
           <button
@@ -74,7 +96,7 @@ export default function FacetFilter({
             onClick={() => setTag(tag)}
             className={`${chipBase} ${activeTag === tag ? chipOn : chipOff}`}
           >
-            {tag}
+            {copy.tags[tag]}
           </button>
         ))}
       </div>
@@ -82,9 +104,7 @@ export default function FacetFilter({
       <div className="mt-6">
         {filtered.length === 0 ? (
           // Should be unreachable with v1 tags (SPEC §6.2).
-          <p className="font-display text-xl text-muted">
-            nothing filed under this tag (yet)
-          </p>
+          <p className="font-display text-xl text-muted">{copy.empty}</p>
         ) : (
           <LazyMotion features={loadLayoutFeatures} strict>
             <div className={`relative ${PROJECT_GRID_CLASS}`}>
@@ -102,10 +122,11 @@ export default function FacetFilter({
                     <Reveal className="grid">
                       <SketchCard
                         title={p.title}
-                        tags={p.tags}
+                        tags={p.tagLabels}
                         oneLiner={p.oneLiner}
-                        href={`/projects/${p.slug}`}
+                        href={p.href}
                         variant={i % 2 === 0 ? "a" : "b"}
+                        copy={cardCopy}
                       />
                     </Reveal>
                   </m.div>

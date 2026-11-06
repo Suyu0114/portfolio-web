@@ -14,6 +14,11 @@
  */
 export const SITE_URL = "https://suyu-portfolio.vercel.app";
 
+/** An absolute URL for a site path; the home page has no trailing slash. */
+export function absoluteUrl(path: string): string {
+  return path === "/" ? SITE_URL : `${SITE_URL}${path}`;
+}
+
 export const SITE_NAME = "Suyu — field notes";
 
 // Kept under ~160 characters so search results show it whole (SPEC §6.5

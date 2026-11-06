@@ -11,14 +11,20 @@ import type { Heading } from "@/lib/headings";
 // Footer: axe link-in-text-block).
 export default function CaseStudyContents({
   headings,
+  label,
+  lead,
 }: {
   headings: readonly Heading[];
+  /** The nav's accessible name. */
+  label: string;
+  /** The visible word before the links. */
+  lead: string;
 }) {
   return (
-    <nav aria-label="Contents" className="mt-5 text-sm leading-7 text-muted">
+    <nav aria-label={label} className="mt-5 text-sm leading-7 text-muted">
       {/* The nav's aria-label already names this for assistive tech. */}
       <span aria-hidden="true" className="mr-3 text-ink-soft">
-        contents:
+        {lead}
       </span>
       <ul className="inline">
         {headings.map((h) => (

@@ -1,18 +1,18 @@
 import type { StaticImageData } from "next/image";
-import bluejaysGame1 from "@/public/photos/bluejays-game-1.jpg";
-import bluejaysGame2 from "@/public/photos/bluejays-game-2.jpg";
-import freediving1 from "@/public/photos/freediving-1.jpg";
-import freediving2 from "@/public/photos/freediving-2.jpg";
-import hiking1 from "@/public/photos/hiking-1.jpg";
-import hiking2 from "@/public/photos/hiking-2.jpg";
-import portrait from "@/public/photos/portrait.jpg";
-import powerlifting1 from "@/public/photos/powerlifting-1.jpg";
-import powerlifting2 from "@/public/photos/powerlifting-2.jpg";
+import type { FacetTag } from "@/lib/facets";
+import type { Locale } from "@/lib/i18n";
+import { PHOTOS } from "@/lib/photos";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { SITE_COPY_ZH, SITE_COPY_ZH_EXTRA_NUMBERS } from "@/lib/siteContent.zh-tw";
+import { assertTranslatedCopy } from "@/lib/translationChecks";
 
 /**
  * Site copy — SPEC.md §1, §5, §6.1. Content constants per CLAUDE.md
  * conventions; no prose hardcoded inside components. Featured cards
  * come from content/*.mdx frontmatter, not from here.
+ *
+ * This file is the English copy. Each locale's copy has the same shape
+ * (`SiteCopy`), and pages read it through getSiteCopy (SPEC.md v1.13).
  */
 
 /**
@@ -28,7 +28,7 @@ type VolunteerRole = { title: string; detail?: string; when: string };
 /** An interests block on /about: one paragraph, then its photos. */
 type InterestBlock = { body: string; photos: readonly SitePhoto[] };
 
-export const HERO = {
+const HERO = {
   headline: "field notes",
   // Positioning statement (SPEC §1); wording chosen by Suyu at v1.7. The
   // absence of "Senior" is deliberate — see SPEC §1. Its copies in
@@ -47,15 +47,16 @@ export const HERO = {
   doodleCaption: "calibration, hand-checked",
   // Beside the intro (SPEC §6.1, v1.6 P7): alt text, no caption.
   portrait: {
-    image: portrait,
+    image: PHOTOS.portrait,
     alt: "Suyu smiling in a Blue Jays cap and jersey",
   },
 } as const;
 
-/** Contact details — supplied by Suyu (SPEC §10). */
+/**
+ * Contact details — supplied by Suyu (SPEC §10). Shared by every locale;
+ * the availability sentence is copy, so it lives in each locale's copy.
+ */
 export const CONTACT = {
-  availability:
-    "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation.",
   email: "suyu0229@gmail.com",
   github: "https://github.com/Suyu0114",
   linkedin: "https://www.linkedin.com/in/suyu-cheng",
@@ -63,7 +64,7 @@ export const CONTACT = {
   medium: "https://medium.com/@suyu0229",
 } as const;
 
-export const FOOTER = {
+const FOOTER = {
   handNote: "drawn with rough.js",
 } as const;
 
@@ -76,12 +77,12 @@ const INTERESTS: readonly InterestBlock[] = [
     body: "Outside the code: baseball, and the Blue Jays in particular, which is how BlueJaysFanWeb happened.",
     photos: [
       {
-        image: bluejaysGame1,
+        image: PHOTOS.bluejaysGame1,
         alt: "Suyu from behind in a Springer 4 jersey, holding a cap up toward the field at Rogers Centre",
         caption: "my Springer jersey, Rogers Centre",
       },
       {
-        image: bluejaysGame2,
+        image: PHOTOS.bluejaysGame2,
         alt: "Suyu pointing up at a Blue Jays trophy display case",
         caption: "the trophy case at Rogers Centre",
       },
@@ -95,14 +96,14 @@ const INTERESTS: readonly InterestBlock[] = [
     body: "I also lift. Back in Taiwan I trained after work four or five times a week, and in 2022 I represented Yilan County in powerlifting at the Citizens Sports Games, Taiwan's national multi-sport games where each county and city sends a team. My results at that meet: a 205 kg squat, a 120 kg bench press and a 230 kg deadlift.",
     photos: [
       {
-        image: powerlifting1,
+        image: PHOTOS.powerlifting1,
         alt: "Suyu at the bar for a 230 kg deadlift on the competition platform, with referees watching",
         caption: "the 230 kg deadlift",
       },
       {
         // Suyu's own edit: the other lifters' faces are covered (SPEC §6.4
         // privacy rules), cropped to 4:3 to sit level with the deadlift.
-        image: powerlifting2,
+        image: PHOTOS.powerlifting2,
         alt: "Suyu sitting in the competition warm-up area in a blue jacket, next to other lifters",
         caption: "in the warm-up area",
       },
@@ -112,22 +113,22 @@ const INTERESTS: readonly InterestBlock[] = [
     body: "On weekends I like getting outdoors: hiking in the mountains, or freediving in the sea.",
     photos: [
       {
-        image: hiking1,
+        image: PHOTOS.hiking1,
         alt: "Suyu standing on a road between towering walls of snow under a clear blue sky",
         caption: "snow walls in the mountains",
       },
       {
-        image: hiking2,
+        image: PHOTOS.hiking2,
         alt: "Suyu in sunglasses and a fleece jacket by a rocky river, with snow-covered peaks behind",
         caption: "below the snowy peaks",
       },
       {
-        image: freediving1,
+        image: PHOTOS.freediving1,
         alt: "Suyu in a wetsuit and mask at the sea surface, one hand raised, with green hills behind",
         caption: "freediving",
       },
       {
-        image: freediving2,
+        image: PHOTOS.freediving2,
         alt: "Suyu freediving in deep blue water beside a guide line, seen from below as a silhouette",
         caption: "down the line",
       },
@@ -163,7 +164,7 @@ const VOLUNTEER_ROLES: readonly VolunteerRole[] = [
  * About page copy — SPEC §6.4. Bio + "how I work" + interests, drawn
  * from the approved positioning (§1) and verified project facts.
  */
-export const ABOUT = {
+const ABOUT = {
   headline: "about",
   // The interests section's id, which the hero's interests link jumps to
   // (SPEC §6.1 and §6.4, v1.8). One constant rather than two literals:
@@ -171,7 +172,7 @@ export const ABOUT = {
   interestsId: "interests",
   // Beside the bio (SPEC §6.4, v1.6 P7): the hero's photo, alt text only.
   portrait: {
-    image: portrait,
+    image: PHOTOS.portrait,
     alt: "Suyu smiling in a Blue Jays cap and jersey",
   },
   // Bio order and the exact credential wording are fixed by SPEC §6.4.
@@ -214,5 +215,110 @@ export const ABOUT = {
       "In 2025 I volunteered with Back Alley Barbell at strength competitions in Toronto: setting up, then working the floor as a spotter and safety crew.",
     roles: VOLUNTEER_ROLES,
   },
+  interestsHeading: "interests",
   interests: INTERESTS,
+  contactHeading: "contact",
 } as const;
+
+/**
+ * Microcopy: nav labels, link text, and labels for assistive tech
+ * (CLAUDE.md conventions allow these in components; they live here so
+ * each locale has its own).
+ */
+const UI = {
+  skipLink: "skip to content",
+  nav: {
+    label: "Primary",
+    home: "home",
+    projects: "projects",
+    about: "about",
+    resume: "resume",
+  },
+  featuredHeading: "featured notes",
+  allProjects: "all projects",
+  card: {
+    cta: "read case study",
+    // The card link's accessible name is this plus the project title.
+    ctaLabelPrefix: "read case study: ",
+  },
+  filter: {
+    label: "Filter projects by tag",
+    all: "all",
+    empty: "nothing filed under this tag (yet)",
+  },
+  // Facet labels by tag (SPEC §7). The keys and the ?tag= values stay
+  // English in every locale; only the label changes.
+  tags: {
+    "full-stack": "full-stack",
+    AI: "AI",
+    "data engineering": "data engineering",
+    modeling: "modeling",
+    frontend: "frontend",
+    BI: "BI",
+    research: "research",
+  } satisfies Record<FacetTag, string>,
+  caseStudy: {
+    demo: "live demo",
+    repo: "repo",
+    writeup: "write-up",
+    contentsLabel: "Contents",
+    contentsLead: "contents:",
+    moreNotesLabel: "More notes",
+    allProjects: "all projects",
+    nextNotePrefix: "next note: ",
+  },
+} as const;
+
+/** Per-page metadata (SPEC §6.5): titles take the " — Suyu" suffix. */
+const META = {
+  title: "field notes",
+  siteName: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  projectsTitle: "projects",
+  projectsDescription: "All projects, filterable by facet tag.",
+  aboutTitle: "about",
+  aboutDescription:
+    "Suyu — Toronto-based full-stack engineer: six years of ERP, CRM, and business systems, now integrating AI.",
+} as const;
+
+const SITE_COPY_EN = {
+  meta: META,
+  ui: UI,
+  hero: HERO,
+  availability:
+    "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation.",
+  footer: FOOTER,
+  about: ABOUT,
+} as const;
+
+/**
+ * The shape every locale's copy has: the English copy's, with any string
+ * where the English has one. Typecheck fails on a key either side lacks.
+ */
+type Widen<T> = T extends string
+  ? string
+  : T extends StaticImageData
+    ? StaticImageData
+    : T extends readonly (infer U)[]
+      ? readonly Widen<U>[]
+      : { readonly [K in keyof T]: Widen<T[K]> };
+
+export type SiteCopy = Widen<typeof SITE_COPY_EN>;
+
+const SITE_COPY: Record<Locale, SiteCopy> = {
+  en: SITE_COPY_EN,
+  "zh-tw": SITE_COPY_ZH,
+};
+
+// Fail the build if the Chinese copy lost a number, changed a photo, or
+// carries an em dash (SPEC.md §7.5; lib/translationChecks.ts). The two
+// metadata strings that open with "Suyu — " use the name separator rule 10
+// allows.
+assertTranslatedCopy(SITE_COPY_EN, SITE_COPY_ZH, "lib/siteContent.zh-tw.ts", {
+  extras: SITE_COPY_ZH_EXTRA_NUMBERS,
+  nameSeparated: ["meta.siteName", "meta.aboutDescription"],
+});
+
+export function getSiteCopy(locale: Locale): SiteCopy {
+  return SITE_COPY[locale];
+}
