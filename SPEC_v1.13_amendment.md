@@ -169,10 +169,10 @@ Add, after the route table:
 
 | Item | English (fixed) | Chinese draft | Approved |
 |---|---|---|---|
-| Positioning statement (§1), and its §6.5 copies | "Hello, I'm Suyu. For six years, …" | 你好，我是 Suyu。過去六年，我打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。 | ☑ 2026-11-05 |
+| Positioning statement (§1), and its §6.5 copies | "Hello, I'm Suyu. For six years, …" | 你好，我是 Suyu。過去六年，我打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。 Rewritten by Suyu the same day (SPEC v1.14): 你好，我是 Suyu。有 6 年企業內部系統開發經驗，打造支撐企業營運的核心系統：規劃、簽核、資產與銷售。我做的是完整而有效率的解決方案，最近也開始導入 AI，讓它們更聰明。 Its §6.5 copies are Suyu's too. | ☑ 2026-11-05 |
 | Credential (§6.4) | "Ontario College Graduate Certificate, Information Technology Solutions with Honours" | Kept in English, unglossed: no Chinese rendering risks reading as 研究所、碩士 or 文憑, which §6.4 forbids. | ☑ 2026-11-05 |
 | Work authorization (§10) | "authorized to work in Canada, no employer sponsorship required" | 可在加拿大合法工作，不需雇主擔保 (no permit type, no term: §10) | ☑ 2026-11-05 |
-| Availability (§10) | "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation." | 現在即可到職，尋找全職的全端與軟體工程職位。人在多倫多，也願意搬遷。 (no 破折號) | ☑ 2026-11-05 |
+| Availability (§10) | "Available now for full-time full-stack and software engineering roles — Toronto-based, open to relocation." | 現在即可到職，尋找全職的全端與軟體工程職位。人在多倫多，也願意搬遷。 (no 破折號). Rewritten by Suyu the same day (SPEC v1.14): 現在即可到職，尋找全職的全端、AI 整合與軟體工程職位。人在多倫多，也願意到任何地方工作。 | ☑ 2026-11-05 |
 | Companies (§6.4) | Seasonic Electronics; ACTi Corporation | The English names, as drafted. The proposed 海韻電子 and 建碁 are not used. | ☑ 2026-11-05 |
 | Powerlifting (§6.4) | the 2022 Citizens Sports Games, for Yilan County | 2022 年全民運動會，代表宜蘭縣 | ☑ 2026-11-05 |
 
